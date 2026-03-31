@@ -1,30 +1,29 @@
 // pages/index/index.js
 const app = getApp();
-const { knowledgeData, getChapterList } = require('../../utils/knowledgeData');
+const { knowledgeData } = require('../../utils/knowledgeData');
+
+// 频率限制常量
+const RATE_LIMIT_SECONDS = 10;
+const RATE_LIMIT_KEY = 'lastGenerateTime';
 
 Page({
   data: {
-    // 学期选择
-    selectedSemester: 'upper', // 'upper' 上册, 'lower' 下册
-
-    // 知识点列表
+    selectedSemester: 'upper',
     knowledgeList: [],
-
-    // 选中的知识点
     selectedKnowledge: null,
-
-    // 题目数量
-    selectedCount: 3,
-
-    // 难度选择
-    selectedDifficulty: 'medium', // 'easy', 'medium', 'hard'
-
-    // 生成状态
-    generating: false
+    selectedCount: 5,
+    selectedDifficulty: 'medium',
+    generating: false,
+    countdown: 0  // 倒计时显示
   },
 
   onLoad: function () {
     this.initKnowledgeList();
+  },
+
+  onShow: function () {
+    // 检查是否有倒计时需要恢复
+    this.checkRateLimit();
   },
 
   // 初始化知识点列表
@@ -32,12 +31,8 @@ Page({
     const semester = this.data.selectedSemester;
     const data = knowledgeData[semester];
 
-    if (!data) {
-      console.error('未找到学期数据:', semester);
-      return;
-    }
+    if (!data) return;
 
-    // 转换数据格式，包含单元名
     const knowledgeList = data.chapters.map(chapter => ({
       id: chapter.id,
       unit: chapter.unit,
@@ -46,22 +41,18 @@ Page({
     }));
 
     this.setData({ knowledgeList });
-    console.log('知识点列表初始化完成，共', knowledgeList.length, '个单元');
   },
 
   // 切换学期
   handleSemesterChange: function (e) {
     const semester = e.currentTarget.dataset.semester;
-
     if (semester === this.data.selectedSemester) return;
 
     this.setData({
       selectedSemester: semester,
-      selectedKnowledge: null // 清空已选知识点
+      selectedKnowledge: null
     });
-
     this.initKnowledgeList();
-    console.log('切换学期:', semester === 'upper' ? '上册' : '下册');
   },
 
   // 选择知识点
@@ -69,51 +60,88 @@ Page({
     const item = e.currentTarget.dataset.item;
     const chapter = e.currentTarget.dataset.chapter;
 
-    const selectedKnowledge = {
-      id: item.id,
-      name: item.name,
-      unit: chapter.unit,
-      unitName: chapter.name,
-      semester: item.semester,
-      difficulty_range: item.difficulty_range
-    };
-
-    this.setData({ selectedKnowledge });
-    console.log('选择知识点:', selectedKnowledge.name);
+    this.setData({
+      selectedKnowledge: {
+        id: item.id,
+        name: item.name,
+        unit: chapter.unit,
+        unitName: chapter.name
+      }
+    });
   },
 
   // 切换题目数量
   handleCountChange: function (e) {
-    const count = e.currentTarget.dataset.count;
-    this.setData({ selectedCount: count });
-    console.log('选择题目数量:', count);
+    this.setData({ selectedCount: e.currentTarget.dataset.count });
   },
 
   // 切换难度
   handleDifficultyChange: function (e) {
-    const difficulty = e.currentTarget.dataset.difficulty;
-    this.setData({ selectedDifficulty: difficulty });
-    console.log('选择难度:', difficulty);
+    this.setData({ selectedDifficulty: e.currentTarget.dataset.difficulty });
+  },
+
+  // 检查频率限制
+  checkRateLimit: function () {
+    const lastTime = wx.getStorageSync(RATE_LIMIT_KEY);
+    if (!lastTime) return false;
+
+    const elapsed = (Date.now() - lastTime) / 1000;
+    if (elapsed < RATE_LIMIT_SECONDS) {
+      const remaining = Math.ceil(RATE_LIMIT_SECONDS - elapsed);
+      this.startCountdown(remaining);
+      return true;
+    }
+    return false;
+  },
+
+  // 开始倒计时
+  startCountdown: function (seconds) {
+    this.setData({ countdown: seconds });
+
+    if (this.countdownTimer) {
+      clearInterval(this.countdownTimer);
+    }
+
+    this.countdownTimer = setInterval(() => {
+      const newCount = this.data.countdown - 1;
+      if (newCount <= 0) {
+        clearInterval(this.countdownTimer);
+        this.setData({ countdown: 0 });
+      } else {
+        this.setData({ countdown: newCount });
+      }
+    }, 1000);
   },
 
   // 生成练习题
   handleGenerate: async function () {
-    const { selectedKnowledge, selectedCount, selectedDifficulty } = this.data;
+    const { selectedKnowledge, selectedCount, selectedDifficulty, generating, countdown } = this.data;
 
-    // 参数校验
-    if (!selectedKnowledge) {
+    // 防止重复点击
+    if (generating) return;
+
+    // 检查倒计时
+    if (countdown > 0) {
       wx.showToast({
-        title: '请先选择知识点',
+        title: `请等待 ${countdown} 秒`,
         icon: 'none'
       });
       return;
     }
 
+    // 参数校验
+    if (!selectedKnowledge) {
+      wx.showToast({ title: '请先选择知识点', icon: 'none' });
+      return;
+    }
+
+    // 记录调用时间
+    wx.setStorageSync(RATE_LIMIT_KEY, Date.now());
+
     // 显示加载状态
     this.setData({ generating: true });
 
     try {
-      // 调用云函数生成题目
       const res = await wx.cloud.callFunction({
         name: 'generateQuestions',
         data: {
@@ -126,41 +154,61 @@ Page({
         }
       });
 
-      console.log('云函数返回:', res);
-
       const result = res.result;
+
+      // 处理频率限制错误
+      if (result.code === 'RATE_LIMITED') {
+        const waitTime = result.waitTime || RATE_LIMIT_SECONDS;
+        this.startCountdown(waitTime);
+        wx.showToast({
+          title: `请等待 ${waitTime} 秒`,
+          icon: 'none'
+        });
+        return;
+      }
 
       if (!result.success) {
         throw new Error(result.error || '生成失败');
       }
 
-      // 生成成功，跳转到练习页
+      // 保存到全局数据
       app.globalData.currentQuestions = {
         questions: result.questions,
         knowledge: selectedKnowledge,
         meta: result.meta
       };
 
+      // 跳转练习页
       wx.navigateTo({
-        url: '/pages/practice/practice?source=generated'
+        url: '/pages/practice/practice'
       });
 
     } catch (error) {
-      console.error('生成练习题失败:', error);
+      console.error('生成失败:', error);
       wx.showModal({
         title: '生成失败',
         content: error.message || '请稍后重试',
         showCancel: false
       });
+
+      // 出错时清除限制
+      wx.removeStorageSync(RATE_LIMIT_KEY);
+      this.setData({ countdown: 0 });
+
     } finally {
       this.setData({ generating: false });
     }
   },
 
-  // 分享
+  onUnload: function () {
+    if (this.countdownTimer) {
+      clearInterval(this.countdownTimer);
+    }
+  },
+
   onShareAppMessage: function () {
     return {
-      title: '小学数学错题练习 - 针对薄弱知识点专项突破',
+      title: '小学数学错题练习',
       path: '/pages/index/index'
     };
   }
