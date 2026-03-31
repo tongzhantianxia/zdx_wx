@@ -11,7 +11,7 @@ Page({
     selectedSemester: 'upper',
     knowledgeList: [],
     selectedKnowledge: null,
-    selectedCount: 5,
+    selectedCount: 3,
     selectedDifficulty: 'medium',
     generating: false,
     countdown: 0  // 倒计时显示
@@ -180,7 +180,7 @@ Page({
 
       // 跳转练习页
       wx.navigateTo({
-        url: '/pages/practice/practice'
+        url: '/pages/practice/practice?source=generated'
       });
 
     } catch (error) {
