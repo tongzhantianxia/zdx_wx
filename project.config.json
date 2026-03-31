@@ -44,7 +44,7 @@
   },
   "compileType": "miniprogram",
   "libVersion": "2.25.0",
-  "appid": "请替换为你的小程序AppID",
+  "appid": "wxca282c2384d592fd",
   "projectname": "zdx_wx",
   "debugOptions": {
     "hidedInDevtools": []
