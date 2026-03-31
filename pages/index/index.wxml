@@ -1,54 +1,138 @@
 <!--pages/index/index.wxml-->
-<view class="container index-page">
-  <!-- 用户信息区域 -->
-  <view class="user-section card">
-    <view class="user-info flex-between">
-      <view class="flex">
-        <image class="avatar" src="{{userInfo.avatarUrl || '/images/default-avatar.png'}}" mode="aspectFill"></image>
-        <view class="user-text">
-          <text class="username">{{userInfo.nickName || '未登录'}}</text>
-          <text class="user-grade">{{gradeText}}</text>
+<view class="container">
+  <!-- 顶部标题区域 -->
+  <view class="header">
+    <text class="title">数学错题练习</text>
+    <text class="subtitle">针对薄弱知识点，专项突破</text>
+  </view>
+
+  <!-- 主体选择区域 -->
+  <view class="main-content">
+    <!-- 学期选择 -->
+    <view class="select-card">
+      <view class="card-header">
+        <text class="card-title">选择学期</text>
+      </view>
+      <view class="tab-group">
+        <view
+          class="tab-item {{selectedSemester === 'upper' ? 'active' : ''}}"
+          bindtap="handleSemesterChange"
+          data-semester="upper">
+          五年级上册
+        </view>
+        <view
+          class="tab-item {{selectedSemester === 'lower' ? 'active' : ''}}"
+          bindtap="handleSemesterChange"
+          data-semester="lower">
+          五年级下册
         </view>
       </view>
-      <button class="login-btn" bindtap="handleLogin" wx:if="{{!isLoggedIn}}">
-        登录
-      </button>
+    </view>
+
+    <!-- 知识点选择 -->
+    <view class="select-card">
+      <view class="card-header">
+        <text class="card-title">选择知识点</text>
+        <text class="card-hint" wx:if="{{selectedKnowledge}}">已选: {{selectedKnowledge.name}}</text>
+      </view>
+      <scroll-view class="knowledge-list" scroll-y enhanced show-scrollbar="{{false}}">
+        <view
+          class="knowledge-group"
+          wx:for="{{knowledgeList}}"
+          wx:key="id"
+          wx:for-item="chapter">
+          <view class="group-title">第{{chapter.unit}}单元 {{chapter.name}}</view>
+          <view
+            class="knowledge-item {{selectedKnowledge && selectedKnowledge.id === item.id ? 'active' : ''}}"
+            wx:for="{{chapter.knowledges}}"
+            wx:key="id"
+            bindtap="handleKnowledgeSelect"
+            data-item="{{item}}"
+            data-chapter="{{chapter}}">
+            <view class="knowledge-name">{{item.name}}</view>
+            <view class="knowledge-difficulty">
+              <text class="diff-tag diff-{{item.difficulty_range[0]}}">
+                {{item.difficulty_range[0] === 1 ? '基础' : item.difficulty_range[0] === 2 ? '进阶' : '挑战'}}
+              </text>
+            </view>
+          </view>
+        </view>
+      </scroll-view>
+    </view>
+
+    <!-- 题目数量 -->
+    <view class="select-card">
+      <view class="card-header">
+        <text class="card-title">题目数量</text>
+      </view>
+      <view class="option-group">
+        <view
+          class="option-item {{selectedCount === 3 ? 'active' : ''}}"
+          bindtap="handleCountChange"
+          data-count="{{3}}">
+          <text class="option-number">3</text>
+          <text class="option-text">道题</text>
+        </view>
+        <view
+          class="option-item {{selectedCount === 5 ? 'active' : ''}}"
+          bindtap="handleCountChange"
+          data-count="{{5}}">
+          <text class="option-number">5</text>
+          <text class="option-text">道题</text>
+        </view>
+        <view
+          class="option-item {{selectedCount === 8 ? 'active' : ''}}"
+          bindtap="handleCountChange"
+          data-count="{{8}}">
+          <text class="option-number">8</text>
+          <text class="option-text">道题</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 难度选择 -->
+    <view class="select-card">
+      <view class="card-header">
+        <text class="card-title">难度选择</text>
+      </view>
+      <view class="option-group">
+        <view
+          class="option-item difficulty-easy {{selectedDifficulty === 'easy' ? 'active' : ''}}"
+          bindtap="handleDifficultyChange"
+          data-difficulty="easy">
+          简单
+        </view>
+        <view
+          class="option-item difficulty-medium {{selectedDifficulty === 'medium' ? 'active' : ''}}"
+          bindtap="handleDifficultyChange"
+          data-difficulty="medium">
+          中等
+        </view>
+        <view
+          class="option-item difficulty-hard {{selectedDifficulty === 'hard' ? 'active' : ''}}"
+          bindtap="handleDifficultyChange"
+          data-difficulty="hard">
+          困难
+        </view>
+      </view>
     </view>
   </view>
 
-  <!-- 统计卡片 -->
-  <view class="stats-section">
-    <view class="stat-card card" wx:for="{{stats}}" wx:key="id">
-      <text class="stat-value">{{item.value}}</text>
-      <text class="stat-label">{{item.label}}</text>
-    </view>
+  <!-- 底部生成按钮 -->
+  <view class="footer-btn">
+    <button
+      class="generate-btn {{!selectedKnowledge ? 'disabled' : ''}}"
+      bindtap="handleGenerate"
+      disabled="{{!selectedKnowledge}}">
+      {{generating ? '生成中...' : '生成练习题'}}
+    </button>
   </view>
 
-  <!-- 功能入口 -->
-  <view class="menu-section">
-    <view class="section-title">开始练习</view>
-    <view class="menu-grid">
-      <view class="menu-item card" wx:for="{{menuItems}}" wx:key="id" bindtap="handleMenuTap" data-type="{{item.type}}">
-        <view class="menu-icon" style="background-color: {{item.bgColor}}">
-          <text class="icon-text">{{item.icon}}</text>
-        </view>
-        <text class="menu-name">{{item.name}}</text>
-        <text class="menu-desc">{{item.desc}}</text>
-      </view>
-    </view>
-  </view>
-
-  <!-- 最近错题 -->
-  <view class="recent-section" wx:if="{{recentWrongQuestions.length > 0}}">
-    <view class="section-title">最近错题</view>
-    <view class="wrong-list">
-      <view class="wrong-item card" wx:for="{{recentWrongQuestions}}" wx:key="id">
-        <view class="question-content">{{item.question}}</view>
-        <view class="question-info flex-between">
-          <text class="question-time">{{item.time}}</text>
-          <text class="question-type">{{item.typeName}}</text>
-        </view>
-      </view>
+  <!-- 加载提示 -->
+  <view class="loading-mask" wx:if="{{generating}}">
+    <view class="loading-content">
+      <view class="loading-spinner"></view>
+      <text class="loading-text">正在生成练习题...</text>
     </view>
   </view>
 </view>

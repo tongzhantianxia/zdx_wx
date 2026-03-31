@@ -1,5 +1,6 @@
 {
   "navigationBarTitleText": "数学错题练习",
-  "enablePullDownRefresh": true,
-  "backgroundTextStyle": "dark"
+  "navigationStyle": "custom",
+  "enablePullDownRefresh": false,
+  "usingComponents": {}
 }

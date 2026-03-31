@@ -1,247 +1,164 @@
 // pages/index/index.js
-const app = getApp();
+const { knowledgeData, getChapterList } = require('../../utils/knowledgeData');
 
 Page({
   data: {
-    isLoggedIn: false,
-    userInfo: null,
-    gradeText: '请选择年级',
-    stats: [
-      { id: 1, label: '今日练习', value: 0 },
-      { id: 2, label: '错题数', value: 0 },
-      { id: 3, label: '正确率', value: '0%' }
-    ],
-    menuItems: [
-      {
-        id: 1,
-        name: '错题练习',
-        desc: '针对性复习',
-        type: 'wrong',
-        icon: '✎',
-        bgColor: '#FF6B6B'
-      },
-      {
-        id: 2,
-        name: '随机练习',
-        desc: '巩固知识点',
-        type: 'random',
-        icon: '?',
-        bgColor: '#4ECDC4'
-      },
-      {
-        id: 3,
-        name: '专项训练',
-        desc: '强化薄弱项',
-        type: 'special',
-        icon: '★',
-        bgColor: '#FFE66D'
-      },
-      {
-        id: 4,
-        name: '模拟测试',
-        desc: '检验学习成果',
-        type: 'exam',
-        icon: '✓',
-        bgColor: '#95E1D3'
-      }
-    ],
-    recentWrongQuestions: []
+    // 学期选择
+    selectedSemester: 'upper', // 'upper' 上册, 'lower' 下册
+
+    // 知识点列表
+    knowledgeList: [],
+
+    // 选中的知识点
+    selectedKnowledge: null,
+
+    // 题目数量
+    selectedCount: 5,
+
+    // 难度选择
+    selectedDifficulty: 'medium', // 'easy', 'medium', 'hard'
+
+    // 生成状态
+    generating: false
   },
 
   onLoad: function () {
-    this.initPage();
+    this.initKnowledgeList();
   },
 
-  onShow: function () {
-    this.refreshStats();
-  },
+  // 初始化知识点列表
+  initKnowledgeList: function () {
+    const semester = this.data.selectedSemester;
+    const data = knowledgeData[semester];
 
-  // 初始化页面
-  initPage: function () {
-    const isLoggedIn = app.globalData.isLoggedIn;
-    const userInfo = app.globalData.userInfo;
-
-    this.setData({
-      isLoggedIn,
-      userInfo
-    });
-
-    if (isLoggedIn && userInfo) {
-      this.setData({
-        gradeText: userInfo.grade || '请选择年级'
-      });
+    if (!data) {
+      console.error('未找到学期数据:', semester);
+      return;
     }
 
-    this.loadRecentWrongQuestions();
+    // 转换数据格式，包含单元名
+    const knowledgeList = data.chapters.map(chapter => ({
+      id: chapter.id,
+      unit: chapter.unit,
+      name: chapter.name,
+      knowledges: chapter.knowledges
+    }));
+
+    this.setData({ knowledgeList });
+    console.log('知识点列表初始化完成，共', knowledgeList.length, '个单元');
   },
 
-  // 刷新统计数据
-  refreshStats: function () {
-    // 从云数据库获取统计数据
-    this.loadStats();
+  // 切换学期
+  handleSemesterChange: function (e) {
+    const semester = e.currentTarget.dataset.semester;
+
+    if (semester === this.data.selectedSemester) return;
+
+    this.setData({
+      selectedSemester: semester,
+      selectedKnowledge: null // 清空已选知识点
+    });
+
+    this.initKnowledgeList();
+    console.log('切换学期:', semester === 'upper' ? '上册' : '下册');
   },
 
-  // 加载统计数据
-  loadStats: function () {
-    const db = wx.cloud.database();
+  // 选择知识点
+  handleKnowledgeSelect: function (e) {
+    const item = e.currentTarget.dataset.item;
+    const chapter = e.currentTarget.dataset.chapter;
 
-    // 获取今日练习数
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    const selectedKnowledge = {
+      id: item.id,
+      name: item.name,
+      unit: chapter.unit,
+      unitName: chapter.name,
+      semester: item.semester,
+      difficulty_range: item.difficulty_range
+    };
 
-    db.collection('practice_records')
-      .where({
-        _openid: '{openid}',
-        createTime: db.command.gte(today)
-      })
-      .count()
-      .then(res => {
-        this.setData({
-          'stats[0].value': res.total
-        });
-      })
-      .catch(err => {
-        console.error('获取统计数据失败：', err);
-      });
-
-    // 获取错题数
-    db.collection('wrong_questions')
-      .where({
-        _openid: '{openid}',
-        mastered: false
-      })
-      .count()
-      .then(res => {
-        this.setData({
-          'stats[1].value': res.total
-        });
-      })
-      .catch(err => {
-        console.error('获取错题数失败：', err);
-      });
-
-    // 计算正确率
-    db.collection('practice_records')
-      .where({
-        _openid: '{openid}'
-      })
-      .limit(100)
-      .get()
-      .then(res => {
-        const records = res.data;
-        if (records.length > 0) {
-          const correctCount = records.filter(r => r.isCorrect).length;
-          const accuracy = Math.round((correctCount / records.length) * 100);
-          this.setData({
-            'stats[2].value': accuracy + '%'
-          });
-        }
-      })
-      .catch(err => {
-        console.error('获取正确率失败：', err);
-      });
+    this.setData({ selectedKnowledge });
+    console.log('选择知识点:', selectedKnowledge.name);
   },
 
-  // 加载最近错题
-  loadRecentWrongQuestions: function () {
-    const db = wx.cloud.database();
-
-    db.collection('wrong_questions')
-      .where({
-        _openid: '{openid}',
-        mastered: false
-      })
-      .orderBy('createTime', 'desc')
-      .limit(5)
-      .get()
-      .then(res => {
-        const questions = res.data.map(q => ({
-          id: q._id,
-          question: q.question,
-          typeName: this.getQuestionTypeName(q.type),
-          time: this.formatTime(q.createTime)
-        }));
-
-        this.setData({
-          recentWrongQuestions: questions
-        });
-      })
-      .catch(err => {
-        console.error('获取错题列表失败：', err);
-      });
+  // 切换题目数量
+  handleCountChange: function (e) {
+    const count = e.currentTarget.dataset.count;
+    this.setData({ selectedCount: count });
+    console.log('选择题目数量:', count);
   },
 
-  // 处理登录
-  handleLogin: function () {
-    wx.showLoading({ title: '登录中...' });
-
-    app.login()
-      .then(userInfo => {
-        this.setData({
-          isLoggedIn: true,
-          userInfo,
-          gradeText: userInfo.grade || '请选择年级'
-        });
-        wx.hideLoading();
-        wx.showToast({ title: '登录成功', icon: 'success' });
-      })
-      .catch(err => {
-        wx.hideLoading();
-        wx.showToast({ title: '登录失败', icon: 'error' });
-      });
+  // 切换难度
+  handleDifficultyChange: function (e) {
+    const difficulty = e.currentTarget.dataset.difficulty;
+    this.setData({ selectedDifficulty: difficulty });
+    console.log('选择难度:', difficulty);
   },
 
-  // 处理菜单点击
-  handleMenuTap: function (e) {
-    const type = e.currentTarget.dataset.type;
+  // 生成练习题
+  handleGenerate: async function () {
+    const { selectedKnowledge, selectedCount, selectedDifficulty } = this.data;
 
-    if (!this.data.isLoggedIn) {
-      wx.showModal({
-        title: '提示',
-        content: '请先登录后再开始练习',
-        confirmText: '去登录',
-        success: res => {
-          if (res.confirm) {
-            this.handleLogin();
-          }
-        }
+    // 参数校验
+    if (!selectedKnowledge) {
+      wx.showToast({
+        title: '请先选择知识点',
+        icon: 'none'
       });
       return;
     }
 
-    wx.navigateTo({
-      url: `/pages/practice/practice?type=${type}`
-    });
+    // 显示加载状态
+    this.setData({ generating: true });
+
+    try {
+      // 调用云函数生成题目
+      const res = await wx.cloud.callFunction({
+        name: 'generateQuestions',
+        data: {
+          knowledgeId: selectedKnowledge.id,
+          knowledgeName: selectedKnowledge.name,
+          grade: '五年级',
+          count: selectedCount,
+          difficulty: selectedDifficulty,
+          questionType: 'calculation'
+        }
+      });
+
+      console.log('云函数返回:', res);
+
+      const result = res.result;
+
+      if (!result.success) {
+        throw new Error(result.error || '生成失败');
+      }
+
+      // 生成成功，跳转到练习页
+      wx.navigateTo({
+        url: `/pages/practice/practice?data=${encodeURIComponent(JSON.stringify({
+          questions: result.questions,
+          knowledge: selectedKnowledge,
+          meta: result.meta
+        }))}`
+      });
+
+    } catch (error) {
+      console.error('生成练习题失败:', error);
+      wx.showModal({
+        title: '生成失败',
+        content: error.message || '请稍后重试',
+        showCancel: false
+      });
+    } finally {
+      this.setData({ generating: false });
+    }
   },
 
-  // 获取题目类型名称
-  getQuestionTypeName: function (type) {
-    const typeMap = {
-      addition: '加法',
-      subtraction: '减法',
-      multiplication: '乘法',
-      division: '除法',
-      mixed: '混合运算'
+  // 分享
+  onShareAppMessage: function () {
+    return {
+      title: '小学数学错题练习 - 针对薄弱知识点专项突破',
+      path: '/pages/index/index'
     };
-    return typeMap[type] || type;
-  },
-
-  // 格式化时间
-  formatTime: function (date) {
-    const d = new Date(date);
-    const now = new Date();
-    const diff = now - d;
-
-    if (diff < 60000) return '刚刚';
-    if (diff < 3600000) return Math.floor(diff / 60000) + '分钟前';
-    if (diff < 86400000) return Math.floor(diff / 3600000) + '小时前';
-    return Math.floor(diff / 86400000) + '天前';
-  },
-
-  // 下拉刷新
-  onPullDownRefresh: function () {
-    this.refreshStats();
-    this.loadRecentWrongQuestions();
-    wx.stopPullDownRefresh();
   }
 });
