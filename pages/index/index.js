@@ -1,4 +1,5 @@
 // pages/index/index.js
+const app = getApp();
 const { knowledgeData, getChapterList } = require('../../utils/knowledgeData');
 
 Page({
@@ -13,7 +14,7 @@ Page({
     selectedKnowledge: null,
 
     // 题目数量
-    selectedCount: 5,
+    selectedCount: 3,
 
     // 难度选择
     selectedDifficulty: 'medium', // 'easy', 'medium', 'hard'
@@ -134,12 +135,14 @@ Page({
       }
 
       // 生成成功，跳转到练习页
+      app.globalData.currentQuestions = {
+        questions: result.questions,
+        knowledge: selectedKnowledge,
+        meta: result.meta
+      };
+
       wx.navigateTo({
-        url: `/pages/practice/practice?data=${encodeURIComponent(JSON.stringify({
-          questions: result.questions,
-          knowledge: selectedKnowledge,
-          meta: result.meta
-        }))}`
+        url: '/pages/practice/practice?source=generated'
       });
 
     } catch (error) {

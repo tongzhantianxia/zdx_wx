@@ -1,5 +1,6 @@
 {
   "description": "小学数学错题针对性练习工具",
+  "cloudfunctionRoot": "cloudfunctions/",
   "packOptions": {
     "ignore": [
       {

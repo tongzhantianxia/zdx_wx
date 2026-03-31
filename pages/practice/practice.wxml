@@ -26,13 +26,17 @@
     <view class="answer-input-wrap">
       <input
         class="answer-input"
-        type="{{currentQuestion.inputType || 'number'}}"
+        type="digit"
         placeholder="请输入答案"
         value="{{userAnswer}}"
         bindinput="handleAnswerInput"
         confirm-type="done"
         adjust-position="{{true}}"
+        bindconfirm="handleSubmit"
       />
+      <view class="keyboard-done-btn" bindtap="hideKeyboard" wx:if="{{userAnswer}}">
+        <text>✓</text>
+      </view>
     </view>
 
     <!-- 操作按钮 -->

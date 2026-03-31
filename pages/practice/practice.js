@@ -20,8 +20,76 @@ Page({
 
   onLoad: function (options) {
     const type = options.type || 'random';
+    const source = options.source || 'database';
     this.setData({ practiceType: type });
-    this.loadQuestions();
+
+    // 如果是从生成的题目加载
+    if (source === 'generated' && app.globalData.currentQuestions) {
+      const data = app.globalData.currentQuestions;
+      this.loadQuestionsFromData(data);
+    } else if (options.data) {
+      // 如果有通过 URL 参数传递的题目数据,直接使用
+      try {
+        const data = JSON.parse(decodeURIComponent(options.data));
+        this.loadQuestionsFromData(data);
+      } catch (err) {
+        console.error('解析题目数据失败:', err);
+        this.loadQuestions();
+      }
+    } else {
+      // 否则从数据库加载题目
+      this.loadQuestions();
+    }
+  },
+
+  // 从全局数据或 URL 参数加载题目数据
+  loadQuestionsFromData: function (data) {
+    const { questions, knowledge, meta } = data;
+
+    if (!questions || questions.length === 0) {
+      wx.showToast({ title: '暂无题目', icon: 'none' });
+      setTimeout(() => wx.navigateBack(), 1500);
+      return;
+    }
+
+    // 转换题目格式
+    const formattedQuestions = questions.map(q => ({
+      id: q.id || Date.now() + Math.random(),
+      question: q.content,
+      answer: q.answer,
+      type: q.type || '计算题',
+      typeName: q.type || '计算题',
+      difficulty: this.getDifficultyLevel(q.difficulty),
+      difficultyText: q.difficulty || '中等',
+      hint: q.tip || '',
+      explanation: q.solution || ''
+    }));
+
+    this.setData({
+      questions: formattedQuestions,
+      totalQuestions: formattedQuestions.length,
+      currentQuestion: formattedQuestions[0],
+      practiceType: meta?.questionType || 'calculation',
+      knowledgeInfo: knowledge,
+      meta: meta,
+      progressPercent: (1 / formattedQuestions.length) * 100
+    });
+
+    console.log('已加载题目:', formattedQuestions.length, '道');
+    console.log('当前题目:', formattedQuestions[0]);
+  },
+
+  // 获取难度等级
+  getDifficultyLevel: function (difficultyText) {
+    const map = {
+      '简单': 1,
+      'easy': 1,
+      '中等': 2,
+      'medium': 2,
+      '困难': 3,
+      'hard': 3
+    };
+    return map[difficultyText] || 2;
   },
 
   // 加载题目
@@ -145,6 +213,11 @@ Page({
   // 显示提示
   showHintTap: function () {
     this.setData({ showHint: true });
+  },
+
+  // 收起键盘
+  hideKeyboard: function () {
+    wx.hideKeyboard();
   },
 
   // 提交答案

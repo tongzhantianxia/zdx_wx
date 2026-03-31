@@ -87,15 +87,35 @@
   border-radius: var(--radius-lg);
   padding: var(--spacing-lg);
   margin-bottom: var(--spacing-md);
+  position: relative;
+  display: flex;
+  align-items: center;
 }
 
 .answer-input {
-  width: 100%;
+  flex: 1;
   height: 100rpx;
   font-size: 48rpx;
   font-weight: 600;
   text-align: center;
   color: var(--text-primary);
+}
+
+.keyboard-done-btn {
+  position: absolute;
+  right: 20rpx;
+  width: 60rpx;
+  height: 60rpx;
+  border-radius: 50%;
+  background-color: var(--primary-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #FFFFFF;
+  font-size: 32rpx;
+  font-weight: 700;
+  opacity: 0.8;
+  active-opacity: 0.6;
 }
 
 .action-buttons {

@@ -11,13 +11,9 @@ Page({
     // 保存用户已同意隐私协议
     wx.setStorageSync('privacy_agreed', true);
 
-    // 返回上一页或跳转到首页
-    if (this.fromPage) {
-      wx.navigateBack();
-    } else {
-      wx.switchTab({
-        url: '/pages/index/index'
-      });
-    }
+    // 跳转到首页
+    wx.reLaunch({
+      url: '/pages/index/index'
+    });
   }
 });
