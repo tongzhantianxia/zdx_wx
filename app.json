@@ -1,6 +1,7 @@
 {
   "pages": [
     "pages/index/index",
+    "pages/privacy/privacy",
     "pages/practice/practice",
     "pages/result/result"
   ],
@@ -10,32 +11,6 @@
     "navigationBarTitleText": "数学错题练习",
     "navigationBarTextStyle": "white",
     "backgroundColor": "#F5F7FA"
-  },
-  "tabBar": {
-    "color": "#999999",
-    "selectedColor": "#4A90E2",
-    "backgroundColor": "#ffffff",
-    "borderStyle": "black",
-    "list": [
-      {
-        "pagePath": "pages/index/index",
-        "text": "首页",
-        "iconPath": "images/home.png",
-        "selectedIconPath": "images/home-active.png"
-      },
-      {
-        "pagePath": "pages/practice/practice",
-        "text": "练习",
-        "iconPath": "images/practice.png",
-        "selectedIconPath": "images/practice-active.png"
-      },
-      {
-        "pagePath": "pages/result/result",
-        "text": "记录",
-        "iconPath": "images/result.png",
-        "selectedIconPath": "images/result-active.png"
-      }
-    ]
   },
   "cloud": true,
   "style": "v2",
