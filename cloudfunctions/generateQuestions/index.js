@@ -6,7 +6,7 @@ const fetch = require('node-fetch');
 // DeepSeek API 配置
 const DEEPSEEK_API_URL = 'https://api.deepseek.com/chat/completions';
 const DEEPSEEK_MODEL = 'deepseek-chat';
-const TIMEOUT_MS = 10000; // 10秒超时
+const TIMEOUT_MS = 30000; // 30秒超时
 
 /**
  * 构建 Prompt
