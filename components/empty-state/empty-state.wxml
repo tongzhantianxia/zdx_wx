@@ -1,0 +1,9 @@
+<!-- 空状态组件 -->
+<template name="empty-state">
+  <view class="empty-state">
+    <text class="empty-icon">{{icon || '📭'}}</text>
+    <text class="empty-text">{{text || '暂无数据'}}</text>
+    <text class="empty-desc" wx:if="{{desc}}">{{desc}}</text>
+    <button class="empty-btn" wx:if="{{btnText}}" bindtap="onEmptyAction">{{btnText}}</button>
+  </view>
+</template>

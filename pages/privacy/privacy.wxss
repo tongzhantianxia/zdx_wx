@@ -2,14 +2,14 @@
 
 .container {
   min-height: 100vh;
-  background-color: #FFFFFF;
-  padding-bottom: 140rpx;
+  background-color: #F5F7FA;
+  padding-bottom: 180rpx;
 }
 
 .header {
-  padding: 48rpx 32rpx 32rpx;
-  text-align: center;
   background: linear-gradient(135deg, #4A90E2 0%, #6BA3E8 100%);
+  padding: 48rpx 32rpx;
+  text-align: center;
 }
 
 .title {
@@ -26,48 +26,66 @@
 }
 
 .content {
-  padding: 32rpx;
+  padding: 24rpx;
 }
 
 .section {
-  margin-bottom: 40rpx;
+  background-color: #FFFFFF;
+  border-radius: 16rpx;
+  padding: 24rpx;
+  margin-bottom: 20rpx;
 }
 
 .section-title {
   display: block;
   font-size: 30rpx;
   font-weight: 600;
-  color: #333333;
+  color: #303133;
   margin-bottom: 16rpx;
 }
 
 .section-text {
   display: block;
-  font-size: 28rpx;
-  color: #666666;
+  font-size: 26rpx;
+  color: #606266;
   line-height: 1.8;
+  margin-bottom: 12rpx;
+}
+
+.subsection {
+  margin-top: 20rpx;
+  padding-top: 16rpx;
+  border-top: 1rpx solid #EBEEF5;
+}
+
+.subsection-title {
+  display: block;
+  font-size: 28rpx;
+  font-weight: 500;
+  color: #303133;
+  margin-bottom: 12rpx;
 }
 
 .list-item {
   display: flex;
   align-items: flex-start;
-  margin-top: 12rpx;
+  margin-bottom: 12rpx;
 }
 
 .list-dot {
-  font-size: 28rpx;
+  font-size: 26rpx;
   color: #4A90E2;
   margin-right: 12rpx;
 }
 
 .list-text {
-  font-size: 28rpx;
-  color: #666666;
+  font-size: 26rpx;
+  color: #606266;
   line-height: 1.6;
   flex: 1;
 }
 
-.contact-info {
+.contact-box {
   margin-top: 16rpx;
   padding: 20rpx;
   background-color: #F5F7FA;
@@ -75,7 +93,7 @@
 }
 
 .contact-text {
-  font-size: 28rpx;
+  font-size: 26rpx;
   color: #4A90E2;
 }
 
@@ -84,9 +102,9 @@
   bottom: 0;
   left: 0;
   right: 0;
+  background-color: #FFFFFF;
   padding: 24rpx 32rpx;
   padding-bottom: calc(24rpx + env(safe-area-inset-bottom));
-  background-color: #FFFFFF;
   box-shadow: 0 -4rpx 20rpx rgba(0, 0, 0, 0.08);
 }
 
@@ -103,4 +121,12 @@
 
 .agree-btn::after {
   border: none;
+}
+
+.footer-tip {
+  display: block;
+  text-align: center;
+  font-size: 22rpx;
+  color: #909399;
+  margin-top: 16rpx;
 }
