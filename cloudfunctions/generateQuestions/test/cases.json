@@ -1,0 +1,51 @@
+// 测试用例 - 可直接复制到云函数调试面板使用
+
+// 测试用例1：除数是小数的小数除法（中等难度，计算题）
+const test1 = {
+  "knowledgeId": "upper-3-2",
+  "knowledgeName": "除数是小数的小数除法",
+  "grade": "五年级",
+  "count": 3,
+  "difficulty": "medium",
+  "questionType": "calculation"
+};
+
+// 测试用例2：解方程（简单难度，计算题）
+const test2 = {
+  "knowledgeId": "upper-5-3",
+  "knowledgeName": "解方程",
+  "grade": "五年级",
+  "count": 3,
+  "difficulty": "easy",
+  "questionType": "calculation"
+};
+
+// 测试用例3：三角形面积（困难难度，填空题）
+const test3 = {
+  "knowledgeId": "upper-6-2",
+  "knowledgeName": "三角形面积",
+  "grade": "五年级",
+  "count": 3,
+  "difficulty": "hard",
+  "questionType": "fillBlank"
+};
+
+// 测试用例4：同分母分数加减法（中等难度，计算题）
+const test4 = {
+  "knowledgeId": "lower-5-1",
+  "knowledgeName": "同分母分数加减法",
+  "grade": "五年级",
+  "count": 3,
+  "difficulty": "medium",
+  "questionType": "calculation"
+};
+
+// 测试用例5：长方体体积（困难难度，应用题）
+const test5 = {
+  "knowledgeId": "lower-3-3",
+  "knowledgeName": "长方体和正方体的体积",
+  "grade": "五年级",
+  "count": 3,
+  "difficulty": "hard",
+  "questionType": "application"
+};
