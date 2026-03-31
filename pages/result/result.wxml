@@ -1,0 +1,72 @@
+<!--pages/result/result.wxml-->
+<view class="container result-page">
+  <!-- 结果概览 -->
+  <view class="result-header">
+    <view class="score-circle {{accuracyLevel}}">
+      <text class="score-number">{{practiceResult.accuracy}}</text>
+      <text class="score-unit">%</text>
+    </view>
+    <text class="score-label">正确率</text>
+  </view>
+
+  <!-- 统计信息 -->
+  <view class="stats-section">
+    <view class="stat-item">
+      <text class="stat-value">{{practiceResult.correctCount}}</text>
+      <text class="stat-label">正确</text>
+    </view>
+    <view class="stat-divider"></view>
+    <view class="stat-item">
+      <text class="stat-value">{{practiceResult.totalQuestions - practiceResult.correctCount}}</text>
+      <text class="stat-label">错误</text>
+    </view>
+    <view class="stat-divider"></view>
+    <view class="stat-item">
+      <text class="stat-value">{{practiceResult.score}}</text>
+      <text class="stat-label">得分</text>
+    </view>
+  </view>
+
+  <!-- 评语 -->
+  <view class="comment-section card">
+    <text class="comment-text">{{comment}}</text>
+  </view>
+
+  <!-- 错题列表 -->
+  <view class="wrong-list-section" wx:if="{{wrongAnswers.length > 0}}">
+    <view class="section-title">错题回顾</view>
+    <view class="wrong-list">
+      <view class="wrong-item card" wx:for="{{wrongAnswers}}" wx:key="questionId">
+        <view class="wrong-question">{{item.question}}</view>
+        <view class="wrong-answers">
+          <view class="answer-row">
+            <text class="answer-label">你的答案:</text>
+            <text class="answer-value wrong">{{item.userAnswer}}</text>
+          </view>
+          <view class="answer-row">
+            <text class="answer-label">正确答案:</text>
+            <text class="answer-value correct">{{item.correctAnswer}}</text>
+          </view>
+        </view>
+        <view class="wrong-actions flex-between">
+          <text class="wrong-time">{{item.timeText}}</text>
+          <view class="wrong-btns">
+            <button class="btn-small btn-review" bindtap="handleReview" data-id="{{item.questionId}}">
+              收藏
+            </button>
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 操作按钮 -->
+  <view class="action-section">
+    <button class="btn btn-primary retry-btn" bindtap="handleRetry">
+      再练一次
+    </button>
+    <button class="btn btn-secondary home-btn" bindtap="handleGoHome">
+      返回首页
+    </button>
+  </view>
+</view>

@@ -1,0 +1,178 @@
+/* pages/index/index.wxss */
+.index-page {
+  padding-bottom: calc(var(--spacing-xl) + env(safe-area-inset-bottom));
+}
+
+/* 用户信息区域 */
+.user-section {
+  margin-bottom: var(--spacing-lg);
+}
+
+.user-info {
+  padding: var(--spacing-sm) 0;
+}
+
+.avatar {
+  width: 100rpx;
+  height: 100rpx;
+  border-radius: 50%;
+  margin-right: var(--spacing-md);
+  background-color: var(--bg-primary);
+}
+
+.user-text {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.username {
+  font-size: 34rpx;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.user-grade {
+  font-size: 24rpx;
+  color: var(--text-secondary);
+  margin-top: 8rpx;
+}
+
+.login-btn {
+  padding: 16rpx 40rpx;
+  background-color: var(--primary-color);
+  color: #FFFFFF;
+  border-radius: var(--radius-round);
+  font-size: 26rpx;
+  border: none;
+}
+
+.login-btn::after {
+  border: none;
+}
+
+/* 统计卡片 */
+.stats-section {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: var(--spacing-lg);
+}
+
+.stat-card {
+  flex: 1;
+  text-align: center;
+  padding: var(--spacing-md);
+  margin: 0 8rpx;
+}
+
+.stat-card:first-child {
+  margin-left: 0;
+}
+
+.stat-card:last-child {
+  margin-right: 0;
+}
+
+.stat-value {
+  display: block;
+  font-size: 48rpx;
+  font-weight: 700;
+  color: var(--primary-color);
+}
+
+.stat-label {
+  display: block;
+  font-size: 24rpx;
+  color: var(--text-secondary);
+  margin-top: 8rpx;
+}
+
+/* 功能入口 */
+.menu-section {
+  margin-bottom: var(--spacing-lg);
+}
+
+.section-title {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: var(--spacing-md);
+}
+
+.menu-grid {
+  display: flex;
+  flex-wrap: wrap;
+  margin: 0 -8rpx;
+}
+
+.menu-item {
+  width: calc(50% - 16rpx);
+  margin: 8rpx;
+  padding: var(--spacing-lg);
+  text-align: center;
+}
+
+.menu-icon {
+  width: 100rpx;
+  height: 100rpx;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto var(--spacing-md);
+}
+
+.icon-text {
+  font-size: 48rpx;
+  font-weight: 700;
+  color: #FFFFFF;
+}
+
+.menu-name {
+  display: block;
+  font-size: 30rpx;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 8rpx;
+}
+
+.menu-desc {
+  display: block;
+  font-size: 24rpx;
+  color: var(--text-secondary);
+}
+
+/* 最近错题 */
+.recent-section {
+  margin-bottom: var(--spacing-lg);
+}
+
+.wrong-list {
+  margin-top: var(--spacing-sm);
+}
+
+.wrong-item {
+  padding: var(--spacing-md);
+  margin-bottom: var(--spacing-sm);
+}
+
+.question-content {
+  font-size: 30rpx;
+  color: var(--text-primary);
+  margin-bottom: var(--spacing-sm);
+}
+
+.question-info {
+  font-size: 24rpx;
+}
+
+.question-time {
+  color: var(--text-placeholder);
+}
+
+.question-type {
+  color: var(--primary-color);
+  background-color: rgba(74, 144, 226, 0.1);
+  padding: 4rpx 16rpx;
+  border-radius: var(--radius-round);
+}

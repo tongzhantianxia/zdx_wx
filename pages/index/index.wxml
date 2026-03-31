@@ -1,0 +1,54 @@
+<!--pages/index/index.wxml-->
+<view class="container index-page">
+  <!-- 用户信息区域 -->
+  <view class="user-section card">
+    <view class="user-info flex-between">
+      <view class="flex">
+        <image class="avatar" src="{{userInfo.avatarUrl || '/images/default-avatar.png'}}" mode="aspectFill"></image>
+        <view class="user-text">
+          <text class="username">{{userInfo.nickName || '未登录'}}</text>
+          <text class="user-grade">{{gradeText}}</text>
+        </view>
+      </view>
+      <button class="login-btn" bindtap="handleLogin" wx:if="{{!isLoggedIn}}">
+        登录
+      </button>
+    </view>
+  </view>
+
+  <!-- 统计卡片 -->
+  <view class="stats-section">
+    <view class="stat-card card" wx:for="{{stats}}" wx:key="id">
+      <text class="stat-value">{{item.value}}</text>
+      <text class="stat-label">{{item.label}}</text>
+    </view>
+  </view>
+
+  <!-- 功能入口 -->
+  <view class="menu-section">
+    <view class="section-title">开始练习</view>
+    <view class="menu-grid">
+      <view class="menu-item card" wx:for="{{menuItems}}" wx:key="id" bindtap="handleMenuTap" data-type="{{item.type}}">
+        <view class="menu-icon" style="background-color: {{item.bgColor}}">
+          <text class="icon-text">{{item.icon}}</text>
+        </view>
+        <text class="menu-name">{{item.name}}</text>
+        <text class="menu-desc">{{item.desc}}</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 最近错题 -->
+  <view class="recent-section" wx:if="{{recentWrongQuestions.length > 0}}">
+    <view class="section-title">最近错题</view>
+    <view class="wrong-list">
+      <view class="wrong-item card" wx:for="{{recentWrongQuestions}}" wx:key="id">
+        <view class="question-content">{{item.question}}</view>
+        <view class="question-info flex-between">
+          <text class="question-time">{{item.time}}</text>
+          <text class="question-type">{{item.typeName}}</text>
+        </view>
+      </view>
+    </view>
+  </view>
+</view>
