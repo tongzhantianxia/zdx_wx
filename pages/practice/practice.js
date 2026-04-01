@@ -232,6 +232,16 @@ Page({
       return;
     }
 
+    if (rateBlocked) {
+      const self = this;
+      setTimeout(function () {
+        if (!self.destroyed) {
+          self.prefetchQuestions();
+        }
+      }, 3000);
+      return;
+    }
+
     this.consecutiveFailures += 1;
     if (this.consecutiveFailures < 2) {
       this.prefetchQuestions();
@@ -239,7 +249,7 @@ Page({
     }
 
     wx.showToast({
-      title: rateBlocked ? '请求过于频繁' : '部分题目生成失败',
+      title: '部分题目生成失败',
       icon: 'none'
     });
 
