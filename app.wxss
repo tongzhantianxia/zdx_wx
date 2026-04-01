@@ -7,41 +7,43 @@
 /* ==================== CSS变量定义 ==================== */
 page {
   /* 主色调 */
-  --primary-color: #4A90E2;
-  --primary-light: #6BA3E8;
-  --primary-dark: #3A7BC8;
-  --primary-bg: rgba(74, 144, 226, 0.1);
+  --primary-color: #58d8ff;
+  --primary-light: #80ffe3;
+  --primary-dark: #2c83ff;
+  --primary-bg: rgba(88, 216, 255, 0.15);
 
   /* 功能色 */
-  --success-color: #67C23A;
-  --success-light: #85CE61;
-  --success-bg: rgba(103, 194, 58, 0.1);
-  --warning-color: #E6A23C;
-  --warning-light: #EBB563;
-  --warning-bg: rgba(230, 162, 60, 0.1);
-  --error-color: #F56C6C;
-  --error-light: #F78989;
-  --error-bg: rgba(245, 108, 108, 0.1);
+  --success-color: #5cf5a7;
+  --success-light: #91ffd3;
+  --success-bg: rgba(92, 245, 167, 0.15);
+  --warning-color: #ffbf61;
+  --warning-light: #ffd68b;
+  --warning-bg: rgba(255, 191, 97, 0.14);
+  --error-color: #ff6b8e;
+  --error-light: #ff95ae;
+  --error-bg: rgba(255, 107, 142, 0.15);
 
   /* 背景色 */
-  --bg-color: #F5F7FA;
-  --bg-white: #FFFFFF;
+  --bg-color: #0b1120;
+  --bg-white: #161f35;
+  --bg-secondary: #111a30;
+  --bg-primary: rgba(88, 216, 255, 0.1);
 
   /* 卡片 */
-  --card-color: #FFFFFF;
+  --card-color: rgba(20, 30, 52, 0.88);
   --card-radius: 24rpx;
-  --card-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.06);
-  --card-shadow-hover: 0 8rpx 30rpx rgba(0, 0, 0, 0.1);
+  --card-shadow: 0 16rpx 42rpx rgba(0, 0, 0, 0.34);
+  --card-shadow-hover: 0 22rpx 54rpx rgba(0, 0, 0, 0.42);
 
   /* 文字色 */
-  --text-primary: #303133;
-  --text-regular: #606266;
-  --text-secondary: #909399;
-  --text-placeholder: #C0C4CC;
+  --text-primary: #f5f8ff;
+  --text-regular: #d8e2ff;
+  --text-secondary: #aebde2;
+  --text-placeholder: #7f8fb6;
 
   /* 边框 */
-  --border-color: #E4E7ED;
-  --border-light: #EBEEF5;
+  --border-color: rgba(118, 155, 240, 0.35);
+  --border-light: rgba(118, 155, 240, 0.2);
 
   /* 圆角 */
   --radius-sm: 12rpx;
@@ -80,7 +82,10 @@ page {
   font-size: var(--font-md);
   line-height: 1.6;
   color: var(--text-primary);
-  background-color: var(--bg-color);
+  background:
+    radial-gradient(circle at 10% -20%, rgba(76, 96, 255, 0.42), transparent 45%),
+    radial-gradient(circle at 86% -10%, rgba(88, 216, 255, 0.35), transparent 46%),
+    linear-gradient(160deg, #070b16 0%, #0b1120 58%, #0e1630 100%);
   min-height: 100vh;
   -webkit-font-smoothing: antialiased;
 }
@@ -92,6 +97,8 @@ view, text {
 /* ==================== 卡片容器 ==================== */
 .card {
   background-color: var(--card-color);
+  border: 1rpx solid var(--border-light);
+  backdrop-filter: blur(12rpx);
   border-radius: var(--card-radius);
   padding: var(--spacing-lg);
   margin-bottom: var(--spacing-md);
@@ -118,8 +125,8 @@ view, text {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-light) 100%);
-  color: #FFFFFF;
+  background: linear-gradient(135deg, #2c83ff 0%, #58d8ff 55%, #80ffe3 100%);
+  color: #071326;
   font-size: var(--font-lg);
   font-weight: 500;
   border-radius: var(--radius-round);
@@ -128,7 +135,7 @@ view, text {
 }
 
 .btn-primary:active {
-  background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary-color) 100%);
+  background: linear-gradient(135deg, #1f67db 0%, #34b8e8 100%);
   transform: scale(0.98);
 }
 
@@ -148,8 +155,8 @@ view, text {
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: var(--bg-white);
-  color: var(--primary-color);
+  background-color: rgba(88, 216, 255, 0.08);
+  color: var(--primary-light);
   font-size: var(--font-lg);
   font-weight: 500;
   border-radius: var(--radius-round);
@@ -158,7 +165,7 @@ view, text {
 }
 
 .btn-secondary:active {
-  background-color: var(--primary-bg);
+  background-color: rgba(88, 216, 255, 0.16);
   transform: scale(0.98);
 }
 

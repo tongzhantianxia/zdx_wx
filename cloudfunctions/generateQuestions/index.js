@@ -9,6 +9,8 @@ const { performSecurityCheck } = require('./security');
 const DEEPSEEK_HOST = 'api.deepseek.com';
 const DEEPSEEK_PATH = '/chat/completions';
 const TIMEOUT_MS = 25000;
+const MAX_RETRIES = 2;
+const RETRY_BASE_DELAY_MS = 300;
 
 // ========== Prompt（精简版）==========
 const SYSTEM_PROMPT = `你是小学数学出题专家。
@@ -27,7 +29,27 @@ const buildUserPrompt = (params) => {
 };
 
 // ========== 用https替代node-fetch ==========
-const callDeepSeekAPI = (userPrompt, apiKey) => {
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+const getRetryDelay = (attempt) => {
+  const jitter = Math.floor(Math.random() * 120);
+  return RETRY_BASE_DELAY_MS * Math.pow(2, attempt - 1) + jitter;
+};
+
+const isRetryableStatus = (statusCode) => statusCode === 429 || statusCode >= 500;
+
+const isRetryableError = (err) => {
+  const code = err && err.code;
+  return [
+    'ETIMEDOUT',
+    'ECONNRESET',
+    'ECONNREFUSED',
+    'ENOTFOUND',
+    'EAI_AGAIN'
+  ].includes(code) || String(err.message || '').includes('请求超时');
+};
+
+const callDeepSeekAPIOnce = (userPrompt, apiKey, requestId) => {
   return new Promise((resolve, reject) => {
 
     const body = JSON.stringify({
@@ -60,10 +82,19 @@ const callDeepSeekAPI = (userPrompt, apiKey) => {
       res.on('data', chunk => { data += chunk; });
 
       res.on('end', () => {
-        console.log('[API耗时]', Date.now() - startTime, 'ms');
+        const apiLatency = Date.now() - startTime;
+        console.log('[DeepSeekAPI]', JSON.stringify({
+          requestId,
+          phase: 'http_complete',
+          apiLatency,
+          statusCode: res.statusCode
+        }));
 
         if (res.statusCode !== 200) {
-          reject(new Error(`API错误: ${res.statusCode} ${data}`));
+          const httpError = new Error(`API错误: ${res.statusCode} ${data}`);
+          httpError.statusCode = res.statusCode;
+          httpError.responseBody = data;
+          reject(httpError);
           return;
         }
 
@@ -82,13 +113,46 @@ const callDeepSeekAPI = (userPrompt, apiKey) => {
     });
 
     req.on('error', (e) => {
-      console.error('[请求错误]', e.message);
+      console.error('[请求错误]', JSON.stringify({
+        requestId,
+        message: e.message,
+        code: e.code || 'UNKNOWN'
+      }));
       reject(e);
     });
 
     req.write(body);
     req.end();
   });
+};
+
+const callDeepSeekAPI = async (userPrompt, apiKey, requestId) => {
+  for (let attempt = 1; attempt <= MAX_RETRIES + 1; attempt++) {
+    try {
+      console.log('[DeepSeekAPI]', JSON.stringify({
+        requestId,
+        phase: 'attempt_start',
+        attempt,
+        maxAttempt: MAX_RETRIES + 1
+      }));
+      return await callDeepSeekAPIOnce(userPrompt, apiKey, requestId);
+    } catch (error) {
+      const shouldRetry = attempt <= MAX_RETRIES
+        && (isRetryableStatus(error.statusCode) || isRetryableError(error));
+      console.error('[DeepSeekAPI]', JSON.stringify({
+        requestId,
+        phase: 'attempt_error',
+        attempt,
+        shouldRetry,
+        statusCode: error.statusCode || null,
+        code: error.code || null,
+        message: error.message
+      }));
+      if (!shouldRetry) throw error;
+      await sleep(getRetryDelay(attempt));
+    }
+  }
+  throw new Error('DeepSeek 调用失败');
 };
 
 // ========== 解析响应 ==========
@@ -122,8 +186,12 @@ const parseResponse = (apiResponse) => {
 exports.main = async (event, context) => {
   const wxContext = cloud.getWXContext();
   const totalStart = Date.now();
+  const requestId = `${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
 
-  console.log('[generateQuestions] 开始，参数:', JSON.stringify(event));
+  console.log('[generateQuestions] 开始:', JSON.stringify({
+    requestId,
+    event
+  }));
 
   // 安全检查
   const securityResult = performSecurityCheck(event, wxContext);
@@ -155,14 +223,22 @@ exports.main = async (event, context) => {
       questionType
     });
 
-    console.log('[Prompt长度]', userPrompt.length, '字符');
-    console.log('[调用DeepSeek]', new Date().toISOString());
+    console.log('[Prompt信息]', JSON.stringify({
+      requestId,
+      promptLength: userPrompt.length
+    }));
 
-    const apiResponse = await callDeepSeekAPI(userPrompt, apiKey);
+    const apiResponse = await callDeepSeekAPI(userPrompt, apiKey, requestId);
     const questions = parseResponse(apiResponse);
+    const usage = apiResponse.usage || null;
+    const totalLatency = Date.now() - totalStart;
 
-    console.log('[总耗时]', Date.now() - totalStart, 'ms');
-    console.log('[题目数量]', questions.length);
+    console.log('[生成成功]', JSON.stringify({
+      requestId,
+      totalLatency,
+      questionCount: questions.length,
+      usage
+    }));
 
     return {
       success: true,
@@ -172,14 +248,20 @@ exports.main = async (event, context) => {
         knowledgeName,
         grade,
         count: questions.length,
+        usage,
         openid: wxContext.OPENID,
         generatedAt: new Date().toISOString()
       }
     };
 
   } catch (error) {
-    console.error('[生成失败]', error.message);
-    console.log('[失败耗时]', Date.now() - totalStart, 'ms');
+    console.error('[生成失败]', JSON.stringify({
+      requestId,
+      totalLatency: Date.now() - totalStart,
+      code: error.code || null,
+      statusCode: error.statusCode || null,
+      message: error.message
+    }));
 
     return {
       success: false,

@@ -2,20 +2,57 @@
 
 .container {
   min-height: 100vh;
-  background: linear-gradient(180deg, #E8F4FD 0%, #FFFFFF 50%);
+  background: linear-gradient(180deg, #0c1326 0%, #0f1831 55%, #121b37 100%);
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 80rpx 40rpx 60rpx;
+  padding: calc(80rpx + env(safe-area-inset-top)) 40rpx calc(60rpx + env(safe-area-inset-bottom));
+  position: relative;
+  overflow: hidden;
 }
 
 /* 完成图标 */
 .celebration {
   margin-bottom: 32rpx;
+  position: relative;
 }
 
 .emoji {
-  font-size: 120rpx;
+  font-size: 140rpx;
+  filter: drop-shadow(0 12rpx 24rpx rgba(0, 0, 0, 0.5));
+  animation: float-duck 3s ease-in-out infinite;
+  display: inline-block;
+}
+
+@keyframes float-duck {
+  0% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-20rpx) rotate(4deg); }
+  100% { transform: translateY(0) rotate(0deg); }
+}
+
+.star-left, .star-right {
+  position: absolute;
+  font-size: 48rpx;
+  opacity: 0;
+  animation: pop-star 2s ease-out infinite;
+}
+
+.star-left {
+  top: 20rpx;
+  left: -40rpx;
+  animation-delay: 0.5s;
+}
+
+.star-right {
+  top: 60rpx;
+  right: -60rpx;
+  animation-delay: 1.2s;
+}
+
+@keyframes pop-star {
+  0% { transform: scale(0) rotate(-45deg); opacity: 0; }
+  50% { transform: scale(1.2) rotate(15deg); opacity: 1; }
+  100% { transform: scale(0.8) rotate(45deg); opacity: 0; }
 }
 
 /* 标题 */
@@ -26,45 +63,65 @@
 .title {
   font-size: 48rpx;
   font-weight: 700;
-  color: #333333;
+  color: #f5f8ff;
 }
 
 /* 完成信息卡片 */
 .info-card {
   width: 100%;
-  background-color: #FFFFFF;
-  border-radius: 24rpx;
-  padding: 32rpx;
-  margin-bottom: 32rpx;
-  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.08);
-}
-
-.info-row {
   display: flex;
-  justify-content: space-between;
+  gap: 24rpx;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  padding: 0;
+  margin-bottom: 32rpx;
+}
+
+.stat-box {
+  flex: 1;
+  background-color: rgba(22, 31, 53, 0.9);
+  border: 1rpx solid rgba(118, 155, 240, 0.25);
+  border-radius: 24rpx;
+  padding: 32rpx 24rpx;
+  display: flex;
+  flex-direction: column;
   align-items: center;
-  padding: 16rpx 0;
+  box-shadow: 0 16rpx 32rpx rgba(2, 8, 22, 0.4);
 }
 
-.info-row:not(:last-child) {
-  border-bottom: 1rpx solid #F0F0F0;
+.stat-label {
+  font-size: 24rpx;
+  color: #aebde2;
+  margin-bottom: 12rpx;
+  text-transform: uppercase;
+  letter-spacing: 2rpx;
 }
 
-.info-label {
-  font-size: 28rpx;
-  color: #999999;
+.stat-value {
+  font-size: 36rpx;
+  color: #80ffe3;
+  font-weight: 700;
+  text-align: center;
 }
 
-.info-value {
-  font-size: 28rpx;
-  color: #333333;
-  font-weight: 500;
+.stat-unit {
+  font-size: 24rpx;
+  color: #f4f8ff;
+  margin-left: 4rpx;
+}
+
+.text-ellipsis {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
 }
 
 /* 鼓励语 */
 .encouragement {
   width: 100%;
-  background: linear-gradient(135deg, #4A90E2 0%, #6BA3E8 100%);
+  background: linear-gradient(135deg, #2c83ff 0%, #58d8ff 70%, #80ffe3 100%);
   border-radius: 24rpx;
   padding: 32rpx;
   margin-bottom: 48rpx;
@@ -73,7 +130,7 @@
 
 .encouragement-text {
   font-size: 32rpx;
-  color: #FFFFFF;
+  color: #071326;
   font-weight: 500;
   line-height: 1.5;
 }
@@ -102,21 +159,55 @@
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, #4A90E2 0%, #6BA3E8 100%);
-  color: #FFFFFF;
+  background: linear-gradient(135deg, #2c83ff 0%, #58d8ff 70%, #80ffe3 100%);
+  color: #071326;
+  box-shadow: 0 12rpx 32rpx rgba(44, 131, 255, 0.3);
 }
 
 .btn-secondary {
-  background-color: #FFFFFF;
-  color: #4A90E2;
-  border: 2rpx solid #4A90E2;
+  background-color: rgba(88, 216, 255, 0.08);
+  color: #80ffe3;
+  border: 2rpx solid #58d8ff;
+  box-shadow: inset 0 0 16rpx rgba(88, 216, 255, 0.1);
 }
 
 .btn-share {
-  background-color: #F5F7FA;
-  color: #666666;
+  background-color: rgba(12, 20, 38, 0.9);
+  color: #c2d2f8;
 }
 
 .btn-share::after {
   border: none;
+}
+
+.glow {
+  position: absolute;
+  border-radius: 999rpx;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.glow-top {
+  width: 360rpx;
+  height: 360rpx;
+  top: -120rpx;
+  right: -120rpx;
+  background: radial-gradient(circle, rgba(88, 216, 255, 0.42) 0%, rgba(88, 216, 255, 0) 74%);
+}
+
+.glow-bottom {
+  width: 420rpx;
+  height: 420rpx;
+  bottom: -160rpx;
+  left: -140rpx;
+  background: radial-gradient(circle, rgba(76, 96, 255, 0.4) 0%, rgba(76, 96, 255, 0) 74%);
+}
+
+.celebration,
+.title-section,
+.info-card,
+.encouragement,
+.action-buttons {
+  position: relative;
+  z-index: 1;
 }

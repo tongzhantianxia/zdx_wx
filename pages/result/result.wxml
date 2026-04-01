@@ -1,8 +1,12 @@
 <!--pages/result/result.wxml-->
 <view class="container">
+  <view class="glow glow-top"></view>
+  <view class="glow glow-bottom"></view>
   <!-- 完成图标 -->
   <view class="celebration">
-    <text class="emoji">🎉</text>
+    <text class="emoji">🦆</text>
+    <view class="star-left">✨</view>
+    <view class="star-right">✨</view>
   </view>
 
   <!-- 标题 -->
@@ -12,13 +16,13 @@
 
   <!-- 完成信息卡片 -->
   <view class="info-card">
-    <view class="info-row">
-      <text class="info-label">本次练习</text>
-      <text class="info-value">{{questionCount}}道题</text>
+    <view class="stat-box">
+      <text class="stat-label">本次练习</text>
+      <text class="stat-value">{{questionCount}}<text class="stat-unit">题</text></text>
     </view>
-    <view class="info-row">
-      <text class="info-label">知识点</text>
-      <text class="info-value">{{knowledgeName}}</text>
+    <view class="stat-box">
+      <text class="stat-label">知识点</text>
+      <text class="stat-value text-ellipsis">{{knowledgeName}}</text>
     </view>
   </view>
 

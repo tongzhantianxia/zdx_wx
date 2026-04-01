@@ -1,9 +1,19 @@
 <!--pages/index/index.wxml-->
 <view class="container">
+  <view class="bg-orb orb-left"></view>
+  <view class="bg-orb orb-right"></view>
   <!-- 顶部标题区域 -->
   <view class="header">
-    <text class="title">数学错题练习</text>
-    <text class="subtitle">针对薄弱知识点，专项突破</text>
+    <view class="header-content">
+      <view class="title-group">
+        <text class="badge">AI STUDY LAB</text>
+        <text class="title">出题鸭</text>
+        <text class="subtitle">聚焦薄弱知识点，沉浸式闯关提分</text>
+      </view>
+      <view class="mascot-box">
+        <text class="mascot-emoji">🦆</text>
+      </view>
+    </view>
   </view>
 
   <!-- 主体选择区域 -->
