@@ -16,7 +16,9 @@ Page({
     isCorrect: false,        // 是否正确
     feedbackType: '',        // 反馈类型
     answers: [],             // 答题记录
-    waitingForNext: false    // 渐进出题：等待下一题生成
+    waitingForNext: false,   // 渐进出题：等待下一题生成
+    keyboardHeight: 0,       // 键盘高度
+    scrollTarget: ''         // scroll-into-view 目标
   },
 
   onLoad: function (options) {
@@ -421,6 +423,21 @@ Page({
   // 收起键盘
   hideKeyboard: function () {
     wx.hideKeyboard();
+  },
+
+  onInputFocus: function (e) {
+    const height = e.detail.height || 0;
+    this.setData({
+      keyboardHeight: height,
+      scrollTarget: 'answerArea'
+    });
+  },
+
+  onInputBlur: function () {
+    this.setData({
+      keyboardHeight: 0,
+      scrollTarget: ''
+    });
   },
 
   // 提交答案

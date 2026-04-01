@@ -1,5 +1,13 @@
 <!--pages/practice/practice.wxml-->
-<view class="practice-page">
+<scroll-view
+  class="practice-page"
+  scroll-y
+  enhanced
+  show-scrollbar="{{false}}"
+  scroll-into-view="{{scrollTarget}}"
+  scroll-with-animation
+  style="padding-bottom: {{keyboardHeight}}px;"
+>
 
   <!-- 顶部进度区 -->
   <view class="progress-bar-section">
@@ -47,18 +55,20 @@
   </view>
 
   <!-- 答题区 -->
-  <view class="answer-section" wx:if="{{currentQuestion && !waitingForNext}}">
+  <view id="answerArea" class="answer-section" wx:if="{{currentQuestion && !waitingForNext}}">
     <text class="answer-label">写下你的答案</text>
     <view class="answer-input-wrap">
       <input
         class="answer-input"
-        type="digit"
+        type="text"
         placeholder="点击输入答案"
         placeholder-class="answer-placeholder"
         value="{{userAnswer}}"
         bindinput="handleAnswerInput"
         confirm-type="done"
-        adjust-position="{{true}}"
+        adjust-position="{{false}}"
+        bindfocus="onInputFocus"
+        bindblur="onInputBlur"
         bindconfirm="handleSubmit"
       />
       <view class="confirm-btn" bindtap="hideKeyboard" wx:if="{{userAnswer}}">✓</view>
@@ -101,4 +111,4 @@
     </button>
   </view>
 
-</view>
+</scroll-view>
