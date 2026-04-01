@@ -9,6 +9,86 @@
 // 生产环境建议使用 Redis 或数据库存储
 const rateLimitCache = new Map();
 
+// 渐进出题：同 sessionId 调用次数上限（targetCount + 2）
+const sessionLimitCache = new Map();
+
+const SESSION_ID_RE = /^sess_\d{13}_[a-z0-9]{6}$/;
+const SESSION_TTL_MS = 5 * 60 * 1000;
+const EXISTING_MAX_ITEMS = 10;
+const EXISTING_ITEM_MAX_LEN = 200;
+
+/**
+ * 清洗已出题干，防止 prompt 膨胀
+ * @param {unknown} raw
+ * @returns {string[]}
+ */
+const sanitizeExistingQuestions = (raw) => {
+  if (!Array.isArray(raw)) return [];
+  return raw.slice(0, EXISTING_MAX_ITEMS).map((item) => {
+    const s = String(item == null ? '' : item);
+    return s.slice(0, EXISTING_ITEM_MAX_LEN);
+  });
+};
+
+const pruneSessionLimitCache = (now) => {
+  for (const [key, rec] of sessionLimitCache) {
+    if (now > rec.expiresAt) {
+      sessionLimitCache.delete(key);
+    }
+  }
+  if (sessionLimitCache.size > 1000) {
+    for (const [key, rec] of sessionLimitCache) {
+      if (now > rec.expiresAt) sessionLimitCache.delete(key);
+    }
+  }
+};
+
+/**
+ * @param {string} sessionId
+ * @param {unknown} targetCountRaw
+ * @returns {{ allowed: boolean, code?: string, error?: string, waitTime?: number }}
+ */
+const checkSessionCallLimit = (sessionId, targetCountRaw) => {
+  const now = Date.now();
+  pruneSessionLimitCache(now);
+
+  let rec = sessionLimitCache.get(sessionId);
+  if (rec && now > rec.expiresAt) {
+    sessionLimitCache.delete(sessionId);
+    rec = null;
+  }
+
+  if (!rec) {
+    const tc = parseInt(targetCountRaw, 10);
+    if (isNaN(tc) || tc < 1 || tc > 10) {
+      return {
+        allowed: false,
+        code: 'INVALID_PARAMS',
+        error: 'targetCount 必须在 1-10'
+      };
+    }
+    rec = {
+      maxCalls: tc + 2,
+      used: 0,
+      expiresAt: now + SESSION_TTL_MS
+    };
+    sessionLimitCache.set(sessionId, rec);
+  }
+
+  if (rec.used >= rec.maxCalls) {
+    return {
+      allowed: false,
+      code: 'RATE_LIMITED',
+      error: '本次练习出题次数已达上限，请稍后再试',
+      waitTime: 10
+    };
+  }
+
+  rec.used += 1;
+  sessionLimitCache.set(sessionId, rec);
+  return { allowed: true };
+};
+
 /**
  * 检查调用频率限制
  * @param {string} openid 用户 openid
@@ -175,18 +255,7 @@ const performSecurityCheck = (event, wxContext) => {
     };
   }
 
-  // 2. 频率限制
-  const rateLimitResult = checkRateLimit(authResult.openid);
-  if (!rateLimitResult.allowed) {
-    return {
-      passed: false,
-      error: `操作过于频繁，请等待 ${rateLimitResult.waitTime} 秒后再试`,
-      code: 'RATE_LIMITED',
-      waitTime: rateLimitResult.waitTime
-    };
-  }
-
-  // 3. 参数校验
+  // 2. 参数校验
   const validateResult = validateParams(event);
   if (!validateResult.valid) {
     return {
@@ -196,15 +265,48 @@ const performSecurityCheck = (event, wxContext) => {
     };
   }
 
+  const sanitizedExistingQuestions = sanitizeExistingQuestions(event.existingQuestions);
+  const sessionIdRaw = String(event.sessionId || '').trim();
+  const validSessionId = SESSION_ID_RE.test(sessionIdRaw) ? sessionIdRaw : null;
+
+  // 3. 频率限制（有合法 sessionId 时走会话配额，否则走 openid 限频）
+  if (validSessionId) {
+    const sessionLimit = checkSessionCallLimit(validSessionId, event.targetCount);
+    if (!sessionLimit.allowed) {
+      return {
+        passed: false,
+        error: sessionLimit.error,
+        code: sessionLimit.code || 'RATE_LIMITED',
+        waitTime: sessionLimit.waitTime
+      };
+    }
+  } else {
+    const rateLimitResult = checkRateLimit(authResult.openid);
+    if (!rateLimitResult.allowed) {
+      return {
+        passed: false,
+        error: `操作过于频繁，请等待 ${rateLimitResult.waitTime} 秒后再试`,
+        code: 'RATE_LIMITED',
+        waitTime: rateLimitResult.waitTime
+      };
+    }
+  }
+
   console.log('[Security] 安全检查通过');
 
+  const targetCountNum = parseInt(event.targetCount, 10);
   return {
     passed: true,
     data: {
       openid: authResult.openid,
-      count: parseInt(event.count) || 5,
+      count: parseInt(event.count, 10) || 1,
       difficulty: event.difficulty || 'medium',
-      questionType: event.questionType || 'calculation'
+      questionType: event.questionType || 'calculation',
+      sanitizedExistingQuestions,
+      sessionId: validSessionId,
+      targetCount: !isNaN(targetCountNum) && targetCountNum >= 1 && targetCountNum <= 10
+        ? targetCountNum
+        : null
     }
   };
 };
@@ -216,5 +318,7 @@ module.exports = {
   validateParams,
   checkAuth,
   performSecurityCheck,
-  VALID_KNOWLEDGE_IDS
+  sanitizeExistingQuestions,
+  VALID_KNOWLEDGE_IDS,
+  SESSION_ID_RE
 };
