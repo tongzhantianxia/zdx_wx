@@ -15,7 +15,8 @@ Page({
     showFeedback: false,     // 显示反馈
     isCorrect: false,        // 是否正确
     feedbackType: '',        // 反馈类型
-    answers: []              // 答题记录
+    answers: [],             // 答题记录
+    waitingForNext: false    // 渐进出题：等待下一题生成
   },
 
   onLoad: function (options) {
@@ -44,7 +45,7 @@ Page({
 
   // 从全局数据或 URL 参数加载题目数据
   loadQuestionsFromData: function (data) {
-    const { questions, knowledge, meta } = data;
+    const { questions, knowledge, meta, generateParams } = data;
 
     if (!questions || questions.length === 0) {
       wx.showToast({ title: '暂无题目', icon: 'none' });
@@ -52,8 +53,35 @@ Page({
       return;
     }
 
-    // 转换题目格式
-    const formattedQuestions = questions.map(q => ({
+    const gp = generateParams;
+    if (gp && gp.targetCount && gp.sessionId) {
+      this.initProgressivePractice(data);
+      return;
+    }
+
+    const formattedQuestions = questions.map((q) => this.formatSingleQuestion(q));
+
+    this.setData({
+      questions: formattedQuestions,
+      totalQuestions: formattedQuestions.length,
+      currentQuestion: formattedQuestions[0],
+      practiceType: meta?.questionType || 'calculation',
+      knowledgeInfo: knowledge,
+      meta: meta,
+      progressPercent: (1 / formattedQuestions.length) * 100,
+      waitingForNext: false
+    });
+
+    console.log('已加载题目:', formattedQuestions.length, '道');
+    console.log('当前题目:', formattedQuestions[0]);
+  },
+
+  normContentKey: function (s) {
+    return String(s || '').replace(/\s/g, '');
+  },
+
+  formatSingleQuestion: function (q) {
+    return {
       id: q.id || Date.now() + Math.random(),
       question: q.content,
       answer: q.answer,
@@ -63,20 +91,185 @@ Page({
       difficultyText: q.difficulty || '中等',
       hint: q.tip || '',
       explanation: q.solution || ''
-    }));
+    };
+  },
+
+  initProgressivePractice: function (data) {
+    const { questions, knowledge, meta, generateParams } = data;
+    const raw = questions[0];
+
+    if (!raw || !raw.content) {
+      wx.showToast({ title: '暂无题目', icon: 'none' });
+      setTimeout(() => wx.navigateBack(), 1500);
+      return;
+    }
+
+    this.generateParams = generateParams;
+    this.targetCount = generateParams.targetCount;
+    this.generatedCount = 1;
+    this.pendingRequests = 0;
+    this.questionQueue = [];
+    this.destroyed = false;
+    this.consecutiveFailures = 0;
+    this.allExistingContents = [String(raw.content)];
+
+    const first = this.formatSingleQuestion(raw);
+    this.accumulatedQuestions = [first];
 
     this.setData({
-      questions: formattedQuestions,
-      totalQuestions: formattedQuestions.length,
-      currentQuestion: formattedQuestions[0],
+      questions: this.accumulatedQuestions,
+      totalQuestions: this.targetCount,
+      currentQuestion: first,
       practiceType: meta?.questionType || 'calculation',
       knowledgeInfo: knowledge,
       meta: meta,
-      progressPercent: (1 / formattedQuestions.length) * 100
+      progressPercent: (1 / this.targetCount) * 100,
+      waitingForNext: false
     });
 
-    console.log('已加载题目:', formattedQuestions.length, '道');
-    console.log('当前题目:', formattedQuestions[0]);
+    console.log('渐进练习，目标题数:', this.targetCount);
+
+    setTimeout(() => {
+      if (!this.destroyed) {
+        this.prefetchQuestions();
+      }
+    }, 0);
+  },
+
+  prefetchQuestions: function () {
+    if (this.destroyed || !this.generateParams) return;
+
+    const remaining = this.targetCount - this.generatedCount - this.pendingRequests;
+    if (remaining <= 0) return;
+
+    const buffer = this.questionQueue.length + this.pendingRequests;
+    if (buffer >= 2) return;
+
+    const needed = Math.max(0, Math.min(2 - buffer, remaining));
+    if (needed <= 0) return;
+
+    for (let i = 0; i < needed; i++) {
+      this.pendingRequests += 1;
+      const hint = `变式${Date.now()}_${i}_${Math.random().toString(36).slice(2, 6)}`;
+      this.callGenerateOne(hint);
+    }
+  },
+
+  callGenerateOne: function (prefetchHint) {
+    const gp = this.generateParams;
+    if (!gp || this.destroyed) {
+      this.pendingRequests = Math.max(0, this.pendingRequests - 1);
+      return;
+    }
+
+    wx.cloud.callFunction({
+      name: 'generateQuestions',
+      data: {
+        knowledgeId: gp.knowledgeId,
+        knowledgeName: gp.knowledgeName,
+        grade: gp.grade,
+        count: 1,
+        targetCount: gp.targetCount,
+        difficulty: gp.difficulty,
+        questionType: gp.questionType,
+        existingQuestions: [...this.allExistingContents],
+        sessionId: gp.sessionId,
+        prefetchHint: prefetchHint
+      },
+      success: (res) => {
+        const r = res && res.result ? res.result : { success: false, error: '无响应' };
+        this.onPrefetchResult(r);
+      },
+      fail: (err) => {
+        this.onPrefetchResult({
+          success: false,
+          error: (err && err.errMsg) || '网络错误'
+        });
+      }
+    });
+  },
+
+  onPrefetchResult: function (result) {
+    if (this.destroyed) {
+      this.pendingRequests = Math.max(0, this.pendingRequests - 1);
+      return;
+    }
+
+    this.pendingRequests = Math.max(0, this.pendingRequests - 1);
+
+    const rateBlocked = result && result.code === 'RATE_LIMITED';
+
+    if (result && result.success && result.questions && result.questions[0]) {
+      const raw = result.questions[0];
+      const rawContent = String(raw.content || '');
+      const key = this.normContentKey(rawContent);
+      const dup = this.allExistingContents.some(
+        (ex) => this.normContentKey(ex) === key
+      );
+
+      if (dup) {
+        this.prefetchQuestions();
+        return;
+      }
+
+      this.allExistingContents.push(rawContent);
+      this.generatedCount += 1;
+      this.consecutiveFailures = 0;
+
+      const formatted = this.formatSingleQuestion(raw);
+      this.accumulatedQuestions.push(formatted);
+      this.questionQueue.push(formatted);
+
+      this.setData({
+        questions: this.accumulatedQuestions
+      });
+
+      if (this.data.waitingForNext) {
+        this.showNextFromQueue();
+      }
+
+      this.prefetchQuestions();
+      return;
+    }
+
+    this.consecutiveFailures += 1;
+    if (this.consecutiveFailures < 2) {
+      this.prefetchQuestions();
+      return;
+    }
+
+    wx.showToast({
+      title: rateBlocked ? '请求过于频繁' : '部分题目生成失败',
+      icon: 'none'
+    });
+
+    this.targetCount = this.generatedCount;
+    this.setData({ totalQuestions: this.generatedCount });
+
+    if (
+      this.data.waitingForNext &&
+      this.pendingRequests === 0 &&
+      this.questionQueue.length === 0
+    ) {
+      this.goToResult();
+    }
+  },
+
+  showNextFromQueue: function () {
+    const next = this.questionQueue.shift();
+    if (!next) return;
+
+    const idx = this.data.waitingForNext
+      ? this.data.currentIndex
+      : this.data.currentIndex + 1;
+
+    const total = this.data.totalQuestions;
+    this.setData({
+      currentQuestion: next,
+      currentIndex: idx,
+      progressPercent: total ? ((idx + 1) / total) * 100 : 0,
+      waitingForNext: false
+    });
   },
 
   // 获取难度等级
@@ -222,6 +415,9 @@ Page({
 
   // 提交答案
   handleSubmit: function () {
+    if (this.data.waitingForNext) return;
+    if (!this.data.currentQuestion) return;
+
     const { currentQuestion, userAnswer, currentIndex } = this.data;
 
     if (!userAnswer) {
@@ -282,20 +478,50 @@ Page({
     this.setData({
       showFeedback: false,
       showHint: false,
-      userAnswer: '',
-      currentIndex: currentIndex + 1,
-      progressPercent: ((currentIndex + 1) / totalQuestions) * 100
+      userAnswer: ''
     });
 
-    if (currentIndex + 1 >= totalQuestions) {
-      // 练习结束，跳转结果页
-      this.goToResult();
-    } else {
-      // 显示下一题
+    if (!this.generateParams) {
       this.setData({
-        currentQuestion: this.data.questions[currentIndex + 1]
+        currentIndex: currentIndex + 1,
+        progressPercent: ((currentIndex + 1) / totalQuestions) * 100
       });
+
+      if (currentIndex + 1 >= totalQuestions) {
+        this.goToResult();
+      } else {
+        this.setData({
+          currentQuestion: this.data.questions[currentIndex + 1]
+        });
+      }
+      return;
     }
+
+    const nextIndex = currentIndex + 1;
+    const done =
+      nextIndex >= this.generatedCount &&
+      this.pendingRequests === 0 &&
+      this.questionQueue.length === 0;
+
+    if (done) {
+      this.goToResult();
+      return;
+    }
+
+    if (this.questionQueue.length > 0) {
+      this.showNextFromQueue();
+      this.prefetchQuestions();
+      return;
+    }
+
+    this.setData({
+      waitingForNext: true,
+      currentIndex: nextIndex,
+      currentQuestion: null,
+      progressPercent: totalQuestions
+        ? ((nextIndex + 1) / totalQuestions) * 100
+        : 0
+    });
   },
 
   // 跳转结果页
@@ -415,11 +641,8 @@ Page({
     return diffMap[difficulty] || '简单';
   },
 
-  // 返回确认
   onUnload: function () {
-    if (this.data.currentIndex > 0 && !this.data.showFeedback) {
-      // 中途退出，提示确认
-      // 注意：小程序不支持同步确认，这里仅作示意
-    }
+    this.destroyed = true;
+    app.globalData.currentQuestions = null;
   }
 });
