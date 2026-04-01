@@ -133,17 +133,7 @@
         bindtap="handleGenerate"
         disabled="{{!selectedKnowledge || generating}}">
         <text class="generate-text">{{generating ? '生成中...' : '生成练习题'}}</text>
-        <image wx:if="{{!generating}}" class="generate-duck" src="/images/duck-avatar.png" mode="aspectFit"></image>
       </button>
-    </view>
-  </view>
-
-  <!-- 加载遮罩 -->
-  <view class="loading-mask" wx:if="{{generating}}">
-    <view class="loading-box">
-      <view class="loading-spinner"></view>
-      <text class="loading-text">正在生成练习题...</text>
-      <text class="loading-sub">小鸭子努力出题中 🐥</text>
     </view>
   </view>
 

@@ -2,6 +2,16 @@
 const app = getApp();
 const { knowledgeData } = require('../../utils/knowledgeData');
 
+function buildSessionId() {
+  const ts = Date.now();
+  const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
+  let suffix = '';
+  for (let i = 0; i < 6; i++) {
+    suffix += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return `sess_${ts}_${suffix}`;
+}
+
 // 频率限制常量
 const RATE_LIMIT_SECONDS = 10;
 const RATE_LIMIT_KEY = 'lastGenerateTime';
@@ -170,15 +180,19 @@ Page({
     this.setData({ generating: true });
 
     try {
+      const sessionId = buildSessionId();
       const res = await wx.cloud.callFunction({
         name: 'generateQuestions',
         data: {
           knowledgeId: selectedKnowledge.id,
           knowledgeName: selectedKnowledge.name,
           grade: '五年级',
-          count: selectedCount,
+          count: 1,
+          targetCount: selectedCount,
           difficulty: selectedDifficulty,
-          questionType: 'calculation'
+          questionType: 'calculation',
+          existingQuestions: [],
+          sessionId
         }
       });
 
@@ -203,7 +217,16 @@ Page({
       app.globalData.currentQuestions = {
         questions: result.questions,
         knowledge: selectedKnowledge,
-        meta: result.meta
+        meta: result.meta,
+        generateParams: {
+          knowledgeId: selectedKnowledge.id,
+          knowledgeName: selectedKnowledge.name,
+          grade: '五年级',
+          difficulty: selectedDifficulty,
+          questionType: 'calculation',
+          targetCount: selectedCount,
+          sessionId
+        }
       };
 
       // 跳转练习页
