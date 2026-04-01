@@ -1,114 +1,112 @@
-// 云函数：生成数学练习题
-// 调用 DeepSeek API 根据知识点生成题目
-
 const cloud = require('wx-server-sdk');
-const fetch = require('node-fetch');
-const { performSecurityCheck } = require('./security');
+const https = require('https'); // ← 改用内置模块，不用node-fetch
 
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 
-// DeepSeek API 配置
-const DEEPSEEK_API_URL = 'https://api.deepseek.com/chat/completions';
-const DEEPSEEK_MODEL = 'deepseek-chat';
-const TIMEOUT_MS = 30000;
+const { performSecurityCheck } = require('./security');
 
-/**
- * System Prompt
- */
-const SYSTEM_PROMPT = `你是由人民教育出版社认证的小学数学教材研究专家，拥有20年一线教学经验。
+// ========== 配置 ==========
+const DEEPSEEK_HOST = 'api.deepseek.com';
+const DEEPSEEK_PATH = '/chat/completions';
+const TIMEOUT_MS = 25000;
 
-## 核心原则
-1. 准确性第一：每道题必须自验证答案正确
-2. 教材对标：严格遵循人教版知识点定义
-3. 唯一答案：杜绝歧义题
+// ========== Prompt（精简版）==========
+const SYSTEM_PROMPT = `你是小学数学出题专家。
+规则：答案必须正确，只输出纯JSON，不加其他内容。`;
 
-## 五年级数值规范
-- 小数：0.01~99.99，最多两位
-- 整数：1~1000
-- 除法：优先整除
-- 分数：分母2~12
-
-## 难度标准
-- 简单：一步完成，数值简单
-- 中等：两步以内，数值适中
-- 困难：多步计算，数值较大
-
-## 输出规范
-只输出纯JSON，不添加任何其他内容。`;
-
-/**
- * 构建 User Prompt
- */
 const buildUserPrompt = (params) => {
   const { knowledgeName, grade, count, difficulty, questionType } = params;
 
-  const difficultyMap = { 'easy': '简单', 'medium': '中等', 'hard': '困难' };
-  const typeMap = { 'calculation': '计算题', 'fillBlank': '填空题', 'application': '应用题' };
+  const diffMap = { easy: '简单', medium: '中等', hard: '困难' };
+  const typeMap = { calculation: '计算题', fillBlank: '填空题', application: '应用题' };
 
-  return `生成 ${count} 道"${knowledgeName}"练习题。
-
-要求：
-- 年级：${grade}
-- 题型：${typeMap[questionType] || '计算题'}
-- 难度：${difficultyMap[difficulty] || '中等'}
-
-输出格式：
-{"questions":[{"id":1,"type":"题型","content":"题目","answer":"答案","solution":"解答","tip":"提示"}]}`;
+  // Prompt精简到最短
+  return `生成${count}道${grade}${knowledgeName}${typeMap[questionType] || '计算题'}，难度${diffMap[difficulty] || '中等'}。
+数值范围：小数最多两位，除法优先整除。
+直接输出JSON：{"questions":[{"id":1,"type":"计算题","content":"题目","answer":"答案","solution":"解题步骤","tip":"易错提示"}]}`;
 };
 
-/**
- * 调用 DeepSeek API
- */
-const callDeepSeekAPI = async (userPrompt, apiKey) => {
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), TIMEOUT_MS);
+// ========== 用https替代node-fetch ==========
+const callDeepSeekAPI = (userPrompt, apiKey) => {
+  return new Promise((resolve, reject) => {
 
-  try {
-    const response = await fetch(DEEPSEEK_API_URL, {
+    const body = JSON.stringify({
+      model: 'deepseek-chat',
+      messages: [
+        { role: 'system', content: SYSTEM_PROMPT },
+        { role: 'user', content: userPrompt }
+      ],
+      temperature: 0.3,
+      max_tokens: 800,        // ← 核心修改：3000改成800
+      stream: false
+    });
+
+    const options = {
+      hostname: DEEPSEEK_HOST,
+      path: DEEPSEEK_PATH,
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey}`
-      },
-      body: JSON.stringify({
-        model: DEEPSEEK_MODEL,
-        messages: [
-          { role: 'system', content: SYSTEM_PROMPT },
-          { role: 'user', content: userPrompt }
-        ],
-        temperature: 0.3,
-        max_tokens: 3000
-      }),
-      signal: controller.signal
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Length': Buffer.byteLength(body)
+      }
+    };
+
+    const startTime = Date.now();
+
+    const req = https.request(options, (res) => {
+      let data = '';
+
+      res.on('data', chunk => { data += chunk; });
+
+      res.on('end', () => {
+        console.log('[API耗时]', Date.now() - startTime, 'ms');
+
+        if (res.statusCode !== 200) {
+          reject(new Error(`API错误: ${res.statusCode} ${data}`));
+          return;
+        }
+
+        try {
+          resolve(JSON.parse(data));
+        } catch(e) {
+          reject(new Error('响应解析失败: ' + data.slice(0, 200)));
+        }
+      });
     });
 
-    clearTimeout(timeoutId);
+    // 超时处理
+    req.setTimeout(TIMEOUT_MS, () => {
+      req.destroy();
+      reject(new Error(`请求超时（${TIMEOUT_MS/1000}秒）`));
+    });
 
-    if (!response.ok) {
-      throw new Error(`API 请求失败: ${response.status}`);
-    }
+    req.on('error', (e) => {
+      console.error('[请求错误]', e.message);
+      reject(e);
+    });
 
-    return await response.json();
-  } catch (error) {
-    clearTimeout(timeoutId);
-    throw error;
-  }
+    req.write(body);
+    req.end();
+  });
 };
 
-/**
- * 解析 API 响应
- */
+// ========== 解析响应 ==========
 const parseResponse = (apiResponse) => {
   const content = apiResponse.choices?.[0]?.message?.content;
-  if (!content) throw new Error('API 响应格式错误');
+  if (!content) throw new Error('API响应为空');
 
-  let jsonStr = content.trim();
-  if (jsonStr.startsWith('```')) {
-    jsonStr = jsonStr.replace(/```json?|```/g, '').trim();
-  }
+  console.log('[原始响应]', content.slice(0, 200));
 
-  const parsed = JSON.parse(jsonStr);
-  if (!parsed.questions?.length) throw new Error('未生成有效题目');
+  // 清理markdown格式
+  let jsonStr = content.trim().replace(/```json?|```/g, '').trim();
+
+  // 提取JSON对象
+  const match = jsonStr.match(/\{[\s\S]*\}/);
+  if (!match) throw new Error('未找到JSON内容');
+
+  const parsed = JSON.parse(match[0]);
+  if (!parsed.questions?.length) throw new Error('题目列表为空');
 
   return parsed.questions.map((q, i) => ({
     id: i + 1,
@@ -116,22 +114,19 @@ const parseResponse = (apiResponse) => {
     content: String(q.content || '').trim(),
     answer: String(q.answer || '').trim(),
     solution: String(q.solution || '').trim(),
-    tip: String(q.tip || '').trim(),
-    difficulty: q.difficulty || '中等'
+    tip: String(q.tip || '').trim()
   }));
 };
 
-/**
- * 云函数入口
- */
+// ========== 云函数入口 ==========
 exports.main = async (event, context) => {
   const wxContext = cloud.getWXContext();
+  const totalStart = Date.now();
 
-  console.log('[generateQuestions] 请求参数:', event);
+  console.log('[generateQuestions] 开始，参数:', JSON.stringify(event));
 
-  // ========== 安全检查 ==========
+  // 安全检查
   const securityResult = performSecurityCheck(event, wxContext);
-
   if (!securityResult.passed) {
     return {
       success: false,
@@ -141,18 +136,13 @@ exports.main = async (event, context) => {
     };
   }
 
-  // ========== API Key 检查 ==========
+  // API Key检查
   const apiKey = process.env.DEEPSEEK_API_KEY;
   if (!apiKey) {
-    console.error('[generateQuestions] 未配置 DEEPSEEK_API_KEY');
-    return {
-      success: false,
-      error: '服务配置错误',
-      code: 'CONFIG_ERROR'
-    };
+    return { success: false, error: '服务配置错误', code: 'CONFIG_ERROR' };
   }
 
-  // ========== 生成题目 ==========
+  // 生成题目
   try {
     const { knowledgeId, knowledgeName, grade } = event;
     const { count, difficulty, questionType } = securityResult.data;
@@ -165,11 +155,14 @@ exports.main = async (event, context) => {
       questionType
     });
 
-    console.log('[generateQuestions] 调用 DeepSeek API...');
+    console.log('[Prompt长度]', userPrompt.length, '字符');
+    console.log('[调用DeepSeek]', new Date().toISOString());
+
     const apiResponse = await callDeepSeekAPI(userPrompt, apiKey);
     const questions = parseResponse(apiResponse);
 
-    console.log('[generateQuestions] 生成成功，共', questions.length, '道题');
+    console.log('[总耗时]', Date.now() - totalStart, 'ms');
+    console.log('[题目数量]', questions.length);
 
     return {
       success: true,
@@ -185,7 +178,8 @@ exports.main = async (event, context) => {
     };
 
   } catch (error) {
-    console.error('[generateQuestions] 生成失败:', error);
+    console.error('[生成失败]', error.message);
+    console.log('[失败耗时]', Date.now() - totalStart, 'ms');
 
     return {
       success: false,
