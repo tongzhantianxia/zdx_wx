@@ -4,7 +4,7 @@
   <view class="glow glow-bottom"></view>
   <!-- 完成图标 -->
   <view class="celebration">
-    <text class="emoji">🦆</text>
+    <image class="emoji" src="/images/duck-avatar.png" mode="aspectFit"></image>
     <view class="star-left">✨</view>
     <view class="star-right">✨</view>
   </view>

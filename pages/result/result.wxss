@@ -18,10 +18,13 @@
 }
 
 .emoji {
-  font-size: 140rpx;
-  filter: drop-shadow(0 12rpx 24rpx rgba(0, 0, 0, 0.5));
+  width: 200rpx;
+  height: 200rpx;
+  border-radius: 50%;
+  border: 6rpx solid rgba(88, 216, 255, 0.6);
+  box-shadow: 0 12rpx 32rpx rgba(88, 216, 255, 0.3);
   animation: float-duck 3s ease-in-out infinite;
-  display: inline-block;
+  display: block;
 }
 
 @keyframes float-duck {

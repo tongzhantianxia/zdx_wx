@@ -20,9 +20,12 @@
 }
 
 .mascot-mini {
-  font-size: 64rpx;
-  margin-bottom: 16rpx;
-  filter: drop-shadow(0 4rpx 8rpx rgba(0, 0, 0, 0.3));
+  width: 100rpx;
+  height: 100rpx;
+  margin-bottom: 20rpx;
+  border-radius: 50%;
+  border: 4rpx solid rgba(88, 216, 255, 0.4);
+  box-shadow: 0 4rpx 12rpx rgba(88, 216, 255, 0.2);
 }
 
 .title {

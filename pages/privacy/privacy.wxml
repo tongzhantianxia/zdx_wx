@@ -1,7 +1,7 @@
 <!--pages/privacy/privacy.wxml-->
 <view class="container">
   <view class="header">
-    <view class="mascot-mini">🦆</view>
+    <image class="mascot-mini" src="/images/duck-avatar.png" mode="aspectFit"></image>
     <text class="title">用户协议与隐私政策</text>
     <text class="update-time">更新日期：2024年1月</text>
   </view>

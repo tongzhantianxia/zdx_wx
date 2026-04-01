@@ -28,7 +28,7 @@
     <view class="answer-input-wrap">
       <input
         class="answer-input"
-        type="number"
+        type="digit"
         placeholder="点击输入"
         placeholder-class="answer-placeholder"
         value="{{userAnswer}}"
@@ -57,7 +57,7 @@
   <view class="feedback-section card {{feedbackType}}" wx:if="{{showFeedback}}">
     <view class="feedback-content">
       <view class="feedback-icon">
-        <text wx:if="{{isCorrect}}">🦆</text>
+        <image wx:if="{{isCorrect}}" class="feedback-img" src="/images/duck-avatar.png" mode="aspectFit"></image>
         <text wx:else>💥</text>
       </view>
       <view class="feedback-text">

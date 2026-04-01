@@ -11,7 +11,7 @@
         <text class="subtitle">聚焦薄弱知识点，沉浸式闯关提分</text>
       </view>
       <view class="mascot-box">
-        <text class="mascot-emoji">🦆</text>
+        <image class="mascot-img" src="/images/duck-avatar.png" mode="aspectFit"></image>
       </view>
     </view>
   </view>

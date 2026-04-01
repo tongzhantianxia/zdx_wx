@@ -231,6 +231,13 @@
   font-size: 48rpx;
   color: #FFFFFF;
   box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.2);
+  overflow: hidden;
+}
+
+.feedback-img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
 }
 
 .correct .feedback-icon {
