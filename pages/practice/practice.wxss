@@ -1,9 +1,10 @@
 /* pages/practice/practice.wxss */
 
 .practice-page {
-  min-height: 100vh;
+  height: 100vh;
   background-color: var(--bg-page);
   padding: calc(32rpx + env(safe-area-inset-top)) 24rpx calc(48rpx + env(safe-area-inset-bottom));
+  box-sizing: border-box;
   display: flex;
   flex-direction: column;
   gap: 20rpx;

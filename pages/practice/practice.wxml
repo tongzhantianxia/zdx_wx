@@ -90,25 +90,26 @@
     </view>
   </view>
 
-  <!-- 答案反馈弹层 -->
-  <view class="feedback-sheet {{feedbackType}}" wx:if="{{showFeedback}}">
-    <view class="feedback-handle"></view>
-    <view class="feedback-body">
-      <view class="feedback-icon-wrap {{isCorrect ? 'icon-correct' : 'icon-wrong'}}">
-        <image wx:if="{{isCorrect}}" class="feedback-duck" src="/images/duck-avatar.png" mode="aspectFit"></image>
-        <text wx:else class="feedback-emoji">💥</text>
-      </view>
-      <view class="feedback-info">
-        <text class="feedback-title {{isCorrect ? 'title-correct' : 'title-wrong'}}">
-          {{isCorrect ? '答对了！真棒 🎉' : '这次没对～'}}
-        </text>
-        <text class="feedback-answer" wx:if="{{!isCorrect}}">正确答案：{{currentQuestion.answer}}</text>
-        <text class="feedback-explain" wx:if="{{currentQuestion && currentQuestion.explanation}}">{{currentQuestion.explanation}}</text>
-      </view>
-    </view>
-    <button class="next-btn" bindtap="handleNext">
-      {{currentIndex + 1 >= totalQuestions ? '查看结果 🏆' : '下一题 →'}}
-    </button>
-  </view>
 
 </scroll-view>
+
+<!-- 答案反馈弹层（fixed 定位，放在 scroll-view 外） -->
+<view class="feedback-sheet {{feedbackType}}" wx:if="{{showFeedback}}">
+  <view class="feedback-handle"></view>
+  <view class="feedback-body">
+    <view class="feedback-icon-wrap {{isCorrect ? 'icon-correct' : 'icon-wrong'}}">
+      <image wx:if="{{isCorrect}}" class="feedback-duck" src="/images/duck-avatar.png" mode="aspectFit"></image>
+      <text wx:else class="feedback-emoji">💥</text>
+    </view>
+    <view class="feedback-info">
+      <text class="feedback-title {{isCorrect ? 'title-correct' : 'title-wrong'}}">
+        {{isCorrect ? '答对了！真棒 🎉' : '这次没对～'}}
+      </text>
+      <text class="feedback-answer" wx:if="{{!isCorrect}}">正确答案：{{currentQuestion.answer}}</text>
+      <text class="feedback-explain" wx:if="{{currentQuestion && currentQuestion.explanation}}">{{currentQuestion.explanation}}</text>
+    </view>
+  </view>
+  <button class="next-btn" bindtap="handleNext">
+    {{currentIndex + 1 >= totalQuestions ? '查看结果 🏆' : '下一题 →'}}
+  </button>
+</view>
