@@ -17,15 +17,30 @@ const SYSTEM_PROMPT = `你是小学数学出题专家。
 规则：答案必须正确，只输出纯JSON，不加其他内容。`;
 
 const buildUserPrompt = (params) => {
-  const { knowledgeName, grade, count, difficulty, questionType } = params;
+  const {
+    knowledgeName,
+    grade,
+    count,
+    difficulty,
+    questionType,
+    existingSummaries,
+    prefetchHint
+  } = params;
 
   const diffMap = { easy: '简单', medium: '中等', hard: '困难' };
   const typeMap = { calculation: '计算题', fillBlank: '填空题', application: '应用题' };
 
-  // Prompt精简到最短
-  return `生成${count}道${grade}${knowledgeName}${typeMap[questionType] || '计算题'}，难度${diffMap[difficulty] || '中等'}。
+  let text = `生成${count}道${grade}${knowledgeName}${typeMap[questionType] || '计算题'}，难度${diffMap[difficulty] || '中等'}。
 数值范围：小数最多两位，除法优先整除。
 直接输出JSON：{"questions":[{"id":1,"type":"计算题","content":"题目","answer":"答案","solution":"解题步骤","tip":"易错提示"}]}`;
+
+  if (Array.isArray(existingSummaries) && existingSummaries.length > 0) {
+    text += `\n已出过的题（不要重复）：${existingSummaries.join('、')}`;
+  }
+  if (prefetchHint) {
+    text += `\n出题要求：${prefetchHint}`;
+  }
+  return text;
 };
 
 // ========== 用https替代node-fetch ==========
@@ -49,7 +64,7 @@ const isRetryableError = (err) => {
   ].includes(code) || String(err.message || '').includes('请求超时');
 };
 
-const callDeepSeekAPIOnce = (userPrompt, apiKey, requestId) => {
+const callDeepSeekAPIOnce = (userPrompt, apiKey, requestId, maxTokens = 800) => {
   return new Promise((resolve, reject) => {
 
     const body = JSON.stringify({
@@ -59,7 +74,7 @@ const callDeepSeekAPIOnce = (userPrompt, apiKey, requestId) => {
         { role: 'user', content: userPrompt }
       ],
       temperature: 0.3,
-      max_tokens: 800,        // ← 核心修改：3000改成800
+      max_tokens: maxTokens,
       stream: false
     });
 
@@ -126,7 +141,7 @@ const callDeepSeekAPIOnce = (userPrompt, apiKey, requestId) => {
   });
 };
 
-const callDeepSeekAPI = async (userPrompt, apiKey, requestId) => {
+const callDeepSeekAPI = async (userPrompt, apiKey, requestId, maxTokens = 800) => {
   for (let attempt = 1; attempt <= MAX_RETRIES + 1; attempt++) {
     try {
       console.log('[DeepSeekAPI]', JSON.stringify({
@@ -135,7 +150,7 @@ const callDeepSeekAPI = async (userPrompt, apiKey, requestId) => {
         attempt,
         maxAttempt: MAX_RETRIES + 1
       }));
-      return await callDeepSeekAPIOnce(userPrompt, apiKey, requestId);
+      return await callDeepSeekAPIOnce(userPrompt, apiKey, requestId, maxTokens);
     } catch (error) {
       const shouldRetry = attempt <= MAX_RETRIES
         && (isRetryableStatus(error.statusCode) || isRetryableError(error));
@@ -182,6 +197,14 @@ const parseResponse = (apiResponse) => {
   }));
 };
 
+const normContent = (s) => String(s || '').replace(/\s/g, '');
+
+const isDuplicateAgainstExisting = (question, existingList) => {
+  if (!question || !existingList || !existingList.length) return false;
+  const n = normContent(question.content);
+  return existingList.some((ex) => normContent(ex) === n);
+};
+
 // ========== 云函数入口 ==========
 exports.main = async (event, context) => {
   const wxContext = cloud.getWXContext();
@@ -213,23 +236,56 @@ exports.main = async (event, context) => {
   // 生成题目
   try {
     const { knowledgeId, knowledgeName, grade } = event;
-    const { count, difficulty, questionType } = securityResult.data;
+    const {
+      count,
+      difficulty,
+      questionType,
+      sanitizedExistingQuestions
+    } = securityResult.data;
 
-    const userPrompt = buildUserPrompt({
+    const prefetchHint = String(event.prefetchHint || '').slice(0, 80);
+    const maxTokens = count === 1 ? 300 : 800;
+
+    let userPrompt = buildUserPrompt({
       knowledgeName,
       grade: grade || '五年级',
       count,
       difficulty,
-      questionType
+      questionType,
+      existingSummaries: sanitizedExistingQuestions,
+      prefetchHint: prefetchHint || undefined
     });
 
     console.log('[Prompt信息]', JSON.stringify({
       requestId,
-      promptLength: userPrompt.length
+      promptLength: userPrompt.length,
+      maxTokens
     }));
 
-    const apiResponse = await callDeepSeekAPI(userPrompt, apiKey, requestId);
-    const questions = parseResponse(apiResponse);
+    let apiResponse = await callDeepSeekAPI(userPrompt, apiKey, requestId, maxTokens);
+    let questions = parseResponse(apiResponse);
+    let duplicateWarning = false;
+
+    if (
+      questions.length > 0
+      && isDuplicateAgainstExisting(questions[0], sanitizedExistingQuestions)
+    ) {
+      const retryPrompt = `${userPrompt}\n必须与已列题目完全不同，不得重复。`;
+      apiResponse = await callDeepSeekAPI(
+        retryPrompt,
+        apiKey,
+        `${requestId}_dedup`,
+        maxTokens
+      );
+      questions = parseResponse(apiResponse);
+      if (
+        questions.length > 0
+        && isDuplicateAgainstExisting(questions[0], sanitizedExistingQuestions)
+      ) {
+        duplicateWarning = true;
+      }
+    }
+
     const usage = apiResponse.usage || null;
     const totalLatency = Date.now() - totalStart;
 
@@ -237,7 +293,8 @@ exports.main = async (event, context) => {
       requestId,
       totalLatency,
       questionCount: questions.length,
-      usage
+      usage,
+      duplicateWarning
     }));
 
     return {
@@ -250,7 +307,8 @@ exports.main = async (event, context) => {
         count: questions.length,
         usage,
         openid: wxContext.OPENID,
-        generatedAt: new Date().toISOString()
+        generatedAt: new Date().toISOString(),
+        duplicateWarning
       }
     };
 
