@@ -1,4 +1,6 @@
 {
   "navigationBarTitleText": "练习完成",
+  "navigationBarBackgroundColor": "#FFFEF5",
+  "navigationBarTextStyle": "black",
   "navigationStyle": "default"
 }

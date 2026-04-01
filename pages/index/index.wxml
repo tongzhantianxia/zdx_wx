@@ -1,148 +1,150 @@
 <!--pages/index/index.wxml-->
-<view class="container">
-  <view class="bg-orb orb-left"></view>
-  <view class="bg-orb orb-right"></view>
-  <!-- 顶部标题区域 -->
-  <view class="header">
-    <view class="header-content">
-      <view class="title-group">
-        <text class="badge">AI STUDY LAB</text>
-        <text class="title">出题鸭</text>
-        <text class="subtitle">聚焦薄弱知识点，沉浸式闯关提分</text>
+<view class="page">
+
+  <!-- 自定义导航栏 -->
+  <view class="nav-bar" style="padding-top: {{statusBarHeight}}px;">
+    <view class="nav-content">
+      <view class="nav-logo">
+        <image class="nav-duck" src="/images/duck-avatar.png" mode="aspectFit"></image>
+        <text class="nav-title">出题鸭</text>
       </view>
-      <view class="mascot-box">
-        <image class="mascot-img" src="/images/duck-avatar.png" mode="aspectFit"></image>
-      </view>
+      <!-- 胶囊按钮占位 -->
+      <view class="capsule-placeholder"></view>
     </view>
   </view>
 
-  <!-- 主体选择区域 -->
-  <view class="main-content">
-    <!-- 学期选择 -->
-    <view class="select-card">
-      <view class="card-header">
-        <text class="card-title">选择学期</text>
-      </view>
-      <view class="tab-group">
-        <view
-          class="tab-item {{selectedSemester === 'upper' ? 'active' : ''}}"
-          bindtap="handleSemesterChange"
-          data-semester="upper">
-          五年级上册
-        </view>
-        <view
-          class="tab-item {{selectedSemester === 'lower' ? 'active' : ''}}"
-          bindtap="handleSemesterChange"
-          data-semester="lower">
-          五年级下册
-        </view>
-      </view>
+  <!-- 品牌 Hero 区 -->
+  <view class="hero-section">
+    <view class="hero-left">
+      <text class="hero-title">出题鸭</text>
+      <text class="hero-subtitle">人教版数学同步练，哪里薄弱练哪里</text>
     </view>
+    <view class="hero-right">
+      <image class="hero-duck" src="/images/duck-avatar.png" mode="aspectFit"></image>
+    </view>
+    <!-- 装饰云朵 -->
+    <view class="cloud cloud-1"></view>
+    <view class="cloud cloud-2"></view>
+  </view>
 
-    <!-- 知识点选择 -->
-    <view class="select-card">
-      <view class="card-header">
-        <text class="card-title">选择知识点</text>
-        <text class="card-hint" wx:if="{{selectedKnowledge}}">已选: {{selectedKnowledge.name}}</text>
-      </view>
-      <scroll-view class="knowledge-list" scroll-y enhanced show-scrollbar="{{false}}">
-        <view
-          class="knowledge-group"
-          wx:for="{{knowledgeList}}"
-          wx:key="id"
-          wx:for-item="chapter">
-          <view class="group-title">第{{chapter.unit}}单元 {{chapter.name}}</view>
+  <!-- 主体选择区 -->
+  <view class="main-body">
+
+    <!-- 年级横向滚动选择 -->
+    <view class="section-block">
+      <text class="section-label">选年级</text>
+      <scroll-view class="grade-scroll" scroll-x enhanced show-scrollbar="{{false}}">
+        <view class="grade-list">
           <view
-            class="knowledge-item {{selectedKnowledge && selectedKnowledge.id === item.id ? 'active' : ''}}"
-            wx:for="{{chapter.knowledges}}"
-            wx:key="id"
-            bindtap="handleKnowledgeSelect"
-            data-item="{{item}}"
-            data-chapter="{{chapter}}">
-            <view class="knowledge-name">{{item.name}}</view>
-            <view class="knowledge-difficulty">
-              <text class="diff-tag diff-{{item.difficulty_range[0]}}">
-                {{item.difficulty_range[0] === 1 ? '基础' : item.difficulty_range[0] === 2 ? '进阶' : '挑战'}}
-              </text>
-            </view>
+            class="grade-btn {{selectedGrade === item.value ? 'grade-active' : ''}}"
+            wx:for="{{gradeList}}"
+            wx:key="value"
+            bindtap="handleGradeChange"
+            data-grade="{{item.value}}">
+            <image wx:if="{{selectedGrade === item.value}}" class="grade-duck-icon" src="/images/duck-avatar.png" mode="aspectFit"></image>
+            <text class="grade-text">{{item.label}}</text>
           </view>
         </view>
       </scroll-view>
     </view>
 
-    <!-- 题目数量 -->
-    <view class="select-card">
-      <view class="card-header">
-        <text class="card-title">题目数量</text>
-      </view>
-      <view class="option-group">
+    <!-- 上下册选择 -->
+    <view class="section-block">
+      <text class="section-label">选册次</text>
+      <view class="semester-group">
         <view
-          class="option-item {{selectedCount === 3 ? 'active' : ''}}"
-          bindtap="handleCountChange"
-          data-count="{{3}}">
-          <text class="option-number">3</text>
-          <text class="option-text">道题</text>
+          class="semester-btn {{selectedSemester === 'upper' ? 'semester-active' : ''}}"
+          bindtap="handleSemesterChange"
+          data-semester="upper">
+          <text wx:if="{{selectedSemester === 'upper'}}" class="semester-check">✓ </text>上册
         </view>
         <view
-          class="option-item {{selectedCount === 5 ? 'active' : ''}}"
-          bindtap="handleCountChange"
-          data-count="{{5}}">
-          <text class="option-number">5</text>
-          <text class="option-text">道题</text>
-        </view>
-        <view
-          class="option-item {{selectedCount === 8 ? 'active' : ''}}"
-          bindtap="handleCountChange"
-          data-count="{{8}}">
-          <text class="option-number">8</text>
-          <text class="option-text">道题</text>
+          class="semester-btn {{selectedSemester === 'lower' ? 'semester-active' : ''}}"
+          bindtap="handleSemesterChange"
+          data-semester="lower">
+          <text wx:if="{{selectedSemester === 'lower'}}" class="semester-check">✓ </text>下册
         </view>
       </view>
     </view>
 
-    <!-- 难度选择 -->
-    <view class="select-card">
-      <view class="card-header">
-        <text class="card-title">难度选择</text>
-      </view>
-      <view class="option-group">
+    <!-- 知识点选择（折叠面板） -->
+    <view class="section-block">
+      <text class="section-label">选知识点</text>
+      <view class="accordion-wrap">
         <view
-          class="option-item difficulty-easy {{selectedDifficulty === 'easy' ? 'active' : ''}}"
-          bindtap="handleDifficultyChange"
-          data-difficulty="easy">
-          简单
-        </view>
-        <view
-          class="option-item difficulty-medium {{selectedDifficulty === 'medium' ? 'active' : ''}}"
-          bindtap="handleDifficultyChange"
-          data-difficulty="medium">
-          中等
-        </view>
-        <view
-          class="option-item difficulty-hard {{selectedDifficulty === 'hard' ? 'active' : ''}}"
-          bindtap="handleDifficultyChange"
-          data-difficulty="hard">
-          困难
+          class="chapter-panel"
+          wx:for="{{knowledgeList}}"
+          wx:key="id"
+          wx:for-item="chapter">
+          <!-- 单元标题行 -->
+          <view
+            class="chapter-header {{expandedChapter === chapter.id ? 'chapter-open' : ''}}"
+            bindtap="handleChapterToggle"
+            data-id="{{chapter.id}}">
+            <text class="chapter-title">第{{chapter.unit}}单元 {{chapter.name}}</text>
+            <text class="chapter-arrow">{{expandedChapter === chapter.id ? '∧' : '›'}}</text>
+          </view>
+          <!-- 知识点列表 -->
+          <view class="chapter-body" wx:if="{{expandedChapter === chapter.id}}">
+            <view
+              class="knowledge-row {{selectedKnowledge && selectedKnowledge.id === item.id ? 'knowledge-active' : ''}}"
+              wx:for="{{chapter.knowledges}}"
+              wx:key="id"
+              bindtap="handleKnowledgeSelect"
+              data-item="{{item}}"
+              data-chapter="{{chapter}}">
+              <view class="knowledge-left">
+                <view class="check-circle {{selectedKnowledge && selectedKnowledge.id === item.id ? 'checked' : ''}}">
+                  <text wx:if="{{selectedKnowledge && selectedKnowledge.id === item.id}}" class="check-mark">✓</text>
+                </view>
+                <text class="knowledge-name">{{item.name}}</text>
+              </view>
+              <text class="diff-badge diff-{{item.difficulty_range[0]}}">
+                {{item.difficulty_range[0] === 1 ? '基础' : item.difficulty_range[0] === 2 ? '进阶' : '挑战'}}
+              </text>
+            </view>
+          </view>
         </view>
       </view>
     </view>
+
+    <!-- 题量选择 -->
+    <view class="section-block">
+      <text class="section-label">选题量</text>
+      <view class="count-group">
+        <view
+          class="count-btn {{selectedCount === item ? 'count-active' : ''}}"
+          wx:for="{{countList}}"
+          wx:key="*this"
+          bindtap="handleCountChange"
+          data-count="{{item}}">
+          {{item}}道
+        </view>
+      </view>
+    </view>
+
   </view>
 
   <!-- 底部生成按钮 -->
-  <view class="footer-btn">
-    <button
-      class="generate-btn {{!selectedKnowledge ? 'disabled' : ''}}"
-      bindtap="handleGenerate"
-      disabled="{{!selectedKnowledge}}">
-      {{generating ? '生成中...' : '生成练习题'}}
-    </button>
-  </view>
-
-  <!-- 加载提示 -->
-  <view class="loading-mask" wx:if="{{generating}}">
-    <view class="loading-content">
-      <view class="loading-spinner"></view>
-      <text class="loading-text">正在生成练习题...</text>
+  <view class="footer-bar">
+    <view class="footer-inner">
+      <button
+        class="generate-btn {{!selectedKnowledge ? 'generate-disabled' : ''}}"
+        bindtap="handleGenerate"
+        disabled="{{!selectedKnowledge || generating}}">
+        <text class="generate-text">{{generating ? '生成中...' : '生成练习题'}}</text>
+        <image wx:if="{{!generating}}" class="generate-duck" src="/images/duck-avatar.png" mode="aspectFit"></image>
+      </button>
     </view>
   </view>
+
+  <!-- 加载遮罩 -->
+  <view class="loading-mask" wx:if="{{generating}}">
+    <view class="loading-box">
+      <view class="loading-spinner"></view>
+      <text class="loading-text">正在生成练习题...</text>
+      <text class="loading-sub">小鸭子努力出题中 🐥</text>
+    </view>
+  </view>
+
 </view>

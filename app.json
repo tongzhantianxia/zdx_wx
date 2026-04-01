@@ -6,11 +6,11 @@
     "pages/result/result"
   ],
   "window": {
-    "backgroundTextStyle": "light",
-    "navigationBarBackgroundColor": "#0D1328",
+    "backgroundTextStyle": "dark",
+    "navigationBarBackgroundColor": "#FFFEF5",
     "navigationBarTitleText": "出题鸭",
-    "navigationBarTextStyle": "white",
-    "backgroundColor": "#0B1120"
+    "navigationBarTextStyle": "black",
+    "backgroundColor": "#FFFEF5"
   },
   "cloud": true,
   "style": "v2",

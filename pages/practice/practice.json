@@ -1,4 +1,6 @@
 {
   "navigationBarTitleText": "练习中",
+  "navigationBarBackgroundColor": "#FFFFFF",
+  "navigationBarTextStyle": "black",
   "disableScroll": false
 }

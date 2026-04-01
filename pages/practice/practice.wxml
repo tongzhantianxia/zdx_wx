@@ -1,35 +1,55 @@
 <!--pages/practice/practice.wxml-->
-<view class="container practice-page">
-  <view class="bg-grid"></view>
-  <!-- 进度条 -->
-  <view class="progress-section card">
-    <view class="progress-info flex-between">
-      <text class="progress-text">第 {{currentIndex + 1}} / {{totalQuestions}} 题</text>
-      <text class="progress-score">得分: {{score}}</text>
+<view class="practice-page">
+
+  <!-- 顶部进度区 -->
+  <view class="progress-bar-section">
+    <view class="progress-info">
+      <view class="progress-left">
+        <text class="progress-label">第</text>
+        <text class="progress-num">{{currentIndex + 1}}</text>
+        <text class="progress-label">题 / 共{{totalQuestions}}题</text>
+      </view>
+      <view class="score-badge">
+        <text class="score-icon">⭐</text>
+        <text class="score-val">{{score}}</text>
+        <text class="score-label">分</text>
+      </view>
     </view>
-    <progress class="progress-bar" percent="{{progressPercent}}" stroke-width="8" activeColor="#4A90E2" backgroundColor="#E8E8E8" />
+    <!-- 进度条 -->
+    <view class="progress-track">
+      <view class="progress-fill" style="width: {{progressPercent}}%;"></view>
+      <view class="progress-duck" style="left: calc({{progressPercent}}% - 20rpx);">
+        <image src="/images/duck-avatar.png" mode="aspectFit" style="width:40rpx;height:40rpx;"></image>
+      </view>
+    </view>
   </view>
 
-  <!-- 题目区域 -->
-  <view class="question-section card" wx:if="{{currentQuestion}}">
-    <view class="question-header flex-between">
-      <text class="question-type">{{currentQuestion.typeName}}</text>
-      <text class="question-difficulty">{{currentQuestion.difficultyText}}</text>
+  <!-- 题目卡片 -->
+  <view class="question-card" wx:if="{{currentQuestion}}">
+    <view class="question-meta">
+      <view class="type-tag">{{currentQuestion.typeName}}</view>
+      <view class="diff-tag diff-{{currentQuestion.difficulty || 1}}">
+        {{currentQuestion.difficultyText}}
+      </view>
     </view>
-    <view class="question-content">
+    <view class="question-body">
       <text class="question-text">{{currentQuestion.question}}</text>
-      <text class="question-hint" wx:if="{{showHint}}">{{currentQuestion.hint}}</text>
+    </view>
+    <!-- 提示 -->
+    <view class="hint-box" wx:if="{{showHint && currentQuestion.hint}}">
+      <text class="hint-icon">💡</text>
+      <text class="hint-text">{{currentQuestion.hint}}</text>
     </view>
   </view>
 
-  <!-- 答题区域 -->
+  <!-- 答题区 -->
   <view class="answer-section">
-    <view class="answer-label">你的答案</view>
+    <text class="answer-label">写下你的答案</text>
     <view class="answer-input-wrap">
       <input
         class="answer-input"
         type="digit"
-        placeholder="点击输入"
+        placeholder="点击输入答案"
         placeholder-class="answer-placeholder"
         value="{{userAnswer}}"
         bindinput="handleAnswerInput"
@@ -37,37 +57,44 @@
         adjust-position="{{true}}"
         bindconfirm="handleSubmit"
       />
-      <view class="keyboard-done-btn" bindtap="hideKeyboard" wx:if="{{userAnswer}}">
-        <text>✓</text>
-      </view>
+      <view class="confirm-btn" bindtap="hideKeyboard" wx:if="{{userAnswer}}">✓</view>
     </view>
 
-    <!-- 操作按钮 -->
-    <view class="action-buttons">
-      <button class="btn btn-secondary hint-btn" bindtap="showHintTap" wx:if="{{!showHint && currentQuestion.hint}}">
-        提示
+    <view class="action-row">
+      <button
+        class="hint-btn"
+        bindtap="showHintTap"
+        wx:if="{{!showHint && currentQuestion && currentQuestion.hint}}">
+        💡 提示
       </button>
-      <button class="btn btn-primary submit-btn" bindtap="handleSubmit" disabled="{{!userAnswer}}">
+      <button
+        class="submit-btn {{!userAnswer ? 'submit-disabled' : ''}}"
+        bindtap="handleSubmit"
+        disabled="{{!userAnswer}}">
         提交答案
       </button>
     </view>
   </view>
 
-  <!-- 答案反馈 -->
-  <view class="feedback-section card {{feedbackType}}" wx:if="{{showFeedback}}">
-    <view class="feedback-content">
-      <view class="feedback-icon">
-        <image wx:if="{{isCorrect}}" class="feedback-img" src="/images/duck-avatar.png" mode="aspectFit"></image>
-        <text wx:else>💥</text>
+  <!-- 答案反馈弹层 -->
+  <view class="feedback-sheet {{feedbackType}}" wx:if="{{showFeedback}}">
+    <view class="feedback-handle"></view>
+    <view class="feedback-body">
+      <view class="feedback-icon-wrap {{isCorrect ? 'icon-correct' : 'icon-wrong'}}">
+        <image wx:if="{{isCorrect}}" class="feedback-duck" src="/images/duck-avatar.png" mode="aspectFit"></image>
+        <text wx:else class="feedback-emoji">💥</text>
       </view>
-      <view class="feedback-text">
-        <text class="feedback-title">{{isCorrect ? '回答正确！' : '回答错误'}}</text>
-        <text class="feedback-answer" wx:if="{{!isCorrect}}">正确答案: {{currentQuestion.answer}}</text>
-        <text class="feedback-explanation" wx:if="{{currentQuestion.explanation}}">{{currentQuestion.explanation}}</text>
+      <view class="feedback-info">
+        <text class="feedback-title {{isCorrect ? 'title-correct' : 'title-wrong'}}">
+          {{isCorrect ? '答对了！真棒 🎉' : '这次没对～'}}
+        </text>
+        <text class="feedback-answer" wx:if="{{!isCorrect}}">正确答案：{{currentQuestion.answer}}</text>
+        <text class="feedback-explain" wx:if="{{currentQuestion && currentQuestion.explanation}}">{{currentQuestion.explanation}}</text>
       </view>
     </view>
-    <button class="btn btn-primary next-btn" bindtap="handleNext">
-      {{currentIndex + 1 >= totalQuestions ? '查看结果' : '下一题'}}
+    <button class="next-btn" bindtap="handleNext">
+      {{currentIndex + 1 >= totalQuestions ? '查看结果 🏆' : '下一题 →'}}
     </button>
   </view>
+
 </view>

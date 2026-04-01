@@ -8,22 +8,50 @@ const RATE_LIMIT_KEY = 'lastGenerateTime';
 
 Page({
   data: {
+    statusBarHeight: 0,
+    selectedGrade: 'grade5',
+    gradeList: [
+      { label: '1年级', value: 'grade1' },
+      { label: '2年级', value: 'grade2' },
+      { label: '3年级', value: 'grade3' },
+      { label: '4年级', value: 'grade4' },
+      { label: '5年级', value: 'grade5' },
+      { label: '6年级', value: 'grade6' },
+    ],
     selectedSemester: 'upper',
     knowledgeList: [],
+    expandedChapter: null,
     selectedKnowledge: null,
+    countList: [3, 5, 8, 10],
     selectedCount: 3,
     selectedDifficulty: 'medium',
     generating: false,
-    countdown: 0  // 倒计时显示
+    countdown: 0
   },
 
   onLoad: function () {
+    const sysInfo = wx.getSystemInfoSync();
+    this.setData({ statusBarHeight: sysInfo.statusBarHeight });
     this.initKnowledgeList();
   },
 
   onShow: function () {
-    // 检查是否有倒计时需要恢复
     this.checkRateLimit();
+  },
+
+  // 切换年级
+  handleGradeChange: function (e) {
+    const grade = e.currentTarget.dataset.grade;
+    if (grade === this.data.selectedGrade) return;
+    this.setData({ selectedGrade: grade, selectedKnowledge: null, expandedChapter: null });
+    this.initKnowledgeList();
+  },
+
+  // 折叠面板切换
+  handleChapterToggle: function (e) {
+    const id = e.currentTarget.dataset.id;
+    const current = this.data.expandedChapter;
+    this.setData({ expandedChapter: current === id ? null : id });
   },
 
   // 初始化知识点列表
@@ -40,7 +68,12 @@ Page({
       knowledges: chapter.knowledges
     }));
 
-    this.setData({ knowledgeList });
+    // 默认展开第一个章节
+    const firstId = knowledgeList.length > 0 ? knowledgeList[0].id : null;
+    this.setData({
+      knowledgeList,
+      expandedChapter: this.data.expandedChapter || firstId
+    });
   },
 
   // 切换学期
@@ -73,11 +106,6 @@ Page({
   // 切换题目数量
   handleCountChange: function (e) {
     this.setData({ selectedCount: e.currentTarget.dataset.count });
-  },
-
-  // 切换难度
-  handleDifficultyChange: function (e) {
-    this.setData({ selectedDifficulty: e.currentTarget.dataset.difficulty });
   },
 
   // 检查频率限制
