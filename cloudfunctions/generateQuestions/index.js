@@ -21,7 +21,7 @@ const MODEL_CONFIGS = {
   },
   qwen: {
     host: 'dashscope.aliyuncs.com',
-    path: '/api/v1/services/aigc/text-generation/generation',
+    path: '/compatible-mode/v1/chat/completions',
     model: 'qwen-turbo',
     authPrefix: 'Bearer'
   }
@@ -79,11 +79,12 @@ const isRetryableError = (err) => {
   ].includes(code) || String(err.message || '').includes('请求超时');
 };
 
-// ========== DeepSeek API ==========
-const callDeepSeekAPIOnce = (userPrompt, apiKey, requestId, maxTokens = 800) => {
+// ========== 统一 API 调用（兼容 DeepSeek 和阿里百炼 OpenAI 兼容模式）==========
+const callAIAPIOnce = (userPrompt, apiKey, model, requestId, maxTokens = 800) => {
   return new Promise((resolve, reject) => {
-    const config = MODEL_CONFIGS.deepseek;
+    const config = MODEL_CONFIGS[model] || MODEL_CONFIGS.deepseek;
 
+    // OpenAI 兼容格式（DeepSeek 和阿里百炼兼容模式都支持）
     const body = JSON.stringify({
       model: config.model,
       messages: [
@@ -113,8 +114,9 @@ const callDeepSeekAPIOnce = (userPrompt, apiKey, requestId, maxTokens = 800) => 
       res.on('data', chunk => { data += chunk; });
       res.on('end', () => {
         const apiLatency = Date.now() - startTime;
-        console.log('[DeepSeekAPI]', JSON.stringify({
+        console.log('[AIAPI]', JSON.stringify({
           requestId,
+          model,
           phase: 'http_complete',
           apiLatency,
           statusCode: res.statusCode
@@ -144,6 +146,7 @@ const callDeepSeekAPIOnce = (userPrompt, apiKey, requestId, maxTokens = 800) => 
     req.on('error', (e) => {
       console.error('[请求错误]', JSON.stringify({
         requestId,
+        model,
         message: e.message,
         code: e.code || 'UNKNOWN'
       }));
@@ -153,106 +156,6 @@ const callDeepSeekAPIOnce = (userPrompt, apiKey, requestId, maxTokens = 800) => 
     req.write(body);
     req.end();
   });
-};
-
-// ========== 阿里百炼 API ==========
-const callQwenAPIOnce = (userPrompt, apiKey, requestId, maxTokens = 800) => {
-  return new Promise((resolve, reject) => {
-    const config = MODEL_CONFIGS.qwen;
-
-    // 阿里百炼的请求格式
-    const body = JSON.stringify({
-      model: config.model,
-      input: {
-        messages: [
-          { role: 'system', content: SYSTEM_PROMPT },
-          { role: 'user', content: userPrompt }
-        ]
-      },
-      parameters: {
-        temperature: 0.3,
-        max_tokens: maxTokens,
-        result_format: 'message'
-      }
-    });
-
-    const options = {
-      hostname: config.host,
-      path: config.path,
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `${config.authPrefix} ${apiKey}`,
-        'Content-Length': Buffer.byteLength(body)
-      }
-    };
-
-    const startTime = Date.now();
-
-    const req = https.request(options, (res) => {
-      let data = '';
-      res.on('data', chunk => { data += chunk; });
-      res.on('end', () => {
-        const apiLatency = Date.now() - startTime;
-        console.log('[QwenAPI]', JSON.stringify({
-          requestId,
-          phase: 'http_complete',
-          apiLatency,
-          statusCode: res.statusCode
-        }));
-
-        if (res.statusCode !== 200) {
-          const httpError = new Error(`API错误: ${res.statusCode} ${data}`);
-          httpError.statusCode = res.statusCode;
-          httpError.responseBody = data;
-          reject(httpError);
-          return;
-        }
-
-        try {
-          // 阿里百炼返回格式转换
-          const qwenResponse = JSON.parse(data);
-          const convertedResponse = {
-            choices: [{
-              message: {
-                content: qwenResponse.output?.choices?.[0]?.message?.content || qwenResponse.output?.text || ''
-              }
-            }],
-            usage: qwenResponse.usage || null
-          };
-          resolve(convertedResponse);
-        } catch(e) {
-          reject(new Error('响应解析失败: ' + data.slice(0, 200)));
-        }
-      });
-    });
-
-    req.setTimeout(TIMEOUT_MS, () => {
-      req.destroy();
-      reject(new Error(`请求超时（${TIMEOUT_MS/1000}秒）`));
-    });
-
-    req.on('error', (e) => {
-      console.error('[请求错误]', JSON.stringify({
-        requestId,
-        message: e.message,
-        code: e.code || 'UNKNOWN'
-      }));
-      reject(e);
-    });
-
-    req.write(body);
-    req.end();
-  });
-};
-
-// ========== 统一调用入口 ==========
-const callAIAPIOnce = async (userPrompt, apiKey, model, requestId, maxTokens) => {
-  if (model === 'qwen') {
-    return await callQwenAPIOnce(userPrompt, apiKey, requestId, maxTokens);
-  }
-  // 默认使用 DeepSeek
-  return await callDeepSeekAPIOnce(userPrompt, apiKey, requestId, maxTokens);
 };
 
 const callAIAPI = async (userPrompt, apiKey, model, requestId, maxTokens = 800) => {
