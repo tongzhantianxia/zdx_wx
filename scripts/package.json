@@ -1,0 +1,8 @@
+{
+  "name": "zdx-wx-scripts",
+  "private": true,
+  "description": "Local crawl, rewrite, and import pipeline for question bank",
+  "dependencies": {
+    "openai": "^4.73.0"
+  }
+}
