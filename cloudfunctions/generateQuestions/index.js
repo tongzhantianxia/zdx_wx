@@ -10,22 +10,9 @@ const TIMEOUT_MS = 25000;
 const MAX_RETRIES = 2;
 const RETRY_BASE_DELAY_MS = 300;
 
-// 模型配置 - 通过环境变量 AI_MODEL 选择
-// 可选值: deepseek, qwen
-const MODEL_CONFIGS = {
-  deepseek: {
-    host: 'api.deepseek.com',
-    path: '/chat/completions',
-    model: 'deepseek-chat',
-    authPrefix: 'Bearer'
-  },
-  qwen: {
-    host: 'dashscope.aliyuncs.com',
-    path: '/compatible-mode/v1/chat/completions',
-    model: 'qwen-turbo',
-    authPrefix: 'Bearer'
-  }
-};
+// 阿里百炼 API 配置
+const QWEN_HOST = 'dashscope.aliyuncs.com';
+const QWEN_PATH = '/compatible-mode/v1/chat/completions';
 
 // ========== Prompt ==========
 const SYSTEM_PROMPT = `你是小学数学出题专家。
@@ -79,14 +66,11 @@ const isRetryableError = (err) => {
   ].includes(code) || String(err.message || '').includes('请求超时');
 };
 
-// ========== 统一 API 调用（兼容 DeepSeek 和阿里百炼 OpenAI 兼容模式）==========
-const callAIAPIOnce = (userPrompt, apiKey, model, requestId, maxTokens = 800) => {
+// ========== 阿里百炼 API 调用 ==========
+const callQwenAPIOnce = (userPrompt, apiKey, model, requestId, maxTokens = 800) => {
   return new Promise((resolve, reject) => {
-    const config = MODEL_CONFIGS[model] || MODEL_CONFIGS.deepseek;
-
-    // OpenAI 兼容格式（DeepSeek 和阿里百炼兼容模式都支持）
     const body = JSON.stringify({
-      model: config.model,
+      model: model,
       messages: [
         { role: 'system', content: SYSTEM_PROMPT },
         { role: 'user', content: userPrompt }
@@ -97,12 +81,12 @@ const callAIAPIOnce = (userPrompt, apiKey, model, requestId, maxTokens = 800) =>
     });
 
     const options = {
-      hostname: config.host,
-      path: config.path,
+      hostname: QWEN_HOST,
+      path: QWEN_PATH,
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `${config.authPrefix} ${apiKey}`,
+        'Authorization': `Bearer ${apiKey}`,
         'Content-Length': Buffer.byteLength(body)
       }
     };
@@ -114,7 +98,7 @@ const callAIAPIOnce = (userPrompt, apiKey, model, requestId, maxTokens = 800) =>
       res.on('data', chunk => { data += chunk; });
       res.on('end', () => {
         const apiLatency = Date.now() - startTime;
-        console.log('[AIAPI]', JSON.stringify({
+        console.log('[QwenAPI]', JSON.stringify({
           requestId,
           model,
           phase: 'http_complete',
@@ -158,21 +142,21 @@ const callAIAPIOnce = (userPrompt, apiKey, model, requestId, maxTokens = 800) =>
   });
 };
 
-const callAIAPI = async (userPrompt, apiKey, model, requestId, maxTokens = 800) => {
+const callQwenAPI = async (userPrompt, apiKey, model, requestId, maxTokens = 800) => {
   for (let attempt = 1; attempt <= MAX_RETRIES + 1; attempt++) {
     try {
-      console.log('[AIAPI]', JSON.stringify({
+      console.log('[QwenAPI]', JSON.stringify({
         requestId,
         phase: 'attempt_start',
         model,
         attempt,
         maxAttempt: MAX_RETRIES + 1
       }));
-      return await callAIAPIOnce(userPrompt, apiKey, model, requestId, maxTokens);
+      return await callQwenAPIOnce(userPrompt, apiKey, model, requestId, maxTokens);
     } catch (error) {
       const shouldRetry = attempt <= MAX_RETRIES
         && (isRetryableStatus(error.statusCode) || isRetryableError(error));
-      console.error('[AIAPI]', JSON.stringify({
+      console.error('[QwenAPI]', JSON.stringify({
         requestId,
         phase: 'attempt_error',
         model,
@@ -186,7 +170,7 @@ const callAIAPI = async (userPrompt, apiKey, model, requestId, maxTokens = 800) 
       await sleep(getRetryDelay(attempt));
     }
   }
-  throw new Error('AI 调用失败');
+  throw new Error('API 调用失败');
 };
 
 // ========== 解析响应 ==========
@@ -246,9 +230,9 @@ exports.main = async (event, context) => {
     };
   }
 
-  // 获取模型配置
-  const aiModel = process.env.AI_MODEL || 'deepseek'; // 默认使用 deepseek
-  const apiKey = process.env.AI_API_KEY || process.env.DEEPSEEK_API_KEY;
+  // 获取配置
+  const apiKey = process.env.QWEN_API_KEY || process.env.AI_API_KEY;
+  const modelName = process.env.QWEN_MODEL || 'qwen-turbo';
 
   if (!apiKey) {
     return {
@@ -260,7 +244,7 @@ exports.main = async (event, context) => {
 
   console.log('[模型配置]', JSON.stringify({
     requestId,
-    aiModel,
+    model: modelName,
     hasApiKey: !!apiKey
   }));
 
@@ -293,7 +277,7 @@ exports.main = async (event, context) => {
       maxTokens
     }));
 
-    let apiResponse = await callAIAPI(userPrompt, apiKey, aiModel, requestId, maxTokens);
+    let apiResponse = await callQwenAPI(userPrompt, apiKey, modelName, requestId, maxTokens);
     let questions = parseResponse(apiResponse);
     let duplicateWarning = false;
 
@@ -302,10 +286,10 @@ exports.main = async (event, context) => {
       && isDuplicateAgainstExisting(questions[0], sanitizedExistingQuestions)
     ) {
       const retryPrompt = `${userPrompt}\n必须与已列题目完全不同，不得重复。`;
-      apiResponse = await callAIAPI(
+      apiResponse = await callQwenAPI(
         retryPrompt,
         apiKey,
-        aiModel,
+        modelName,
         `${requestId}_dedup`,
         maxTokens
       );
@@ -323,7 +307,7 @@ exports.main = async (event, context) => {
 
     console.log('[生成成功]', JSON.stringify({
       requestId,
-      aiModel,
+      model: modelName,
       totalLatency,
       questionCount: questions.length,
       usage,
@@ -338,7 +322,7 @@ exports.main = async (event, context) => {
         knowledgeName,
         grade,
         count: questions.length,
-        aiModel,
+        model: modelName,
         usage,
         openid: wxContext.OPENID,
         generatedAt: new Date().toISOString(),
@@ -349,7 +333,7 @@ exports.main = async (event, context) => {
   } catch (error) {
     console.error('[生成失败]', JSON.stringify({
       requestId,
-      aiModel,
+      model: modelName,
       totalLatency: Date.now() - totalStart,
       code: error.code || null,
       statusCode: error.statusCode || null,
