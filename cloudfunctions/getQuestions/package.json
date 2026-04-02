@@ -1,0 +1,9 @@
+{
+  "name": "getQuestions",
+  "version": "1.0.0",
+  "description": "题库优先出题，AI fallback",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "~2.6.3"
+  }
+}
