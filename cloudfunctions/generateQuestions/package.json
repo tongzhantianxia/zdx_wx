@@ -4,6 +4,7 @@
   "description": "生成数学练习题",
   "main": "index.js",
   "dependencies": {
-    "wx-server-sdk": "~2.6.3"
+    "wx-server-sdk": "~2.6.3",
+    "openai": "^4.73.0"
   }
 }

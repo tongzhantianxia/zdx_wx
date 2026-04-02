@@ -239,7 +239,7 @@ const knowledgeData = {
       {
         id: 'g2u-8',
         unit: 8,
-        name: '数学广角——搭配',
+        name: '数学广角——搭配（一）',
         knowledges: [
           { id: 'g2u-8-1', unit: 8, name: '简单的排列组合', semester: '二年级上册', difficulty_range: [1, 2] }
         ]
@@ -319,6 +319,14 @@ const knowledgeData = {
         name: '克和千克',
         knowledges: [
           { id: 'g2l-8-1', unit: 8, name: '认识克和千克', semester: '二年级下册', difficulty_range: [1, 1] }
+        ]
+      },
+      {
+        id: 'g2l-9',
+        unit: 9,
+        name: '数学广角——推理',
+        knowledges: [
+          { id: 'g2l-9-1', unit: 9, name: '简单的推理', semester: '二年级下册', difficulty_range: [1, 2] }
         ]
       }
     ]
@@ -403,6 +411,14 @@ const knowledgeData = {
         knowledges: [
           { id: 'g3u-8-1', unit: 8, name: '分数的初步认识', semester: '三年级上册', difficulty_range: [1, 1] },
           { id: 'g3u-8-2', unit: 8, name: '分数的简单计算', semester: '三年级上册', difficulty_range: [1, 2] }
+        ]
+      },
+      {
+        id: 'g3u-9',
+        unit: 9,
+        name: '数学广角——集合',
+        knowledges: [
+          { id: 'g3u-9-1', unit: 9, name: '集合的思想方法', semester: '三年级上册', difficulty_range: [1, 2] }
         ]
       }
     ]
@@ -650,11 +666,19 @@ const knowledgeData = {
           { id: 'g4l-8-1', unit: 8, name: '平均数', semester: '四年级下册', difficulty_range: [1, 2] },
           { id: 'g4l-8-2', unit: 8, name: '复式条形统计图', semester: '四年级下册', difficulty_range: [1, 2] }
         ]
+      },
+      {
+        id: 'g4l-9',
+        unit: 9,
+        name: '数学广角——鸡兔同笼',
+        knowledges: [
+          { id: 'g4l-9-1', unit: 9, name: '鸡兔同笼问题', semester: '四年级下册', difficulty_range: [2, 3] }
+        ]
       }
     ]
   },
 
-  // ==================== 五年级（已有，保持不变） ====================
+  // ==================== 五年级 ====================
   'grade5-upper': {
     semester: '五年级上册',
     chapters: [
@@ -751,9 +775,8 @@ const knowledgeData = {
           { id: 'g5l-2-1', unit: 2, name: '因数和倍数的认识', semester: '五年级下册', difficulty_range: [1, 2] },
           { id: 'g5l-2-2', unit: 2, name: '2、3、5的倍数特征', semester: '五年级下册', difficulty_range: [1, 2] },
           { id: 'g5l-2-3', unit: 2, name: '质数和合数', semester: '五年级下册', difficulty_range: [1, 2] },
-          { id: 'g5l-2-4', unit: 2, name: '分解质因数', semester: '五年级下册', difficulty_range: [2, 3] },
-          { id: 'g5l-2-5', unit: 2, name: '最大公因数', semester: '五年级下册', difficulty_range: [2, 3] },
-          { id: 'g5l-2-6', unit: 2, name: '最小公倍数', semester: '五年级下册', difficulty_range: [2, 3] }
+          { id: 'g5l-2-4', unit: 2, name: '最大公因数', semester: '五年级下册', difficulty_range: [2, 3] },
+          { id: 'g5l-2-5', unit: 2, name: '最小公倍数', semester: '五年级下册', difficulty_range: [2, 3] }
         ]
       },
       {
@@ -785,28 +808,36 @@ const knowledgeData = {
       {
         id: 'g5l-5',
         unit: 5,
-        name: '分数的加法和减法',
+        name: '图形的运动（三）',
         knowledges: [
-          { id: 'g5l-5-1', unit: 5, name: '同分母分数加减法', semester: '五年级下册', difficulty_range: [1, 2] },
-          { id: 'g5l-5-2', unit: 5, name: '异分母分数加减法', semester: '五年级下册', difficulty_range: [2, 3] },
-          { id: 'g5l-5-3', unit: 5, name: '分数加减混合运算', semester: '五年级下册', difficulty_range: [2, 3] }
+          { id: 'g5l-5-1', unit: 5, name: '旋转', semester: '五年级下册', difficulty_range: [1, 2] }
         ]
       },
       {
         id: 'g5l-6',
         unit: 6,
-        name: '统计',
+        name: '分数的加法和减法',
         knowledges: [
-          { id: 'g5l-6-1', unit: 6, name: '折线统计图', semester: '五年级下册', difficulty_range: [1, 2] },
-          { id: 'g5l-6-2', unit: 6, name: '复式折线统计图', semester: '五年级下册', difficulty_range: [2, 3] }
+          { id: 'g5l-6-1', unit: 6, name: '同分母分数加减法', semester: '五年级下册', difficulty_range: [1, 2] },
+          { id: 'g5l-6-2', unit: 6, name: '异分母分数加减法', semester: '五年级下册', difficulty_range: [2, 3] },
+          { id: 'g5l-6-3', unit: 6, name: '分数加减混合运算', semester: '五年级下册', difficulty_range: [2, 3] }
         ]
       },
       {
         id: 'g5l-7',
         unit: 7,
+        name: '折线统计图',
+        knowledges: [
+          { id: 'g5l-7-1', unit: 7, name: '折线统计图', semester: '五年级下册', difficulty_range: [1, 2] },
+          { id: 'g5l-7-2', unit: 7, name: '复式折线统计图', semester: '五年级下册', difficulty_range: [2, 3] }
+        ]
+      },
+      {
+        id: 'g5l-8',
+        unit: 8,
         name: '数学广角——找次品',
         knowledges: [
-          { id: 'g5l-7-1', unit: 7, name: '找次品问题', semester: '五年级下册', difficulty_range: [2, 3] }
+          { id: 'g5l-8-1', unit: 8, name: '找次品问题', semester: '五年级下册', difficulty_range: [2, 3] }
         ]
       }
     ]

@@ -66,8 +66,8 @@ Page({
 
   // 初始化知识点列表
   initKnowledgeList: function () {
-    const semester = this.data.selectedSemester;
-    const data = knowledgeData[semester];
+    const key = `${this.data.selectedGrade}-${this.data.selectedSemester}`;
+    const data = knowledgeData[key];
 
     if (!data) return;
 
@@ -152,6 +152,11 @@ Page({
   },
 
   // 生成练习题
+  _gradeLabel: function () {
+    const map = { grade1: '一年级', grade2: '二年级', grade3: '三年级', grade4: '四年级', grade5: '五年级', grade6: '六年级' };
+    return map[this.data.selectedGrade] || '五年级';
+  },
+
   handleGenerate: async function () {
     const { selectedKnowledge, selectedCount, selectedDifficulty, generating, countdown } = this.data;
 
@@ -181,12 +186,13 @@ Page({
 
     try {
       const sessionId = buildSessionId();
+      const gradeLabel = this._gradeLabel();
       const res = await wx.cloud.callFunction({
         name: 'generateQuestions',
         data: {
           knowledgeId: selectedKnowledge.id,
           knowledgeName: selectedKnowledge.name,
-          grade: '五年级',
+          grade: gradeLabel,
           count: 1,
           targetCount: selectedCount,
           difficulty: selectedDifficulty,
@@ -221,7 +227,7 @@ Page({
         generateParams: {
           knowledgeId: selectedKnowledge.id,
           knowledgeName: selectedKnowledge.name,
-          grade: '五年级',
+          grade: gradeLabel,
           difficulty: selectedDifficulty,
           questionType: 'calculation',
           targetCount: selectedCount,

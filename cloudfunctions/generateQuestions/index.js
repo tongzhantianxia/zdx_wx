@@ -1,34 +1,20 @@
 const cloud = require('wx-server-sdk');
-const https = require('https');
+const OpenAI = require('openai');
 
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 
 const { performSecurityCheck } = require('./security');
 
 // ========== 配置 ==========
-const TIMEOUT_MS = 25000;
 const MAX_RETRIES = 2;
-const RETRY_BASE_DELAY_MS = 300;
-
-// 阿里百炼 API 配置
-const QWEN_HOST = 'dashscope.aliyuncs.com';
-const QWEN_PATH = '/compatible-mode/v1/chat/completions';
+const TIMEOUT_MS = 25000;
 
 // ========== Prompt ==========
 const SYSTEM_PROMPT = `你是小学数学出题专家。
 规则：答案必须正确，只输出纯JSON，不加其他内容。`;
 
 const buildUserPrompt = (params) => {
-  const {
-    knowledgeName,
-    grade,
-    count,
-    difficulty,
-    questionType,
-    existingSummaries,
-    prefetchHint
-  } = params;
-
+  const { knowledgeName, grade, count, difficulty, questionType, existingSummaries, prefetchHint } = params;
   const diffMap = { easy: '简单', medium: '中等', hard: '困难' };
   const typeMap = { calculation: '计算题', fillBlank: '填空题', application: '应用题' };
 
@@ -45,163 +31,12 @@ const buildUserPrompt = (params) => {
   return text;
 };
 
-// ========== 工具函数 ==========
-const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
-
-const getRetryDelay = (attempt) => {
-  const jitter = Math.floor(Math.random() * 120);
-  return RETRY_BASE_DELAY_MS * Math.pow(2, attempt - 1) + jitter;
-};
-
-const isRetryableStatus = (statusCode) => statusCode === 429 || statusCode >= 500;
-
-const isRetryableError = (err) => {
-  const code = err && err.code;
-  return [
-    'ETIMEDOUT',
-    'ECONNRESET',
-    'ECONNREFUSED',
-    'ENOTFOUND',
-    'EAI_AGAIN'
-  ].includes(code) || String(err.message || '').includes('请求超时');
-};
-
-// ========== 阿里百炼 API 调用 ==========
-const callQwenAPIOnce = (userPrompt, apiKey, model, requestId, maxTokens, enableThinking) => {
-  return new Promise((resolve, reject) => {
-    // 构建请求体
-    const requestBody = {
-      model: model,
-      messages: [
-        { role: 'system', content: SYSTEM_PROMPT },
-        { role: 'user', content: userPrompt }
-      ],
-      temperature: 0.3,
-      max_tokens: maxTokens,
-      stream: false
-    };
-
-    // 如果开启思考模式，添加 enable_thinking 参数
-    if (enableThinking) {
-      requestBody.enable_thinking = true;
-    }
-
-    const body = JSON.stringify(requestBody);
-
-    const options = {
-      hostname: QWEN_HOST,
-      path: QWEN_PATH,
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey}`,
-        'Content-Length': Buffer.byteLength(body)
-      }
-    };
-
-    const startTime = Date.now();
-
-    const req = https.request(options, (res) => {
-      let data = '';
-      res.on('data', chunk => { data += chunk; });
-      res.on('end', () => {
-        const apiLatency = Date.now() - startTime;
-        console.log('[QwenAPI]', JSON.stringify({
-          requestId,
-          model,
-          enableThinking,
-          phase: 'http_complete',
-          apiLatency,
-          statusCode: res.statusCode
-        }));
-
-        if (res.statusCode !== 200) {
-          const httpError = new Error(`API错误: ${res.statusCode} ${data}`);
-          httpError.statusCode = res.statusCode;
-          httpError.responseBody = data;
-          reject(httpError);
-          return;
-        }
-
-        try {
-          resolve(JSON.parse(data));
-        } catch(e) {
-          reject(new Error('响应解析失败: ' + data.slice(0, 200)));
-        }
-      });
-    });
-
-    req.setTimeout(TIMEOUT_MS, () => {
-      req.destroy();
-      reject(new Error(`请求超时（${TIMEOUT_MS/1000}秒）`));
-    });
-
-    req.on('error', (e) => {
-      console.error('[请求错误]', JSON.stringify({
-        requestId,
-        model,
-        message: e.message,
-        code: e.code || 'UNKNOWN'
-      }));
-      reject(e);
-    });
-
-    req.write(body);
-    req.end();
-  });
-};
-
-const callQwenAPI = async (userPrompt, apiKey, model, requestId, maxTokens, enableThinking) => {
-  for (let attempt = 1; attempt <= MAX_RETRIES + 1; attempt++) {
-    try {
-      console.log('[QwenAPI]', JSON.stringify({
-        requestId,
-        phase: 'attempt_start',
-        model,
-        enableThinking,
-        attempt,
-        maxAttempt: MAX_RETRIES + 1
-      }));
-      return await callQwenAPIOnce(userPrompt, apiKey, model, requestId, maxTokens, enableThinking);
-    } catch (error) {
-      const shouldRetry = attempt <= MAX_RETRIES
-        && (isRetryableStatus(error.statusCode) || isRetryableError(error));
-      console.error('[QwenAPI]', JSON.stringify({
-        requestId,
-        phase: 'attempt_error',
-        model,
-        attempt,
-        shouldRetry,
-        statusCode: error.statusCode || null,
-        code: error.code || null,
-        message: error.message
-      }));
-      if (!shouldRetry) throw error;
-      await sleep(getRetryDelay(attempt));
-    }
-  }
-  throw new Error('API 调用失败');
-};
-
 // ========== 解析响应 ==========
-const parseResponse = (apiResponse, enableThinking) => {
-  let content = apiResponse.choices?.[0]?.message?.content;
-
-  // 如果开启思考模式，需要从 reasoning_content 中提取思考过程
-  let reasoningContent = null;
-  if (enableThinking && apiResponse.choices?.[0]?.message?.reasoning_content) {
-    reasoningContent = apiResponse.choices[0].message.reasoning_content;
-    console.log('[思考过程]', reasoningContent.slice(0, 200));
-  }
-
+const parseResponse = (content) => {
   if (!content) throw new Error('API响应为空');
-
   console.log('[原始响应]', content.slice(0, 200));
 
-  // 清理markdown格式
   let jsonStr = content.trim().replace(/```json?|```/g, '').trim();
-
-  // 提取JSON对象
   const match = jsonStr.match(/\{[\s\S]*\}/);
   if (!match) throw new Error('未找到JSON内容');
 
@@ -220,10 +55,28 @@ const parseResponse = (apiResponse, enableThinking) => {
 
 const normContent = (s) => String(s || '').replace(/\s/g, '');
 
-const isDuplicateAgainstExisting = (question, existingList) => {
+const isDuplicate = (question, existingList) => {
   if (!question || !existingList || !existingList.length) return false;
   const n = normContent(question.content);
   return existingList.some((ex) => normContent(ex) === n);
+};
+
+// ========== 调用大模型 ==========
+const callModel = async (client, modelName, userPrompt, maxTokens, requestId) => {
+  console.log('[callModel]', JSON.stringify({ requestId, model: modelName, promptLen: userPrompt.length, maxTokens }));
+
+  const completion = await client.chat.completions.create({
+    model: modelName,
+    messages: [
+      { role: 'system', content: SYSTEM_PROMPT },
+      { role: 'user', content: userPrompt }
+    ],
+    temperature: 0.3,
+    max_tokens: maxTokens,
+    enable_thinking: false
+  });
+
+  return completion;
 };
 
 // ========== 云函数入口 ==========
@@ -232,12 +85,8 @@ exports.main = async (event, context) => {
   const totalStart = Date.now();
   const requestId = `${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
 
-  console.log('[generateQuestions] 开始:', JSON.stringify({
-    requestId,
-    event
-  }));
+  console.log('[generateQuestions] 开始:', JSON.stringify({ requestId, event }));
 
-  // 安全检查
   const securityResult = performSecurityCheck(event, wxContext);
   if (!securityResult.passed) {
     return {
@@ -248,44 +97,29 @@ exports.main = async (event, context) => {
     };
   }
 
-  // 获取配置
   const apiKey = process.env.QWEN_API_KEY || process.env.AI_API_KEY;
   const modelName = process.env.QWEN_MODEL || 'qwen-turbo';
 
-  // 是否开启思考模式（默认关闭）
-  // 千问系列模型默认不开启思考模式，通过环境变量 QWEN_ENABLE_THINKING 控制
-  // 设置为 'true' 或 '1' 开启
-  const enableThinking = process.env.QWEN_ENABLE_THINKING === 'true' || process.env.QWEN_ENABLE_THINKING === '1';
-
   if (!apiKey) {
-    return {
-      success: false,
-      error: '服务配置错误：缺少 API Key',
-      code: 'CONFIG_ERROR'
-    };
+    return { success: false, error: '服务配置错误：缺少 API Key', code: 'CONFIG_ERROR' };
   }
 
-  console.log('[模型配置]', JSON.stringify({
-    requestId,
-    model: modelName,
-    enableThinking,
-    hasApiKey: !!apiKey
-  }));
+  const client = new OpenAI({
+    apiKey,
+    baseURL: 'https://dashscope.aliyuncs.com/compatible-mode/v1',
+    timeout: TIMEOUT_MS,
+    maxRetries: MAX_RETRIES
+  });
 
-  // 生成题目
+  console.log('[模型配置]', JSON.stringify({ requestId, model: modelName, hasApiKey: true }));
+
   try {
     const { knowledgeId, knowledgeName, grade } = event;
-    const {
-      count,
-      difficulty,
-      questionType,
-      sanitizedExistingQuestions
-    } = securityResult.data;
-
+    const { count, difficulty, questionType, sanitizedExistingQuestions } = securityResult.data;
     const prefetchHint = String(event.prefetchHint || '').slice(0, 80);
     const maxTokens = count === 1 ? 300 : 800;
 
-    let userPrompt = buildUserPrompt({
+    const userPrompt = buildUserPrompt({
       knowledgeName,
       grade: grade || '五年级',
       count,
@@ -295,61 +129,35 @@ exports.main = async (event, context) => {
       prefetchHint: prefetchHint || undefined
     });
 
-    console.log('[Prompt信息]', JSON.stringify({
-      requestId,
-      promptLength: userPrompt.length,
-      maxTokens
-    }));
-
-    let apiResponse = await callQwenAPI(userPrompt, apiKey, modelName, requestId, maxTokens, enableThinking);
-    let questions = parseResponse(apiResponse, enableThinking);
+    let completion = await callModel(client, modelName, userPrompt, maxTokens, requestId);
+    let content = completion.choices?.[0]?.message?.content;
+    let questions = parseResponse(content);
     let duplicateWarning = false;
 
-    if (
-      questions.length > 0
-      && isDuplicateAgainstExisting(questions[0], sanitizedExistingQuestions)
-    ) {
+    if (questions.length > 0 && isDuplicate(questions[0], sanitizedExistingQuestions)) {
       const retryPrompt = `${userPrompt}\n必须与已列题目完全不同，不得重复。`;
-      apiResponse = await callQwenAPI(
-        retryPrompt,
-        apiKey,
-        modelName,
-        `${requestId}_dedup`,
-        maxTokens,
-        enableThinking
-      );
-      questions = parseResponse(apiResponse, enableThinking);
-      if (
-        questions.length > 0
-        && isDuplicateAgainstExisting(questions[0], sanitizedExistingQuestions)
-      ) {
+      completion = await callModel(client, modelName, retryPrompt, maxTokens, `${requestId}_dedup`);
+      content = completion.choices?.[0]?.message?.content;
+      questions = parseResponse(content);
+      if (questions.length > 0 && isDuplicate(questions[0], sanitizedExistingQuestions)) {
         duplicateWarning = true;
       }
     }
 
-    const usage = apiResponse.usage || null;
+    const usage = completion.usage || null;
     const totalLatency = Date.now() - totalStart;
 
     console.log('[生成成功]', JSON.stringify({
-      requestId,
-      model: modelName,
-      enableThinking,
-      totalLatency,
-      questionCount: questions.length,
-      usage,
-      duplicateWarning
+      requestId, model: modelName, totalLatency, questionCount: questions.length, usage, duplicateWarning
     }));
 
     return {
       success: true,
       questions,
       meta: {
-        knowledgeId,
-        knowledgeName,
-        grade,
+        knowledgeId, knowledgeName, grade,
         count: questions.length,
         model: modelName,
-        enableThinking,
         usage,
         openid: wxContext.OPENID,
         generatedAt: new Date().toISOString(),
@@ -358,19 +166,22 @@ exports.main = async (event, context) => {
     };
 
   } catch (error) {
+    const totalLatency = Date.now() - totalStart;
     console.error('[生成失败]', JSON.stringify({
-      requestId,
-      model: modelName,
-      enableThinking,
-      totalLatency: Date.now() - totalStart,
+      requestId, model: modelName, totalLatency,
+      status: error.status || null,
       code: error.code || null,
-      statusCode: error.statusCode || null,
       message: error.message
     }));
 
+    let userMessage = '生成失败，请稍后重试';
+    if (error.status === 429) userMessage = '请求过于频繁，请稍后再试';
+    else if (error.status === 401) userMessage = '服务配置错误，请联系管理员';
+    else if (error.code === 'ETIMEDOUT' || error.code === 'ECONNRESET') userMessage = '网络超时，请重试';
+
     return {
       success: false,
-      error: error.message || '生成失败',
+      error: userMessage,
       code: 'GENERATE_ERROR'
     };
   }

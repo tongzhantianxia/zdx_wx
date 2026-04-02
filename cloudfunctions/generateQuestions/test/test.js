@@ -5,7 +5,7 @@
 
 // 测试用例1：除数是小数的小数除法（中等难度）
 const testCase1 = {
-  knowledgeId: "upper-3-2",
+  knowledgeId: "g5u-3-2",
   knowledgeName: "除数是小数的小数除法",
   grade: "五年级",
   count: 3,
@@ -15,7 +15,7 @@ const testCase1 = {
 
 // 测试用例2：解方程（简单难度）
 const testCase2 = {
-  knowledgeId: "upper-5-3",
+  knowledgeId: "g5u-5-3",
   knowledgeName: "解方程",
   grade: "五年级",
   count: 3,
@@ -25,8 +25,8 @@ const testCase2 = {
 
 // 测试用例3：三角形面积（困难难度，填空题）
 const testCase3 = {
-  knowledgeId: "upper-6-2",
-  knowledgeName: "三角形面积",
+  knowledgeId: "g5u-6-2",
+  knowledgeName: "三角形的面积",
   grade: "五年级",
   count: 3,
   difficulty: "hard",
