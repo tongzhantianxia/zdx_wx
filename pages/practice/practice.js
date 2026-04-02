@@ -92,7 +92,8 @@ Page({
       difficulty: this.getDifficultyLevel(q.difficulty),
       difficultyText: q.difficulty || '中等',
       hint: q.tip || '',
-      explanation: q.solution || ''
+      explanation: q.solution || '',
+      _bankId: q._bankId || null
     };
   },
 
@@ -165,7 +166,7 @@ Page({
     }
 
     wx.cloud.callFunction({
-      name: 'generateQuestions',
+      name: 'getQuestions',
       data: {
         knowledgeId: gp.knowledgeId,
         knowledgeName: gp.knowledgeName,
@@ -475,6 +476,19 @@ Page({
 
     // 保存答题记录
     this.saveAnswerRecord(answerRecord);
+
+    // 回写答题结果到 user_question_log
+    if (currentQuestion._bankId) {
+      wx.cloud.callFunction({
+        name: 'getQuestions',
+        data: {
+          action: 'updateLog',
+          questionId: currentQuestion._bankId,
+          knowledgeId: this.generateParams ? this.generateParams.knowledgeId : '',
+          isCorrect: isCorrect
+        }
+      }).catch(function (err) { console.error('updateLog error:', err); });
+    }
 
     // 如果答错，加入错题库
     if (!isCorrect) {

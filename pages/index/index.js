@@ -188,7 +188,7 @@ Page({
       const sessionId = buildSessionId();
       const gradeLabel = this._gradeLabel();
       const res = await wx.cloud.callFunction({
-        name: 'generateQuestions',
+        name: 'getQuestions',
         data: {
           knowledgeId: selectedKnowledge.id,
           knowledgeName: selectedKnowledge.name,
