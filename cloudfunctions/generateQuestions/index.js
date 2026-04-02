@@ -1,18 +1,33 @@
 const cloud = require('wx-server-sdk');
-const https = require('https'); // ← 改用内置模块，不用node-fetch
+const https = require('https');
 
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 
 const { performSecurityCheck } = require('./security');
 
 // ========== 配置 ==========
-const DEEPSEEK_HOST = 'api.deepseek.com';
-const DEEPSEEK_PATH = '/chat/completions';
 const TIMEOUT_MS = 25000;
 const MAX_RETRIES = 2;
 const RETRY_BASE_DELAY_MS = 300;
 
-// ========== Prompt（精简版）==========
+// 模型配置 - 通过环境变量 AI_MODEL 选择
+// 可选值: deepseek, qwen
+const MODEL_CONFIGS = {
+  deepseek: {
+    host: 'api.deepseek.com',
+    path: '/chat/completions',
+    model: 'deepseek-chat',
+    authPrefix: 'Bearer'
+  },
+  qwen: {
+    host: 'dashscope.aliyuncs.com',
+    path: '/api/v1/services/aigc/text-generation/generation',
+    model: 'qwen-turbo',
+    authPrefix: 'Bearer'
+  }
+};
+
+// ========== Prompt ==========
 const SYSTEM_PROMPT = `你是小学数学出题专家。
 规则：答案必须正确，只输出纯JSON，不加其他内容。`;
 
@@ -43,7 +58,7 @@ const buildUserPrompt = (params) => {
   return text;
 };
 
-// ========== 用https替代node-fetch ==========
+// ========== 工具函数 ==========
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 const getRetryDelay = (attempt) => {
@@ -64,11 +79,13 @@ const isRetryableError = (err) => {
   ].includes(code) || String(err.message || '').includes('请求超时');
 };
 
+// ========== DeepSeek API ==========
 const callDeepSeekAPIOnce = (userPrompt, apiKey, requestId, maxTokens = 800) => {
   return new Promise((resolve, reject) => {
+    const config = MODEL_CONFIGS.deepseek;
 
     const body = JSON.stringify({
-      model: 'deepseek-chat',
+      model: config.model,
       messages: [
         { role: 'system', content: SYSTEM_PROMPT },
         { role: 'user', content: userPrompt }
@@ -79,12 +96,12 @@ const callDeepSeekAPIOnce = (userPrompt, apiKey, requestId, maxTokens = 800) => 
     });
 
     const options = {
-      hostname: DEEPSEEK_HOST,
-      path: DEEPSEEK_PATH,
+      hostname: config.host,
+      path: config.path,
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey}`,
+        'Authorization': `${config.authPrefix} ${apiKey}`,
         'Content-Length': Buffer.byteLength(body)
       }
     };
@@ -93,9 +110,7 @@ const callDeepSeekAPIOnce = (userPrompt, apiKey, requestId, maxTokens = 800) => 
 
     const req = https.request(options, (res) => {
       let data = '';
-
       res.on('data', chunk => { data += chunk; });
-
       res.on('end', () => {
         const apiLatency = Date.now() - startTime;
         console.log('[DeepSeekAPI]', JSON.stringify({
@@ -121,7 +136,6 @@ const callDeepSeekAPIOnce = (userPrompt, apiKey, requestId, maxTokens = 800) => 
       });
     });
 
-    // 超时处理
     req.setTimeout(TIMEOUT_MS, () => {
       req.destroy();
       reject(new Error(`请求超时（${TIMEOUT_MS/1000}秒）`));
@@ -141,22 +155,124 @@ const callDeepSeekAPIOnce = (userPrompt, apiKey, requestId, maxTokens = 800) => 
   });
 };
 
-const callDeepSeekAPI = async (userPrompt, apiKey, requestId, maxTokens = 800) => {
+// ========== 阿里百炼 API ==========
+const callQwenAPIOnce = (userPrompt, apiKey, requestId, maxTokens = 800) => {
+  return new Promise((resolve, reject) => {
+    const config = MODEL_CONFIGS.qwen;
+
+    // 阿里百炼的请求格式
+    const body = JSON.stringify({
+      model: config.model,
+      input: {
+        messages: [
+          { role: 'system', content: SYSTEM_PROMPT },
+          { role: 'user', content: userPrompt }
+        ]
+      },
+      parameters: {
+        temperature: 0.3,
+        max_tokens: maxTokens,
+        result_format: 'message'
+      }
+    });
+
+    const options = {
+      hostname: config.host,
+      path: config.path,
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `${config.authPrefix} ${apiKey}`,
+        'Content-Length': Buffer.byteLength(body)
+      }
+    };
+
+    const startTime = Date.now();
+
+    const req = https.request(options, (res) => {
+      let data = '';
+      res.on('data', chunk => { data += chunk; });
+      res.on('end', () => {
+        const apiLatency = Date.now() - startTime;
+        console.log('[QwenAPI]', JSON.stringify({
+          requestId,
+          phase: 'http_complete',
+          apiLatency,
+          statusCode: res.statusCode
+        }));
+
+        if (res.statusCode !== 200) {
+          const httpError = new Error(`API错误: ${res.statusCode} ${data}`);
+          httpError.statusCode = res.statusCode;
+          httpError.responseBody = data;
+          reject(httpError);
+          return;
+        }
+
+        try {
+          // 阿里百炼返回格式转换
+          const qwenResponse = JSON.parse(data);
+          const convertedResponse = {
+            choices: [{
+              message: {
+                content: qwenResponse.output?.choices?.[0]?.message?.content || qwenResponse.output?.text || ''
+              }
+            }],
+            usage: qwenResponse.usage || null
+          };
+          resolve(convertedResponse);
+        } catch(e) {
+          reject(new Error('响应解析失败: ' + data.slice(0, 200)));
+        }
+      });
+    });
+
+    req.setTimeout(TIMEOUT_MS, () => {
+      req.destroy();
+      reject(new Error(`请求超时（${TIMEOUT_MS/1000}秒）`));
+    });
+
+    req.on('error', (e) => {
+      console.error('[请求错误]', JSON.stringify({
+        requestId,
+        message: e.message,
+        code: e.code || 'UNKNOWN'
+      }));
+      reject(e);
+    });
+
+    req.write(body);
+    req.end();
+  });
+};
+
+// ========== 统一调用入口 ==========
+const callAIAPIOnce = async (userPrompt, apiKey, model, requestId, maxTokens) => {
+  if (model === 'qwen') {
+    return await callQwenAPIOnce(userPrompt, apiKey, requestId, maxTokens);
+  }
+  // 默认使用 DeepSeek
+  return await callDeepSeekAPIOnce(userPrompt, apiKey, requestId, maxTokens);
+};
+
+const callAIAPI = async (userPrompt, apiKey, model, requestId, maxTokens = 800) => {
   for (let attempt = 1; attempt <= MAX_RETRIES + 1; attempt++) {
     try {
-      console.log('[DeepSeekAPI]', JSON.stringify({
+      console.log('[AIAPI]', JSON.stringify({
         requestId,
         phase: 'attempt_start',
+        model,
         attempt,
         maxAttempt: MAX_RETRIES + 1
       }));
-      return await callDeepSeekAPIOnce(userPrompt, apiKey, requestId, maxTokens);
+      return await callAIAPIOnce(userPrompt, apiKey, model, requestId, maxTokens);
     } catch (error) {
       const shouldRetry = attempt <= MAX_RETRIES
         && (isRetryableStatus(error.statusCode) || isRetryableError(error));
-      console.error('[DeepSeekAPI]', JSON.stringify({
+      console.error('[AIAPI]', JSON.stringify({
         requestId,
         phase: 'attempt_error',
+        model,
         attempt,
         shouldRetry,
         statusCode: error.statusCode || null,
@@ -167,7 +283,7 @@ const callDeepSeekAPI = async (userPrompt, apiKey, requestId, maxTokens = 800) =
       await sleep(getRetryDelay(attempt));
     }
   }
-  throw new Error('DeepSeek 调用失败');
+  throw new Error('AI 调用失败');
 };
 
 // ========== 解析响应 ==========
@@ -227,11 +343,23 @@ exports.main = async (event, context) => {
     };
   }
 
-  // API Key检查
-  const apiKey = process.env.DEEPSEEK_API_KEY;
+  // 获取模型配置
+  const aiModel = process.env.AI_MODEL || 'deepseek'; // 默认使用 deepseek
+  const apiKey = process.env.AI_API_KEY || process.env.DEEPSEEK_API_KEY;
+
   if (!apiKey) {
-    return { success: false, error: '服务配置错误', code: 'CONFIG_ERROR' };
+    return {
+      success: false,
+      error: '服务配置错误：缺少 API Key',
+      code: 'CONFIG_ERROR'
+    };
   }
+
+  console.log('[模型配置]', JSON.stringify({
+    requestId,
+    aiModel,
+    hasApiKey: !!apiKey
+  }));
 
   // 生成题目
   try {
@@ -262,7 +390,7 @@ exports.main = async (event, context) => {
       maxTokens
     }));
 
-    let apiResponse = await callDeepSeekAPI(userPrompt, apiKey, requestId, maxTokens);
+    let apiResponse = await callAIAPI(userPrompt, apiKey, aiModel, requestId, maxTokens);
     let questions = parseResponse(apiResponse);
     let duplicateWarning = false;
 
@@ -271,9 +399,10 @@ exports.main = async (event, context) => {
       && isDuplicateAgainstExisting(questions[0], sanitizedExistingQuestions)
     ) {
       const retryPrompt = `${userPrompt}\n必须与已列题目完全不同，不得重复。`;
-      apiResponse = await callDeepSeekAPI(
+      apiResponse = await callAIAPI(
         retryPrompt,
         apiKey,
+        aiModel,
         `${requestId}_dedup`,
         maxTokens
       );
@@ -291,6 +420,7 @@ exports.main = async (event, context) => {
 
     console.log('[生成成功]', JSON.stringify({
       requestId,
+      aiModel,
       totalLatency,
       questionCount: questions.length,
       usage,
@@ -305,6 +435,7 @@ exports.main = async (event, context) => {
         knowledgeName,
         grade,
         count: questions.length,
+        aiModel,
         usage,
         openid: wxContext.OPENID,
         generatedAt: new Date().toISOString(),
@@ -315,6 +446,7 @@ exports.main = async (event, context) => {
   } catch (error) {
     console.error('[生成失败]', JSON.stringify({
       requestId,
+      aiModel,
       totalLatency: Date.now() - totalStart,
       code: error.code || null,
       statusCode: error.statusCode || null,
