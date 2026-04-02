@@ -87,14 +87,42 @@ exports.main = async (event, context) => {
 
   console.log('[generateQuestions] 开始:', JSON.stringify({ requestId, event }));
 
-  const securityResult = performSecurityCheck(event, wxContext);
-  if (!securityResult.passed) {
-    return {
-      success: false,
-      error: securityResult.error,
-      code: securityResult.code,
-      waitTime: securityResult.waitTime
+  let securityData;
+
+  if (event._internal === true) {
+    const { validateParams, sanitizeExistingQuestions, checkSessionCallLimit, SESSION_ID_RE } = require('./security');
+    const vResult = validateParams(event);
+    if (!vResult.valid) {
+      return { success: false, error: vResult.error, code: 'INVALID_PARAMS' };
+    }
+    const sessionIdRaw = String(event.sessionId || '').trim();
+    const validSessionId = SESSION_ID_RE.test(sessionIdRaw) ? sessionIdRaw : null;
+    if (validSessionId) {
+      const sessionLimit = checkSessionCallLimit(validSessionId, event.targetCount);
+      if (!sessionLimit.allowed) {
+        return { success: false, error: sessionLimit.error, code: sessionLimit.code || 'RATE_LIMITED', waitTime: sessionLimit.waitTime };
+      }
+    }
+    securityData = {
+      openid: event._openid || 'internal',
+      count: parseInt(event.count, 10) || 1,
+      difficulty: event.difficulty || 'medium',
+      questionType: event.questionType || 'calculation',
+      sanitizedExistingQuestions: sanitizeExistingQuestions(event.existingQuestions),
+      sessionId: validSessionId,
+      targetCount: parseInt(event.targetCount, 10) || null
     };
+  } else {
+    const securityResult = performSecurityCheck(event, wxContext);
+    if (!securityResult.passed) {
+      return {
+        success: false,
+        error: securityResult.error,
+        code: securityResult.code,
+        waitTime: securityResult.waitTime
+      };
+    }
+    securityData = securityResult.data;
   }
 
   const apiKey = process.env.QWEN_API_KEY || process.env.AI_API_KEY;
@@ -115,7 +143,7 @@ exports.main = async (event, context) => {
 
   try {
     const { knowledgeId, knowledgeName, grade } = event;
-    const { count, difficulty, questionType, sanitizedExistingQuestions } = securityResult.data;
+    const { count, difficulty, questionType, sanitizedExistingQuestions } = securityData;
     const prefetchHint = String(event.prefetchHint || '').slice(0, 80);
     const maxTokens = count === 1 ? 300 : 800;
 

@@ -349,6 +349,7 @@ const performSecurityCheck = (event, wxContext) => {
 
 module.exports = {
   checkRateLimit,
+  checkSessionCallLimit,
   validateParams,
   checkAuth,
   performSecurityCheck,
