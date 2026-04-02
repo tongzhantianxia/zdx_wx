@@ -67,9 +67,10 @@ const isRetryableError = (err) => {
 };
 
 // ========== 阿里百炼 API 调用 ==========
-const callQwenAPIOnce = (userPrompt, apiKey, model, requestId, maxTokens = 800) => {
+const callQwenAPIOnce = (userPrompt, apiKey, model, requestId, maxTokens, enableThinking) => {
   return new Promise((resolve, reject) => {
-    const body = JSON.stringify({
+    // 构建请求体
+    const requestBody = {
       model: model,
       messages: [
         { role: 'system', content: SYSTEM_PROMPT },
@@ -78,7 +79,14 @@ const callQwenAPIOnce = (userPrompt, apiKey, model, requestId, maxTokens = 800) 
       temperature: 0.3,
       max_tokens: maxTokens,
       stream: false
-    });
+    };
+
+    // 如果开启思考模式，添加 enable_thinking 参数
+    if (enableThinking) {
+      requestBody.enable_thinking = true;
+    }
+
+    const body = JSON.stringify(requestBody);
 
     const options = {
       hostname: QWEN_HOST,
@@ -101,6 +109,7 @@ const callQwenAPIOnce = (userPrompt, apiKey, model, requestId, maxTokens = 800) 
         console.log('[QwenAPI]', JSON.stringify({
           requestId,
           model,
+          enableThinking,
           phase: 'http_complete',
           apiLatency,
           statusCode: res.statusCode
@@ -142,17 +151,18 @@ const callQwenAPIOnce = (userPrompt, apiKey, model, requestId, maxTokens = 800) 
   });
 };
 
-const callQwenAPI = async (userPrompt, apiKey, model, requestId, maxTokens = 800) => {
+const callQwenAPI = async (userPrompt, apiKey, model, requestId, maxTokens, enableThinking) => {
   for (let attempt = 1; attempt <= MAX_RETRIES + 1; attempt++) {
     try {
       console.log('[QwenAPI]', JSON.stringify({
         requestId,
         phase: 'attempt_start',
         model,
+        enableThinking,
         attempt,
         maxAttempt: MAX_RETRIES + 1
       }));
-      return await callQwenAPIOnce(userPrompt, apiKey, model, requestId, maxTokens);
+      return await callQwenAPIOnce(userPrompt, apiKey, model, requestId, maxTokens, enableThinking);
     } catch (error) {
       const shouldRetry = attempt <= MAX_RETRIES
         && (isRetryableStatus(error.statusCode) || isRetryableError(error));
@@ -174,8 +184,16 @@ const callQwenAPI = async (userPrompt, apiKey, model, requestId, maxTokens = 800
 };
 
 // ========== 解析响应 ==========
-const parseResponse = (apiResponse) => {
-  const content = apiResponse.choices?.[0]?.message?.content;
+const parseResponse = (apiResponse, enableThinking) => {
+  let content = apiResponse.choices?.[0]?.message?.content;
+
+  // 如果开启思考模式，需要从 reasoning_content 中提取思考过程
+  let reasoningContent = null;
+  if (enableThinking && apiResponse.choices?.[0]?.message?.reasoning_content) {
+    reasoningContent = apiResponse.choices[0].message.reasoning_content;
+    console.log('[思考过程]', reasoningContent.slice(0, 200));
+  }
+
   if (!content) throw new Error('API响应为空');
 
   console.log('[原始响应]', content.slice(0, 200));
@@ -234,6 +252,11 @@ exports.main = async (event, context) => {
   const apiKey = process.env.QWEN_API_KEY || process.env.AI_API_KEY;
   const modelName = process.env.QWEN_MODEL || 'qwen-turbo';
 
+  // 是否开启思考模式（默认关闭）
+  // 千问系列模型默认不开启思考模式，通过环境变量 QWEN_ENABLE_THINKING 控制
+  // 设置为 'true' 或 '1' 开启
+  const enableThinking = process.env.QWEN_ENABLE_THINKING === 'true' || process.env.QWEN_ENABLE_THINKING === '1';
+
   if (!apiKey) {
     return {
       success: false,
@@ -245,6 +268,7 @@ exports.main = async (event, context) => {
   console.log('[模型配置]', JSON.stringify({
     requestId,
     model: modelName,
+    enableThinking,
     hasApiKey: !!apiKey
   }));
 
@@ -277,8 +301,8 @@ exports.main = async (event, context) => {
       maxTokens
     }));
 
-    let apiResponse = await callQwenAPI(userPrompt, apiKey, modelName, requestId, maxTokens);
-    let questions = parseResponse(apiResponse);
+    let apiResponse = await callQwenAPI(userPrompt, apiKey, modelName, requestId, maxTokens, enableThinking);
+    let questions = parseResponse(apiResponse, enableThinking);
     let duplicateWarning = false;
 
     if (
@@ -291,9 +315,10 @@ exports.main = async (event, context) => {
         apiKey,
         modelName,
         `${requestId}_dedup`,
-        maxTokens
+        maxTokens,
+        enableThinking
       );
-      questions = parseResponse(apiResponse);
+      questions = parseResponse(apiResponse, enableThinking);
       if (
         questions.length > 0
         && isDuplicateAgainstExisting(questions[0], sanitizedExistingQuestions)
@@ -308,6 +333,7 @@ exports.main = async (event, context) => {
     console.log('[生成成功]', JSON.stringify({
       requestId,
       model: modelName,
+      enableThinking,
       totalLatency,
       questionCount: questions.length,
       usage,
@@ -323,6 +349,7 @@ exports.main = async (event, context) => {
         grade,
         count: questions.length,
         model: modelName,
+        enableThinking,
         usage,
         openid: wxContext.OPENID,
         generatedAt: new Date().toISOString(),
@@ -334,6 +361,7 @@ exports.main = async (event, context) => {
     console.error('[生成失败]', JSON.stringify({
       requestId,
       model: modelName,
+      enableThinking,
       totalLatency: Date.now() - totalStart,
       code: error.code || null,
       statusCode: error.statusCode || null,
