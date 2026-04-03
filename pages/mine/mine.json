@@ -1,5 +1,7 @@
 {
   "navigationBarTitleText": "我的",
   "navigationStyle": "custom",
-  "usingComponents": {}
+  "usingComponents": {
+    "duck-farm": "/components/duck-farm/duck-farm"
+  }
 }

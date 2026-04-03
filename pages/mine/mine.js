@@ -1,12 +1,12 @@
 Page({
   data: {
-    statusBarHeight: 0,
-    questionMode: 'bank'
+    statusBarHeight: getApp().globalData.statusBarHeight || wx.getSystemInfoSync().statusBarHeight,
+    questionMode: 'bank',
+    normalDucks: 0,
+    goldenDucks: 0
   },
 
   onLoad: function () {
-    const sysInfo = wx.getSystemInfoSync();
-    this.setData({ statusBarHeight: sysInfo.statusBarHeight });
     const mode = wx.getStorageSync('questionMode') || 'bank';
     this.setData({ questionMode: mode });
   },
@@ -17,6 +17,9 @@ Page({
     }
     const mode = wx.getStorageSync('questionMode') || 'bank';
     this.setData({ questionMode: mode });
+    const duckManager = require('../../utils/duckManager.js');
+    const duckData = duckManager.getDuckData();
+    this.setData({ normalDucks: duckData.normalDucks, goldenDucks: duckData.goldenDucks });
   },
 
   setMode: function (e) {
