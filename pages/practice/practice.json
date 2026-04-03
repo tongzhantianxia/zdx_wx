@@ -2,5 +2,8 @@
   "navigationBarTitleText": "练习中",
   "navigationBarBackgroundColor": "#FFFFFF",
   "navigationBarTextStyle": "black",
-  "disableScroll": false
+  "disableScroll": false,
+  "usingComponents": {
+    "duck-animation": "/components/duck-animation/duck-animation"
+  }
 }

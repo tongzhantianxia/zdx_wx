@@ -113,3 +113,6 @@
     {{currentIndex + 1 >= totalQuestions ? '查看结果 🏆' : '下一题 →'}}
   </button>
 </view>
+
+<!-- 鸭子动画全屏浮层 -->
+<duck-animation id="duckAnim" bind:done="onDuckAnimDone"></duck-animation>

@@ -18,7 +18,9 @@ Page({
     answers: [],             // 答题记录
     waitingForNext: false,   // 渐进出题：等待下一题生成
     keyboardHeight: 0,       // 键盘高度
-    scrollTarget: ''         // scroll-into-view 目标
+    scrollTarget: '',        // scroll-into-view 目标
+    sessionDuckDelta: { hatched: 0, died: 0 },
+    pendingFeedback: null
   },
 
   onLoad: function (options) {
@@ -43,6 +45,8 @@ Page({
       // 否则从数据库加载题目
       this.loadQuestions();
     }
+
+    this.setData({ sessionDuckDelta: { hatched: 0, died: 0 } });
   },
 
   // 从全局数据或 URL 参数加载题目数据
@@ -466,13 +470,37 @@ Page({
       time: new Date()
     };
 
+    // 鸭子动画逻辑：先算出动画类型，再决定是否延迟显示反馈
+    const duckManager = require('../../utils/duckManager.js');
+    let duckResult;
+    if (isCorrect) {
+      duckResult = duckManager.onCorrectAnswer();
+      this.data.sessionDuckDelta.hatched += 1;
+    } else {
+      duckResult = duckManager.onWrongAnswer();
+      if (duckResult.type !== 'none') {
+        this.data.sessionDuckDelta.died += 1;
+      }
+    }
+
+    const shouldPlayAnim = duckResult.type !== 'none';
+
     this.setData({
-      showFeedback: true,
+      showFeedback: !shouldPlayAnim,
       isCorrect,
       feedbackType: isCorrect ? 'correct' : 'wrong',
       score: isCorrect ? this.data.score + 10 : this.data.score,
       answers: [...this.data.answers, answerRecord]
     });
+
+    if (shouldPlayAnim) {
+      const anim = this.selectComponent('#duckAnim');
+      if (anim) {
+        anim.play(duckResult.type);
+      } else {
+        this.setData({ showFeedback: true });
+      }
+    }
 
     // 保存答题记录
     this.saveAnswerRecord(answerRecord);
@@ -577,8 +605,16 @@ Page({
       accuracy: Math.round((correctCount / totalQuestions) * 100),
       answers,
       practiceType,
-      finishTime: new Date()
+      finishTime: new Date(),
+      duckDelta: this.data.sessionDuckDelta
     };
+
+    // 鸭子连胜判定
+    const duckManager = require('../../utils/duckManager.js');
+    const allCorrect = correctCount === totalQuestions;
+    const sessionResult = duckManager.onSessionEnd(allCorrect);
+    app.globalData.currentPractice.goldenDuckEarned = sessionResult.goldenDuckEarned;
+    app.globalData.currentPractice.consecutivePerfect = sessionResult.consecutivePerfect;
 
     wx.redirectTo({
       url: '/pages/result/result'
@@ -680,6 +716,10 @@ Page({
       3: '困难'
     };
     return diffMap[difficulty] || '简单';
+  },
+
+  onDuckAnimDone: function () {
+    this.setData({ showFeedback: true });
   },
 
   onUnload: function () {
