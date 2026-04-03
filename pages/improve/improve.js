@@ -140,8 +140,7 @@ Page({
     const idx = e.currentTarget.dataset.index;
     const key = `selectedMap.${idx}`;
     const current = this.data.selectedMap[idx] || false;
-    const newVal = !current;
-    this.setData({ [key]: newVal });
+    this.setData({ [key]: !current });
     this.updateSelectedCount();
   },
 
