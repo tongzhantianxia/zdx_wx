@@ -10,31 +10,112 @@ const MAX_RETRIES = 2;
 const TIMEOUT_MS = 25000;
 
 // ========== Prompt ==========
-const SYSTEM_PROMPT = `你是小学数学出题专家。
-规则：答案必须正确，只输出纯JSON，不加其他内容。`;
+const SYSTEM_PROMPT = `你是小学数学出题专家。你要生成结构化JSON格式的题目，支持LaTeX公式和几何图形。
+
+规则：
+1. 答案必须正确
+2. 只输出纯JSON，不加其他内容
+3. contentBlocks中，数学表达式用latex类型（如分数用 \\frac{1}{2}），普通文字用text类型
+4. solutionBlocks同理，解题步骤中的公式用latex类型
+5. 几何题必须提供diagram字段
+6. answerFormat：纯数字用number，分数答案用fraction，文字答案用text
+
+LaTeX常用语法：
+- 分数：\\frac{分子}{分母}
+- 乘号：\\times
+- 除号：\\div
+- 角度：\\angle
+- 平方：x^2
+- 根号：\\sqrt{x}
+- 文字单位：\\text{cm}`;
 
 const buildUserPrompt = (params) => {
   const { knowledgeName, grade, count, difficulty, questionType, existingSummaries, prefetchHint } = params;
   const diffMap = { easy: '简单', medium: '中等', hard: '困难' };
-  const typeMap = { calculation: '计算题', fillBlank: '填空题', application: '应用题' };
+  const typeMap = { calculation: '计算题', fillBlank: '填空题', application: '应用题', geometry: '几何题' };
 
   let text = `生成${count}道${grade}${knowledgeName}${typeMap[questionType] || '计算题'}，难度${diffMap[difficulty] || '中等'}。
-数值范围：小数最多两位，除法优先整除。
-直接输出JSON：{"questions":[{"id":1,"type":"计算题","content":"题目","answer":"答案","solution":"解题步骤","tip":"易错提示"}]}`;
+
+输出JSON格式：
+{"questions":[{
+  "id": 1,
+  "type": "${typeMap[questionType] || '计算题'}",
+  "contentBlocks": [{"type":"text","value":"题目文字"},{"type":"latex","value":"\\\\frac{1}{2}"}],
+  "diagram": null,
+  "answer": "答案",
+  "answerFormat": "number",
+  "answerUnit": "",
+  "solutionBlocks": [{"type":"text","value":"解题步骤"},{"type":"latex","value":"公式"}],
+  "tip": "易错提示"
+}]}`;
+
+  if (questionType === 'geometry') {
+    text += `
+
+几何题的diagram格式：
+{"type":"geometry","width":250,"height":200,"shapes":[...],"labels":[...],"annotations":[...]}
+
+2D shapes: polygon(points数组), circle(center,radius), line(from,to), dashed(from,to)
+3D shapes: cuboid(origin,length,width,height), cube(origin,size), cylinder(origin,radius,height), cone(origin,radius,height)
+3D shape可选: hiddenEdges(默认true), faceFills([{face:"front",fill:"rgba(...)"}])
+annotations: rightAngle(vertex,dir1,dir2,size), shade(points,fill), dimensionLine(from,to,text,offset)
+labels: {text,position:[x,y],fontSize}
+
+坐标规则：
+- 所有坐标在[0,width]x[0,height]范围内
+- 3D图形origin的x建议40-80，y建议height-30到height-50
+- labels之间间隔至少20px
+
+长方体模板（可直接使用，调整数值）：
+{"type":"cuboid","origin":[60,160],"length":100,"width":60,"height":80,"stroke":"#333","fill":"transparent","hiddenEdges":true}`;
+  }
 
   if (Array.isArray(existingSummaries) && existingSummaries.length > 0) {
     text += `\n已出过的题（不要重复）：${existingSummaries.join('、')}`;
   }
   if (prefetchHint) {
-    text += `\n出题要求：${prefetchHint}`;
+    text += `\n出题要求变化：${prefetchHint}`;
   }
   return text;
 };
 
-// ========== 解析响应 ==========
+// ========== 解析与校验 ==========
+const VALID_BLOCK_TYPES = ['text', 'latex'];
+const VALID_SHAPE_TYPES = ['polygon', 'circle', 'line', 'arc', 'dashed', 'cuboid', 'cube', 'cylinder', 'cone', 'sphere'];
+
+const validateContentBlocks = (blocks) => {
+  if (!Array.isArray(blocks) || blocks.length === 0) return false;
+  return blocks.every(b => VALID_BLOCK_TYPES.includes(b.type) && typeof b.value === 'string' && b.value.length > 0);
+};
+
+const validateDiagram = (d) => {
+  if (!d) return true;
+  if (!d.width || !d.height || !Array.isArray(d.shapes)) return false;
+  return d.shapes.every(s => VALID_SHAPE_TYPES.includes(s.type));
+};
+
+const validateLatexBrackets = (str) => {
+  let depth = 0;
+  for (const ch of str) {
+    if (ch === '{') depth++;
+    else if (ch === '}') depth--;
+    if (depth < 0) return false;
+  }
+  return depth === 0;
+};
+
+const validateQuestion = (q) => {
+  if (!validateContentBlocks(q.contentBlocks)) return false;
+  if (!validateDiagram(q.diagram)) return false;
+  const allLatex = (q.contentBlocks || [])
+    .concat(q.solutionBlocks || [])
+    .filter(b => b.type === 'latex');
+  return allLatex.every(b => validateLatexBrackets(b.value));
+};
+
 const parseResponse = (content) => {
   if (!content) throw new Error('API响应为空');
-  console.log('[原始响应]', content.slice(0, 200));
+  console.log('[原始响应]', content.slice(0, 300));
 
   let jsonStr = content.trim().replace(/```json?|```/g, '').trim();
   const match = jsonStr.match(/\{[\s\S]*\}/);
@@ -43,21 +124,35 @@ const parseResponse = (content) => {
   const parsed = JSON.parse(match[0]);
   if (!parsed.questions?.length) throw new Error('题目列表为空');
 
-  return parsed.questions.map((q, i) => ({
-    id: i + 1,
-    type: q.type || '计算题',
-    content: String(q.content || '').trim(),
-    answer: String(q.answer || '').trim(),
-    solution: String(q.solution || '').trim(),
-    tip: String(q.tip || '').trim()
-  }));
+  return parsed.questions
+    .map((q, i) => ({
+      id: i + 1,
+      type: q.type || '计算题',
+      contentBlocks: q.contentBlocks || [{ type: 'text', value: String(q.content || '').trim() }],
+      diagram: q.diagram || null,
+      answer: String(q.answer || '').trim(),
+      answerFormat: q.answerFormat || 'number',
+      answerUnit: q.answerUnit || '',
+      solutionBlocks: q.solutionBlocks || [{ type: 'text', value: String(q.solution || '').trim() }],
+      tip: String(q.tip || '').trim()
+    }))
+    .filter(q => {
+      const valid = validateQuestion(q);
+      if (!valid) console.warn('[parseResponse] 题目校验失败，丢弃:', q.id);
+      return valid;
+    });
+};
+
+const extractTextFromBlocks = (blocks) => {
+  if (!blocks || !Array.isArray(blocks)) return '';
+  return blocks.map(b => b.value || '').join('');
 };
 
 const normContent = (s) => String(s || '').replace(/\s/g, '');
 
 const isDuplicate = (question, existingList) => {
   if (!question || !existingList || !existingList.length) return false;
-  const n = normContent(question.content);
+  const n = normContent(extractTextFromBlocks(question.contentBlocks));
   return existingList.some((ex) => normContent(ex) === n);
 };
 
@@ -145,7 +240,7 @@ exports.main = async (event, context) => {
     const { knowledgeId, knowledgeName, grade } = event;
     const { count, difficulty, questionType, sanitizedExistingQuestions } = securityData;
     const prefetchHint = String(event.prefetchHint || '').slice(0, 80);
-    const maxTokens = count === 1 ? 300 : 800;
+    const maxTokens = count === 1 ? 800 : 2000;
 
     const userPrompt = buildUserPrompt({
       knowledgeName,
