@@ -3,7 +3,10 @@ Page({
   data: {
     questionCount: 0,
     knowledgeName: '',
-    encouragement: ''
+    encouragement: '',
+    duckDelta: null,
+    goldenDuckEarned: false,
+    consecutivePerfect: 0
   },
 
   onLoad: function (options) {
@@ -28,6 +31,23 @@ Page({
       knowledgeName,
       encouragement: encouragements[randomIndex]
     });
+
+    // 读取鸭子数据
+    const app = getApp();
+    const practice = app.globalData.currentPractice;
+    if (practice) {
+      this.setData({
+        duckDelta: practice.duckDelta || null,
+        goldenDuckEarned: practice.goldenDuckEarned || false,
+        consecutivePerfect: practice.consecutivePerfect || 0
+      });
+      if (practice.goldenDuckEarned) {
+        setTimeout(() => {
+          const anim = this.selectComponent('#duckAnimResult');
+          if (anim) anim.play('golden_hatch');
+        }, 800);
+      }
+    }
   },
 
   // 继续练习这个知识点
@@ -42,6 +62,10 @@ Page({
     wx.switchTab({
       url: '/pages/practice-select/practice-select'
     });
+  },
+
+  onGoldenDuckAnimDone: function () {
+    // 金鸭动画播放完毕，无需额外操作
   },
 
   // 分享

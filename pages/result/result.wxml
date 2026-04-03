@@ -37,6 +37,22 @@
     </view>
   </view>
 
+  <!-- 鸭子摘要 -->
+  <view class="duck-summary" wx:if="{{duckDelta}}">
+    <view class="duck-summary-row">
+      <text class="duck-summary-item duck-hatched" wx:if="{{duckDelta.hatched > 0}}">🐣 孵化 +{{duckDelta.hatched}}</text>
+      <text class="duck-summary-item duck-died" wx:if="{{duckDelta.died > 0}}">💀 阵亡 -{{duckDelta.died}}</text>
+    </view>
+    <!-- 连胜进度 -->
+    <view class="streak-bar">
+      <text class="streak-label">金鸭进度</text>
+      <view class="streak-dots">
+        <view wx:for="{{[0,1,2,3,4]}}" wx:key="*this" class="streak-dot {{item < consecutivePerfect ? 'streak-dot-active' : ''}}"></view>
+      </view>
+      <text class="streak-count">{{consecutivePerfect}}/5</text>
+    </view>
+  </view>
+
   <!-- 鼓励语 -->
   <view class="encourage-card">
     <text class="encourage-icon">💪</text>
@@ -57,3 +73,6 @@
   </view>
 
 </view>
+
+<!-- 金色鸭子动画 -->
+<duck-animation id="duckAnimResult" bind:done="onGoldenDuckAnimDone"></duck-animation>
