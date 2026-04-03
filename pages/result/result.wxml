@@ -62,10 +62,10 @@
   <!-- 操作按钮区 -->
   <view class="action-zone">
     <button class="btn-continue" bindtap="handleContinue">
-      <text>🔄 继续练习这个知识点</text>
+      <text>🔄 继续练习</text>
     </button>
     <button class="btn-change" bindtap="handleChange">
-      换个知识点练习
+      换个知识点
     </button>
     <button class="btn-share" open-type="share">
       分享给好朋友 📣

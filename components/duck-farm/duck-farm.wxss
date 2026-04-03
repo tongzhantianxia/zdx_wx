@@ -219,6 +219,105 @@
 }
 
 /* ==============================
+   Mini cartoon swan (~75rpx tall)
+   ============================== */
+
+.cartoon-swan-mini {
+  position: relative;
+  width: 56rpx;
+  height: 78rpx;
+  flex-shrink: 0;
+}
+
+.swan-body {
+  width: 48rpx;
+  height: 34rpx;
+  background: #fff;
+  border-radius: 50%;
+  position: absolute;
+  bottom: 0;
+  left: 4rpx;
+  z-index: 1;
+  border: 1rpx solid #e0e0e0;
+}
+
+.swan-wing {
+  position: absolute;
+  bottom: 8rpx;
+  left: -2rpx;
+  width: 22rpx;
+  height: 18rpx;
+  background: #f5f5f5;
+  border-radius: 50%;
+  transform: rotate(-15deg);
+  z-index: 2;
+  border: 1rpx solid #e0e0e0;
+}
+
+.swan-neck {
+  position: absolute;
+  top: 10rpx;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 8rpx;
+  height: 28rpx;
+  background: #fff;
+  border-radius: 4rpx;
+  z-index: 2;
+  border: 1rpx solid #e0e0e0;
+  border-bottom: none;
+}
+
+.swan-head {
+  width: 20rpx;
+  height: 18rpx;
+  background: #fff;
+  border-radius: 50%;
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 3;
+  border: 1rpx solid #e0e0e0;
+}
+
+.swan-eye {
+  width: 4rpx;
+  height: 4rpx;
+  background: #333;
+  border-radius: 50%;
+  position: absolute;
+  top: 5rpx;
+  right: 3rpx;
+}
+
+.swan-beak {
+  width: 8rpx;
+  height: 4rpx;
+  background: #FF6F00;
+  border-radius: 0 50% 50% 0;
+  position: absolute;
+  top: 8rpx;
+  right: -4rpx;
+  z-index: 1;
+}
+
+.swan-beak::before {
+  content: '';
+  position: absolute;
+  top: -1rpx;
+  left: 0;
+  width: 4rpx;
+  height: 2rpx;
+  background: #333;
+  border-radius: 50%;
+}
+
+.cartoon-swan-mini {
+  filter: drop-shadow(0 0 8rpx rgba(180, 180, 255, 0.4));
+}
+
+/* ==============================
    Stats & empty state
    ============================== */
 
@@ -227,7 +326,7 @@
   flex-direction: row;
   flex-wrap: wrap;
   align-items: center;
-  padding: 12rpx 28rpx 20rpx;
+  padding: 12rpx 28rpx 8rpx;
   gap: 0;
 }
 
@@ -241,10 +340,71 @@
   font-weight: 600;
 }
 
+.swan-stat {
+  color: #7986CB;
+  font-weight: 600;
+}
+
 .farm-stat-divider {
   color: #ddd;
   margin: 0 12rpx;
   font-size: 24rpx;
+}
+
+/* ==============================
+   Merge section
+   ============================== */
+
+.merge-section {
+  padding: 0 24rpx 20rpx;
+}
+
+.merge-rule-row {
+  display: flex;
+  gap: 16rpx;
+}
+
+.merge-btn {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 16rpx 8rpx;
+  border-radius: 16rpx;
+  transition: all 0.2s;
+}
+
+.merge-btn-active {
+  background: linear-gradient(135deg, #FFE082 0%, #FFD54F 100%);
+  box-shadow: 0 4rpx 12rpx rgba(255, 183, 0, 0.25);
+}
+
+.merge-btn-active:active {
+  transform: scale(0.97);
+  opacity: 0.9;
+}
+
+.merge-btn-disabled {
+  background: #f5f5f5;
+  opacity: 0.6;
+}
+
+.merge-btn-text {
+  font-size: 24rpx;
+  color: #333;
+  font-weight: 600;
+}
+
+.merge-btn-label {
+  font-size: 20rpx;
+  color: #888;
+  margin-top: 4rpx;
+}
+
+.merge-btn-active .merge-btn-label {
+  color: #E65100;
+  font-weight: 600;
 }
 
 .farm-empty {

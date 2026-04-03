@@ -355,81 +355,178 @@
 }
 
 /* ==============================
-   Normal Death Animations (~1s)
+   Text Labels (all animations)
    ============================== */
 
-.duck-shatter {
+.anim-label {
+  font-size: 32rpx;
+  font-weight: 700;
+  letter-spacing: 2rpx;
+  text-align: center;
+  animation: labelPopIn 0.3s ease both;
+  z-index: 10;
+  padding: 12rpx 32rpx;
+  border-radius: 999rpx;
+}
+
+.hatch-label {
+  color: #fff;
+  background: rgba(82, 196, 26, 0.85);
+  margin-bottom: 24rpx;
+}
+
+.death-label {
+  color: #fff;
+  background: rgba(255, 77, 79, 0.85);
+  margin-bottom: 24rpx;
+}
+
+.golden-death-label {
+  color: #fff;
+  background: rgba(255, 77, 79, 0.9);
+  margin-bottom: 24rpx;
+  font-size: 30rpx;
+}
+
+@keyframes labelPopIn {
+  0% { opacity: 0; transform: scale(0.6) translateY(-20rpx); }
+  60% { opacity: 1; transform: scale(1.05) translateY(0); }
+  100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+/* ==============================
+   Death — Explosion Effect
+   ============================== */
+
+.explosion-scene {
   position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-.normal-shatter {
-  animation: duckFadeIn 0.2s ease;
+.normal-explosion {
+  animation: duckFadeIn 0.15s ease;
 }
 
 .death-duck {
-  animation: shatterOut 0.5s ease 0.2s forwards;
+  animation: explodeOut 0.6s ease 0.25s forwards;
 }
 
-.break-particle {
+.explosion-ring {
   position: absolute;
-  font-size: 36rpx;
-  opacity: 1;
+  width: 40rpx;
+  height: 40rpx;
+  border-radius: 50%;
+  border: 6rpx solid rgba(255, 100, 50, 0.8);
+  opacity: 0;
+  animation: ringExpand 0.5s ease-out 0.25s forwards;
 }
 
-.bp-1 { animation: bpFly1 0.8s ease-out 0.2s forwards; }
-.bp-2 { animation: bpFly2 0.8s ease-out 0.25s forwards; }
-.bp-3 { animation: bpFly3 0.8s ease-out 0.2s forwards; }
-.bp-4 { animation: bpFly4 0.8s ease-out 0.25s forwards; }
-.bp-5 { animation: bpFly5 0.8s ease-out 0.2s forwards; }
-.bp-6 { animation: bpFly6 0.8s ease-out 0.25s forwards; }
+.golden-ring {
+  border-color: rgba(255, 215, 0, 0.8);
+}
 
-.golden-bp {
-  font-size: 42rpx;
+.explosion-particle {
+  position: absolute;
+  font-size: 40rpx;
+  opacity: 0;
+}
+
+.ep-1 { animation: epFly1 0.7s ease-out 0.3s forwards; }
+.ep-2 { animation: epFly2 0.7s ease-out 0.32s forwards; }
+.ep-3 { animation: epFly3 0.7s ease-out 0.28s forwards; }
+.ep-4 { animation: epFly4 0.7s ease-out 0.34s forwards; }
+.ep-5 { animation: epFly5 0.7s ease-out 0.3s forwards; }
+.ep-6 { animation: epFly6 0.7s ease-out 0.32s forwards; }
+.ep-7 { animation: epFly7 0.7s ease-out 0.28s forwards; }
+.ep-8 { animation: epFly8 0.7s ease-out 0.34s forwards; }
+
+.golden-ep {
+  font-size: 46rpx;
   filter: drop-shadow(0 0 6rpx rgba(255, 215, 0, 0.6));
 }
+
+.golden-death-scene .ep-1 { animation: epFly1 0.9s ease-out 0.9s forwards; }
+.golden-death-scene .ep-2 { animation: epFly2 0.9s ease-out 0.92s forwards; }
+.golden-death-scene .ep-3 { animation: epFly3 0.9s ease-out 0.88s forwards; }
+.golden-death-scene .ep-4 { animation: epFly4 0.9s ease-out 0.94s forwards; }
+.golden-death-scene .ep-5 { animation: epFly5 0.9s ease-out 0.9s forwards; }
+.golden-death-scene .ep-6 { animation: epFly6 0.9s ease-out 0.92s forwards; }
+.golden-death-scene .ep-7 { animation: epFly7 0.9s ease-out 0.88s forwards; }
+.golden-death-scene .ep-8 { animation: epFly8 0.9s ease-out 0.94s forwards; }
 
 @keyframes duckFadeIn {
   0% { opacity: 0; transform: scale(0.8); }
   100% { opacity: 1; transform: scale(1); }
 }
 
+@keyframes explodeOut {
+  0% { transform: scale(1); opacity: 1; }
+  20% { transform: scale(1.3); opacity: 1; }
+  40% { transform: scale(1.5); opacity: 0.7; filter: brightness(2); }
+  100% { transform: scale(0); opacity: 0; filter: brightness(3); }
+}
+
+@keyframes ringExpand {
+  0% { transform: scale(0); opacity: 1; }
+  60% { transform: scale(4); opacity: 0.6; }
+  100% { transform: scale(6); opacity: 0; }
+}
+
+@keyframes epFly1 {
+  0% { transform: translate(0, 0) scale(0.3); opacity: 1; }
+  30% { transform: translate(-30rpx, -40rpx) scale(1.2); opacity: 1; }
+  100% { transform: translate(-120rpx, -160rpx) scale(0.4); opacity: 0; }
+}
+
+@keyframes epFly2 {
+  0% { transform: translate(0, 0) scale(0.3); opacity: 1; }
+  30% { transform: translate(30rpx, -40rpx) scale(1.2); opacity: 1; }
+  100% { transform: translate(110rpx, -140rpx) scale(0.4); opacity: 0; }
+}
+
+@keyframes epFly3 {
+  0% { transform: translate(0, 0) scale(0.3); opacity: 1; }
+  30% { transform: translate(-40rpx, 10rpx) scale(1.2); opacity: 1; }
+  100% { transform: translate(-150rpx, 60rpx) scale(0.4); opacity: 0; }
+}
+
+@keyframes epFly4 {
+  0% { transform: translate(0, 0) scale(0.3); opacity: 1; }
+  30% { transform: translate(40rpx, 10rpx) scale(1.2); opacity: 1; }
+  100% { transform: translate(130rpx, 80rpx) scale(0.4); opacity: 0; }
+}
+
+@keyframes epFly5 {
+  0% { transform: translate(0, 0) scale(0.3); opacity: 1; }
+  30% { transform: translate(-20rpx, 30rpx) scale(1.2); opacity: 1; }
+  100% { transform: translate(-80rpx, 150rpx) scale(0.4); opacity: 0; }
+}
+
+@keyframes epFly6 {
+  0% { transform: translate(0, 0) scale(0.3); opacity: 1; }
+  30% { transform: translate(20rpx, 30rpx) scale(1.2); opacity: 1; }
+  100% { transform: translate(90rpx, 130rpx) scale(0.4); opacity: 0; }
+}
+
+@keyframes epFly7 {
+  0% { transform: translate(0, 0) scale(0.3); opacity: 1; }
+  30% { transform: translate(0, -50rpx) scale(1.2); opacity: 1; }
+  100% { transform: translate(10rpx, -180rpx) scale(0.4); opacity: 0; }
+}
+
+@keyframes epFly8 {
+  0% { transform: translate(0, 0) scale(0.3); opacity: 1; }
+  30% { transform: translate(0, 40rpx) scale(1.2); opacity: 1; }
+  100% { transform: translate(-20rpx, 160rpx) scale(0.4); opacity: 0; }
+}
+
+/* Keep old shatterOut for golden death duck body */
 @keyframes shatterOut {
   0% { transform: scale(1); opacity: 1; }
   50% { transform: scale(1.2); opacity: 0.6; }
   100% { transform: scale(0); opacity: 0; }
-}
-
-@keyframes bpFly1 {
-  0% { transform: translate(0, 0) scale(1); opacity: 1; }
-  100% { transform: translate(-100rpx, -140rpx) scale(0.4); opacity: 0; }
-}
-
-@keyframes bpFly2 {
-  0% { transform: translate(0, 0) scale(1); opacity: 1; }
-  100% { transform: translate(90rpx, -120rpx) scale(0.4); opacity: 0; }
-}
-
-@keyframes bpFly3 {
-  0% { transform: translate(0, 0) scale(1); opacity: 1; }
-  100% { transform: translate(-130rpx, 50rpx) scale(0.4); opacity: 0; }
-}
-
-@keyframes bpFly4 {
-  0% { transform: translate(0, 0) scale(1); opacity: 1; }
-  100% { transform: translate(110rpx, 70rpx) scale(0.4); opacity: 0; }
-}
-
-@keyframes bpFly5 {
-  0% { transform: translate(0, 0) scale(1); opacity: 1; }
-  100% { transform: translate(-70rpx, 130rpx) scale(0.4); opacity: 0; }
-}
-
-@keyframes bpFly6 {
-  0% { transform: translate(0, 0) scale(1); opacity: 1; }
-  100% { transform: translate(70rpx, 110rpx) scale(0.4); opacity: 0; }
 }
 
 /* ==============================
@@ -709,42 +806,150 @@
 }
 
 .golden-shatter {
-  animation: shatterOut 0.6s ease 0.9s forwards;
+  animation: explodeOut 0.7s ease 0.9s forwards;
 }
 
-.golden-death-scene .bp-1 { animation: goldenBpFly1 1s ease-out 0.9s forwards; }
-.golden-death-scene .bp-2 { animation: goldenBpFly2 1s ease-out 0.95s forwards; }
-.golden-death-scene .bp-3 { animation: goldenBpFly3 1s ease-out 0.9s forwards; }
-.golden-death-scene .bp-4 { animation: goldenBpFly4 1s ease-out 0.95s forwards; }
-.golden-death-scene .bp-5 { animation: goldenBpFly5 1s ease-out 0.9s forwards; }
-.golden-death-scene .bp-6 { animation: goldenBpFly6 1s ease-out 0.95s forwards; }
-
-@keyframes goldenBpFly1 {
-  0% { transform: translate(0, 0) scale(1); opacity: 1; }
-  100% { transform: translate(-160rpx, -200rpx) scale(0.3); opacity: 0; }
+.golden-death-scene .explosion-ring {
+  animation: ringExpand 0.6s ease-out 0.9s forwards;
 }
 
-@keyframes goldenBpFly2 {
-  0% { transform: translate(0, 0) scale(1); opacity: 1; }
-  100% { transform: translate(140rpx, -180rpx) scale(0.3); opacity: 0; }
+/* ==============================
+   Swan Death Animations (~3.1s)
+   ============================== */
+
+.duck-anim-overlay.swan_death {
+  background: rgba(0, 0, 0, 0.45);
 }
 
-@keyframes goldenBpFly3 {
-  0% { transform: translate(0, 0) scale(1); opacity: 1; }
-  100% { transform: translate(-200rpx, 60rpx) scale(0.3); opacity: 0; }
+.swan-death-label {
+  color: #fff;
+  background: rgba(156, 39, 176, 0.85);
+  margin-bottom: 24rpx;
+  font-size: 30rpx;
 }
 
-@keyframes goldenBpFly4 {
-  0% { transform: translate(0, 0) scale(1); opacity: 1; }
-  100% { transform: translate(180rpx, 80rpx) scale(0.3); opacity: 0; }
+.swan-death-scene {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-@keyframes goldenBpFly5 {
-  0% { transform: translate(0, 0) scale(1); opacity: 1; }
-  100% { transform: translate(-100rpx, 200rpx) scale(0.3); opacity: 0; }
+.cartoon-swan {
+  position: relative;
+  width: 180rpx;
+  height: 240rpx;
 }
 
-@keyframes goldenBpFly6 {
-  0% { transform: translate(0, 0) scale(1); opacity: 1; }
-  100% { transform: translate(100rpx, 180rpx) scale(0.3); opacity: 0; }
+.swan-lg-body {
+  position: absolute;
+  bottom: 20rpx;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 150rpx;
+  height: 100rpx;
+  background: #fff;
+  border-radius: 50%;
+  border: 2rpx solid #e0e0e0;
+}
+
+.swan-lg-wing {
+  position: absolute;
+  bottom: 40rpx;
+  left: 4rpx;
+  width: 60rpx;
+  height: 50rpx;
+  background: #f5f5f5;
+  border-radius: 50%;
+  transform: rotate(-15deg);
+  z-index: 2;
+  border: 2rpx solid #e0e0e0;
+}
+
+.swan-lg-neck {
+  position: absolute;
+  top: 30rpx;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 16rpx;
+  height: 80rpx;
+  background: #fff;
+  border-radius: 8rpx;
+  z-index: 2;
+  border: 2rpx solid #e0e0e0;
+  border-bottom: none;
+}
+
+.swan-lg-head {
+  width: 50rpx;
+  height: 45rpx;
+  background: #fff;
+  border-radius: 50%;
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 3;
+  border: 2rpx solid #e0e0e0;
+}
+
+.swan-lg-eye {
+  position: absolute;
+  top: 14rpx;
+  right: 10rpx;
+  width: 10rpx;
+  height: 12rpx;
+  background: #333;
+  border-radius: 50%;
+}
+
+.swan-lg-beak {
+  position: absolute;
+  top: 20rpx;
+  right: -8rpx;
+  width: 16rpx;
+  height: 10rpx;
+  background: #FF6F00;
+  border-radius: 0 50% 50% 0;
+}
+
+.swan-lg-beak::before {
+  content: '';
+  position: absolute;
+  top: -2rpx;
+  left: 0;
+  width: 6rpx;
+  height: 4rpx;
+  background: #333;
+  border-radius: 50%;
+}
+
+.cartoon-swan {
+  filter: drop-shadow(0 0 16rpx rgba(180, 180, 255, 0.5));
+}
+
+.death-swan {
+  animation: explodeOut 0.7s ease 0.9s forwards;
+}
+
+.swan-ring {
+  border-color: rgba(156, 39, 176, 0.6);
+}
+
+.swan-ep {
+  font-size: 46rpx;
+  filter: drop-shadow(0 0 6rpx rgba(180, 180, 255, 0.6));
+}
+
+.swan-death-scene .ep-1 { animation: epFly1 0.9s ease-out 0.9s forwards; }
+.swan-death-scene .ep-2 { animation: epFly2 0.9s ease-out 0.92s forwards; }
+.swan-death-scene .ep-3 { animation: epFly3 0.9s ease-out 0.88s forwards; }
+.swan-death-scene .ep-4 { animation: epFly4 0.9s ease-out 0.94s forwards; }
+.swan-death-scene .ep-5 { animation: epFly5 0.9s ease-out 0.9s forwards; }
+.swan-death-scene .ep-6 { animation: epFly6 0.9s ease-out 0.92s forwards; }
+.swan-death-scene .ep-7 { animation: epFly7 0.9s ease-out 0.88s forwards; }
+.swan-death-scene .ep-8 { animation: epFly8 0.9s ease-out 0.94s forwards; }
+
+.swan-death-scene .explosion-ring {
+  animation: ringExpand 0.6s ease-out 0.9s forwards;
 }

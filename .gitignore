@@ -140,3 +140,5 @@ vite.config.ts.timestamp-*
 
 # Superpowers brainstorm artifacts
 .superpowers/
+.claude/
+docs/

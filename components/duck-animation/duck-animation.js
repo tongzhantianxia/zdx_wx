@@ -16,17 +16,24 @@ Component({
       });
 
       const durations = {
-        normal_hatch: 1000,
-        normal_death: 1000,
-        golden_hatch: 2700,
-        golden_death: 1900
+        normal_hatch: 2200,
+        normal_death: 2200,
+        golden_hatch: 3700,
+        golden_death: 3100,
+        swan_death: 3100
       };
 
-      if (type === 'golden_hatch') {
-        setTimeout(() => {
-          this.setData({ showText: true });
-        }, 2200);
-      }
+      const textDelays = {
+        normal_hatch: 700,
+        normal_death: 200,
+        golden_hatch: 2200,
+        golden_death: 400,
+        swan_death: 400
+      };
+
+      setTimeout(() => {
+        this.setData({ showText: true });
+      }, textDelays[type] || 500);
 
       const duration = durations[type] || 1000;
       setTimeout(() => {

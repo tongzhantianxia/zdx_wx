@@ -10,7 +10,18 @@
         wx:key="id"
         style="margin-left: {{item.offsetX}}rpx; animation-delay: {{item.delay}}s;"
       >
-        <view class="cartoon-duck-mini {{item.type}}">
+        <!-- 白天鹅 -->
+        <view class="cartoon-swan-mini" wx:if="{{item.type === 'swan'}}">
+          <view class="swan-body"></view>
+          <view class="swan-neck"></view>
+          <view class="swan-head">
+            <view class="swan-eye"></view>
+            <view class="swan-beak"></view>
+          </view>
+          <view class="swan-wing"></view>
+        </view>
+        <!-- 金色鸭 / 普通鸭 -->
+        <view class="cartoon-duck-mini {{item.type}}" wx:else>
           <view class="mini-crown" wx:if="{{item.type === 'golden'}}"></view>
           <view class="mini-body"></view>
           <view class="mini-head">
@@ -21,10 +32,28 @@
       </view>
     </view>
   </scroll-view>
+
+  <!-- 统计 -->
   <view class="farm-stats">
-    <text class="farm-stat">普通鸭 x{{normalDucks}}</text>
+    <text class="farm-stat">🐤 x{{normalDucks}}</text>
     <text class="farm-stat-divider">|</text>
-    <text class="farm-stat golden-stat">金色鸭 x{{goldenDucks}}</text>
+    <text class="farm-stat golden-stat">👑 x{{goldenDucks}}</text>
+    <text class="farm-stat-divider">|</text>
+    <text class="farm-stat swan-stat">🦢 x{{swans}}</text>
+  </view>
+
+  <!-- 合成区 -->
+  <view class="merge-section">
+    <view class="merge-rule-row">
+      <view class="merge-btn {{canMergeGolden ? 'merge-btn-active' : 'merge-btn-disabled'}}" bindtap="{{canMergeGolden ? 'onMergeGolden' : ''}}">
+        <text class="merge-btn-text">🐤×12 → 👑×1</text>
+        <text class="merge-btn-label">{{canMergeGolden ? '合成' : '不足'}}</text>
+      </view>
+      <view class="merge-btn {{canMergeSwan ? 'merge-btn-active' : 'merge-btn-disabled'}}" bindtap="{{canMergeSwan ? 'onMergeSwan' : ''}}">
+        <text class="merge-btn-text">👑×10 → 🦢×1</text>
+        <text class="merge-btn-label">{{canMergeSwan ? '合成' : '不足'}}</text>
+      </view>
+    </view>
   </view>
 </view>
 

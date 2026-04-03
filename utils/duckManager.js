@@ -1,8 +1,14 @@
 const STORAGE_KEY = 'duckData';
 
+const MERGE_RULES = {
+  normalToGolden: 12,
+  goldenToSwan: 10
+};
+
 const DEFAULT_DATA = {
   normalDucks: 0,
   goldenDucks: 0,
+  swans: 0,
   consecutivePerfect: 0
 };
 
@@ -12,6 +18,7 @@ function getDuckData() {
     wx.setStorageSync(STORAGE_KEY, DEFAULT_DATA);
     return { ...DEFAULT_DATA };
   }
+  if (data.swans === undefined) data.swans = 0;
   return data;
 }
 
@@ -35,21 +42,24 @@ function onCorrectAnswer() {
 }
 
 /**
- * 答错：死亡一只鸭子（优先普通，没有普通扣金鸭，都没有则不扣）
- * @returns {{ type: 'normal_death' | 'golden_death' | 'none', normalDucks: number, goldenDucks: number }}
+ * 答错：死亡一只鸭子（优先普通→金鸭→天鹅，都没有则不扣）
  */
 function onWrongAnswer() {
   const data = getDuckData();
   if (data.normalDucks > 0) {
     data.normalDucks -= 1;
     saveDuckData(data);
-    return { type: 'normal_death', normalDucks: data.normalDucks, goldenDucks: data.goldenDucks };
+    return { type: 'normal_death', normalDucks: data.normalDucks, goldenDucks: data.goldenDucks, swans: data.swans };
   } else if (data.goldenDucks > 0) {
     data.goldenDucks -= 1;
     saveDuckData(data);
-    return { type: 'golden_death', normalDucks: data.normalDucks, goldenDucks: data.goldenDucks };
+    return { type: 'golden_death', normalDucks: data.normalDucks, goldenDucks: data.goldenDucks, swans: data.swans };
+  } else if (data.swans > 0) {
+    data.swans -= 1;
+    saveDuckData(data);
+    return { type: 'swan_death', normalDucks: data.normalDucks, goldenDucks: data.goldenDucks, swans: data.swans };
   }
-  return { type: 'none', normalDucks: data.normalDucks, goldenDucks: data.goldenDucks };
+  return { type: 'none', normalDucks: data.normalDucks, goldenDucks: data.goldenDucks, swans: data.swans };
 }
 
 /**
@@ -75,11 +85,44 @@ function onSessionEnd(allCorrect) {
   return { goldenDuckEarned: false, consecutivePerfect: 0 };
 }
 
+/**
+ * 合成金色鸭子：12只普通鸭 → 1只金色鸭
+ * @returns {{ success: boolean, normalDucks: number, goldenDucks: number, swans: number }}
+ */
+function mergeToGolden() {
+  const data = getDuckData();
+  if (data.normalDucks < MERGE_RULES.normalToGolden) {
+    return { success: false, normalDucks: data.normalDucks, goldenDucks: data.goldenDucks, swans: data.swans };
+  }
+  data.normalDucks -= MERGE_RULES.normalToGolden;
+  data.goldenDucks += 1;
+  saveDuckData(data);
+  return { success: true, normalDucks: data.normalDucks, goldenDucks: data.goldenDucks, swans: data.swans };
+}
+
+/**
+ * 合成白天鹅：10只金色鸭 → 1只白天鹅
+ * @returns {{ success: boolean, normalDucks: number, goldenDucks: number, swans: number }}
+ */
+function mergeToSwan() {
+  const data = getDuckData();
+  if (data.goldenDucks < MERGE_RULES.goldenToSwan) {
+    return { success: false, normalDucks: data.normalDucks, goldenDucks: data.goldenDucks, swans: data.swans };
+  }
+  data.goldenDucks -= MERGE_RULES.goldenToSwan;
+  data.swans += 1;
+  saveDuckData(data);
+  return { success: true, normalDucks: data.normalDucks, goldenDucks: data.goldenDucks, swans: data.swans };
+}
+
 module.exports = {
   getDuckData,
   saveDuckData,
   onCorrectAnswer,
   onWrongAnswer,
   onSessionEnd,
+  mergeToGolden,
+  mergeToSwan,
+  MERGE_RULES,
   DEFAULT_DATA
 };

@@ -22,11 +22,13 @@
         </view>
       </view>
     </view>
+    <view class="anim-label hatch-label" wx:if="{{showText}}">答对啦！孵化一只鸭子 🐣</view>
   </view>
 
   <!-- 普通死亡 -->
   <view class="anim-container" wx:if="{{animationType === 'normal_death'}}">
-    <view class="duck-shatter normal-shatter">
+    <view class="anim-label death-label" wx:if="{{showText}}">答错了…失去一只鸭子</view>
+    <view class="explosion-scene normal-explosion">
       <view class="cartoon-duck normal death-duck">
         <view class="duck-body"></view>
         <view class="duck-head">
@@ -35,12 +37,15 @@
         </view>
         <view class="duck-wing"></view>
       </view>
-      <view class="break-particle bp-1">💔</view>
-      <view class="break-particle bp-2">💫</view>
-      <view class="break-particle bp-3">💔</view>
-      <view class="break-particle bp-4">💫</view>
-      <view class="break-particle bp-5">💔</view>
-      <view class="break-particle bp-6">💫</view>
+      <view class="explosion-ring"></view>
+      <view class="explosion-particle ep-1">💥</view>
+      <view class="explosion-particle ep-2">💥</view>
+      <view class="explosion-particle ep-3">💥</view>
+      <view class="explosion-particle ep-4">💥</view>
+      <view class="explosion-particle ep-5">🔥</view>
+      <view class="explosion-particle ep-6">🔥</view>
+      <view class="explosion-particle ep-7">💥</view>
+      <view class="explosion-particle ep-8">🔥</view>
     </view>
   </view>
 
@@ -85,6 +90,7 @@
   <!-- 金色死亡 -->
   <view class="anim-container" wx:if="{{animationType === 'golden_death'}}">
     <view class="red-flash"></view>
+    <view class="anim-label golden-death-label" wx:if="{{showText}}">答错了…失去一只金色鸭子！</view>
     <view class="golden-death-scene">
       <view class="duck-crown crown-fall">
         <view class="crown-point"></view>
@@ -100,12 +106,41 @@
         </view>
         <view class="duck-wing"></view>
       </view>
-      <view class="break-particle golden-bp bp-1">✦</view>
-      <view class="break-particle golden-bp bp-2">💔</view>
-      <view class="break-particle golden-bp bp-3">✦</view>
-      <view class="break-particle golden-bp bp-4">💔</view>
-      <view class="break-particle golden-bp bp-5">✦</view>
-      <view class="break-particle golden-bp bp-6">💔</view>
+      <view class="explosion-ring golden-ring"></view>
+      <view class="explosion-particle golden-ep ep-1">💥</view>
+      <view class="explosion-particle golden-ep ep-2">✦</view>
+      <view class="explosion-particle golden-ep ep-3">💥</view>
+      <view class="explosion-particle golden-ep ep-4">✦</view>
+      <view class="explosion-particle golden-ep ep-5">🔥</view>
+      <view class="explosion-particle golden-ep ep-6">✦</view>
+      <view class="explosion-particle golden-ep ep-7">💥</view>
+      <view class="explosion-particle golden-ep ep-8">🔥</view>
+    </view>
+  </view>
+
+  <!-- 天鹅死亡 -->
+  <view class="anim-container" wx:if="{{animationType === 'swan_death'}}">
+    <view class="red-flash"></view>
+    <view class="anim-label swan-death-label" wx:if="{{showText}}">答错了…失去一只白天鹅！</view>
+    <view class="swan-death-scene">
+      <view class="cartoon-swan death-swan">
+        <view class="swan-lg-body"></view>
+        <view class="swan-lg-neck"></view>
+        <view class="swan-lg-head">
+          <view class="swan-lg-eye dead-eye">✕</view>
+          <view class="swan-lg-beak"></view>
+        </view>
+        <view class="swan-lg-wing"></view>
+      </view>
+      <view class="explosion-ring swan-ring"></view>
+      <view class="explosion-particle swan-ep ep-1">💥</view>
+      <view class="explosion-particle swan-ep ep-2">🪶</view>
+      <view class="explosion-particle swan-ep ep-3">💥</view>
+      <view class="explosion-particle swan-ep ep-4">🪶</view>
+      <view class="explosion-particle swan-ep ep-5">🔥</view>
+      <view class="explosion-particle swan-ep ep-6">🪶</view>
+      <view class="explosion-particle swan-ep ep-7">💥</view>
+      <view class="explosion-particle swan-ep ep-8">🔥</view>
     </view>
   </view>
 

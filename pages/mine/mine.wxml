@@ -23,7 +23,7 @@
   </view>
 
   <!-- 鸭子农场 -->
-  <duck-farm normal-ducks="{{normalDucks}}" golden-ducks="{{goldenDucks}}"></duck-farm>
+  <duck-farm normal-ducks="{{normalDucks}}" golden-ducks="{{goldenDucks}}" swans="{{swans}}" bind:merge="onDuckMerge"></duck-farm>
 
   <!-- 出题模式设置 -->
   <view class="settings-section">
