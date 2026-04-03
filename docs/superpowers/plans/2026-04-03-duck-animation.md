@@ -638,8 +638,7 @@ git commit -m "feat: integrate duck animation into practice page"
 ```javascript
     duckDelta: null,
     goldenDuckEarned: false,
-    consecutivePerfect: 0,
-    showGoldenDuckAnim: false
+    consecutivePerfect: 0
 ```
 
 - [ ] **Step 4: 在 `pages/result/result.js` 的 `onLoad` 末尾追加鸭子数据读取**
@@ -681,7 +680,7 @@ git commit -m "feat: integrate duck animation into practice page"
     <view class="streak-bar">
       <text class="streak-label">金鸭进度</text>
       <view class="streak-dots">
-        <view wx:for="{{5}}" wx:key="*this" class="streak-dot {{index < consecutivePerfect ? 'streak-dot-active' : ''}}"></view>
+        <view wx:for="{{[0,1,2,3,4]}}" wx:key="*this" class="streak-dot {{item < consecutivePerfect ? 'streak-dot-active' : ''}}"></view>
       </view>
       <text class="streak-count">{{consecutivePerfect}}/5</text>
     </view>
@@ -702,7 +701,7 @@ git commit -m "feat: integrate duck animation into practice page"
 
 ```javascript
   onGoldenDuckAnimDone: function () {
-    this.setData({ showGoldenDuckAnim: false });
+    // 金鸭动画播放完毕，无需额外操作
   },
 ```
 
