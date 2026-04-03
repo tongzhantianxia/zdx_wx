@@ -57,7 +57,28 @@ exports.main = async (event, context) => {
     if (expiredLogs.data.length < MAX_BATCH) hasMore = false;
   }
 
-  const result = { totalDeleted, totalDoneUpdated, cleanedAt: new Date().toISOString() };
+  let ocrDeleted = 0;
+  try {
+    const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+    const ocrFiles = await db.collection('ocr_uploads')
+      .where({ uploadedAt: _.lt(sevenDaysAgo) })
+      .limit(MAX_BATCH)
+      .get();
+
+    for (const file of ocrFiles.data) {
+      try {
+        await cloud.deleteFile({ fileList: [file.fileID] });
+        await db.collection('ocr_uploads').doc(file._id).remove();
+        ocrDeleted++;
+      } catch (e) {
+        console.error('[clean] OCR file delete error:', e.message);
+      }
+    }
+  } catch (e) {
+    console.error('[clean] OCR cleanup error:', e.message);
+  }
+
+  const result = { totalDeleted, totalDoneUpdated, ocrDeleted, cleanedAt: new Date().toISOString() };
   console.log('[cleanExpiredLogs] done:', JSON.stringify(result));
   return result;
 };
