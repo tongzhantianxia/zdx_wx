@@ -1,0 +1,59 @@
+<view class="math-input-wrap">
+  <!-- Number mode -->
+  <view class="input-row" wx:if="{{format === 'number'}}">
+    <input
+      class="num-input"
+      type="digit"
+      placeholder="输入答案"
+      placeholder-class="input-placeholder"
+      value="{{numberValue}}"
+      bindinput="onNumberInput"
+      confirm-type="done"
+      adjust-position="{{false}}"
+    />
+    <text class="unit-text" wx:if="{{unit}}">{{unit}}</text>
+  </view>
+
+  <!-- Fraction mode -->
+  <view class="fraction-row" wx:elif="{{format === 'fraction'}}">
+    <view class="fraction-box">
+      <input
+        class="frac-input frac-num"
+        type="digit"
+        placeholder="分子"
+        placeholder-class="frac-placeholder"
+        value="{{numerator}}"
+        bindinput="onNumeratorInput"
+        confirm-type="next"
+        adjust-position="{{false}}"
+      />
+      <view class="frac-line"></view>
+      <input
+        class="frac-input frac-den"
+        type="digit"
+        placeholder="分母"
+        placeholder-class="frac-placeholder"
+        value="{{denominator}}"
+        bindinput="onDenominatorInput"
+        confirm-type="done"
+        adjust-position="{{false}}"
+      />
+    </view>
+    <text class="unit-text" wx:if="{{unit}}">{{unit}}</text>
+  </view>
+
+  <!-- Text mode -->
+  <view class="input-row" wx:elif="{{format === 'text'}}">
+    <input
+      class="text-input"
+      type="text"
+      placeholder="输入答案"
+      placeholder-class="input-placeholder"
+      value="{{textValue}}"
+      bindinput="onTextInput"
+      confirm-type="done"
+      adjust-position="{{false}}"
+    />
+    <text class="unit-text" wx:if="{{unit}}">{{unit}}</text>
+  </view>
+</view>
