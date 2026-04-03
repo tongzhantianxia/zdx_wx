@@ -2,17 +2,12 @@ const app = getApp();
 
 Page({
   data: {
-    statusBarHeight: 0,
+    statusBarHeight: getApp().globalData.statusBarHeight || wx.getSystemInfoSync().statusBarHeight,
     imagePath: '',
     analyzing: false,
     analysisResult: null,
     selectedPoints: {},
     hasSelected: false
-  },
-
-  onLoad: function () {
-    const sysInfo = wx.getSystemInfoSync();
-    this.setData({ statusBarHeight: sysInfo.statusBarHeight });
   },
 
   onShow: function () {

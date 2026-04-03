@@ -17,7 +17,7 @@
       <image class="guide-icon" src="/images/tab-improve-active.png" mode="aspectFit"></image>
     </view>
     <text class="guide-title">拍照分析错题</text>
-    <text class="guide-desc">拍照或选择试卷图片，AI自动识别知识点，生成针对性练习题</text>
+    <text class="guide-desc">拍照或选择试卷图片，自动识别知识点，生成针对性练习题</text>
   </view>
 
   <!-- 拍照/选择区 -->
@@ -38,7 +38,7 @@
   <!-- 分析中状态 -->
   <view class="analyzing-section" wx:if="{{analyzing}}">
     <view class="analyzing-spinner"></view>
-    <text class="analyzing-text">AI正在分析知识点...</text>
+    <text class="analyzing-text">正在分析知识点...</text>
   </view>
 
   <!-- 分析结果 -->
@@ -74,7 +74,7 @@
     </view>
     <view class="tip-card">
       <text class="tip-icon">2</text>
-      <text class="tip-text">AI自动识别涉及的知识点</text>
+      <text class="tip-text">自动识别涉及的知识点</text>
     </view>
     <view class="tip-card">
       <text class="tip-icon">3</text>

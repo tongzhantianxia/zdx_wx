@@ -18,7 +18,7 @@ const RATE_LIMIT_KEY = 'lastGenerateTime';
 
 Page({
   data: {
-    statusBarHeight: 0,
+    statusBarHeight: getApp().globalData.statusBarHeight || wx.getSystemInfoSync().statusBarHeight,
     selectedGrade: 'grade5',
     gradeList: [
       { label: '1年级', value: 'grade1' },
@@ -40,8 +40,6 @@ Page({
   },
 
   onLoad: function () {
-    const sysInfo = wx.getSystemInfoSync();
-    this.setData({ statusBarHeight: sysInfo.statusBarHeight });
     this.initKnowledgeList();
   },
 
