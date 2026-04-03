@@ -75,7 +75,8 @@
       "content": "一个长方形的长是8厘米，宽是5厘米，求周长。",
       "position": { "top": 0.05, "bottom": 0.25 },
       "knowledgePoint": "长方形的周长",
-      "knowledgeId": "3-upper-2-1-1",
+      "knowledgeId": "g3u-5-1",
+      "knowledgeName": "长方形和正方形的周长",
       "difficulty": "easy",
       "hasGraphic": false,
       "graphicDesc": null
@@ -86,6 +87,7 @@
       "position": { "top": 0.28, "bottom": 0.52 },
       "knowledgePoint": "直角三角形",
       "knowledgeId": null,
+      "knowledgeName": null,
       "difficulty": "hard",
       "hasGraphic": true,
       "graphicDesc": "一个直角三角形，底边标注3cm，竖边标注4cm，斜边标注问号"
@@ -95,6 +97,8 @@
   "imageHeight": 1334
 }
 ```
+
+> **知识点 ID 格式**：遵循项目现有格式 `g{年级数字}{u上|l下}-{单元号}-{知识点序号}`，如 `g3u-5-1` 表示三年级上册第 5 单元第 1 个知识点。匹配时参照 `generateQuestions/security.js` 中的 `VALID_KNOWLEDGE_IDS` 白名单和 `utils/knowledgeData.js` 中的知识点树。
 
 ### 2.5 Prompt 设计要点
 
@@ -127,15 +131,17 @@
 
 ### 2.6 知识点模糊匹配 (`knowledgeMapping.js`)
 
-- 从 `knowledgeData.js` 中提取当前年级+学期的所有知识点名称列表
+- 从 `knowledgeData.js` 中提取当前年级+学期的所有知识点，构建 `{ id, name }` 列表
 - 对 AI 返回的 `knowledgePoint` 做字符串相似度匹配（包含/被包含/编辑距离）
-- 匹配阈值：相似度 > 0.6 才关联 `knowledgeId`
-- 未匹配时 `knowledgeId` 设为 `null`，不阻断流程
+- 匹配阈值：相似度 > 0.6 才关联
+- 匹配成功时同时填充 `knowledgeId`（如 `g3u-5-1`）和 `knowledgeName`（如 `长方形和正方形的周长`），两者都来自 `knowledgeData.js`
+- 匹配结果的 `knowledgeId` 须存在于 `VALID_KNOWLEDGE_IDS`（`security.js`）白名单中
+- 未匹配时 `knowledgeId` 和 `knowledgeName` 均设为 `null`，不阻断流程
+- **云函数部署注意**：`knowledgeData.js` 需拷贝一份到 `ocrRecognize/` 目录下（云函数独立打包，无法 `require` 小程序端 `utils/` 目录的文件）
 
 ### 2.7 安全 & 限制
 
-- 复用 `generateQuestions/security.js` 的频率限制逻辑
-- 每用户每分钟最多 5 次 OCR 调用
+- **频率限制**：`ocrRecognize` 自行实现独立的频率限制（不复用 `generateQuestions/security.js`），采用与 `checkRateLimit` 相同的内存 Map 模式，但间隔设为 **15 秒**（OCR 调用成本高于普通出题）
 - 图片大小限制 10MB（云存储层面控制）
 - AI 返回 JSON 解析失败时重试 1 次
 - 云函数超时设置 60s
@@ -148,6 +154,7 @@ cloudfunctions/ocrRecognize/
   config.json           # 云函数配置 { "timeout": 60 }
   package.json          # 依赖 openai
   knowledgeMapping.js   # 知识点模糊匹配工具
+  knowledgeData.js      # 从 utils/knowledgeData.js 拷贝（云函数独立打包）
 ```
 
 ---
@@ -216,20 +223,29 @@ cloudfunctions/ocrRecognize/
 按知识点分组后并行调用：
 
 **有 `knowledgeId`**：
-- 调用 `getQuestions`，传入 `knowledgeId`、`grade`、`semester`、`count`
+- 调用 `getQuestions`，传入 `knowledgeId`、`knowledgeName`、`grade`、`count`（`knowledgeName` 为必填参数，否则 `getQuestions` 返回 `INVALID_PARAMS`）
 - 走"题库优先 + AI 补充"逻辑
 
 **无 `knowledgeId`**：
-- 调用 `generateQuestions`，传入知识点名称文本 + 原题内容作为上下文
-- Prompt 附带原题，生成同知识点变式题
+- 调用 `generateQuestions`，传入 AI 返回的 `knowledgePoint` 作为 `knowledgeName`（≤50 字符，截断处理）
+- 原题内容通过 `prefetchHint` 字段传入（≤80 字符，截断为摘要），作为出题参考上下文
+- **注意**：`prefetchHint` 现有限制 80 字符（经 `buildUserPrompt` 拼接），原题过长时只取核心条件部分
 
-**同知识点合并**：多道选中题属于同一 `knowledgeId` 时，合并题量，一次调用。
+**同知识点合并**：多道选中题属于同一 `knowledgeId` 时，合并题量。若合并后超过 10（`count` 上限），拆为多次调用（每次 ≤ 10），通过 `Promise.all` 并行。
 
 ### 4.3 结果汇总
 
-- 所有训练题合并为数组，存入 `app.globalData.currentQuestions`
-- 标记 `source: 'ocr_improve'`
-- 跳转 `practice` 页面，复用现有答题、提交、记录流程
+- 所有训练题合并为数组，构造 `app.globalData.currentQuestions` 对象，结构与现有 `practice-select` 一致：
+  ```json
+  {
+    "questions": [...],
+    "knowledge": { "id": "mixed", "name": "OCR加强训练" },
+    "meta": { "questionType": "calculation" }
+  }
+  ```
+- **不传 `generateParams`（无 `targetCount` / `sessionId`）**，避免触发 `practice.js` 的渐进出题分支 `initProgressivePractice`
+- 跳转使用 `source=generated`（与 `practice.js` 现有判断逻辑一致：`source === 'generated' && app.globalData.currentQuestions`），**不使用新的 source 值**，无需修改 `practice.js`
+- 如需后续统计 OCR 来源，在 `meta` 中附加 `origin: 'ocr_improve'` 字段，`practice.js` 会透传 `meta` 到记录中
 
 ### 4.4 并行加载
 
@@ -264,9 +280,9 @@ wx.cloud.callFunction('ocrRecognize')
     有 knowledgeId → callFunction('getQuestions')
     无 knowledgeId → callFunction('generateQuestions')
     ↓
-合并结果 → globalData.currentQuestions
+合并结果 → globalData.currentQuestions（无 generateParams）
     ↓
-wx.navigateTo('practice') source=ocr_improve
+wx.navigateTo('practice') source=generated
     ↓
 (复用现有 practice_records / wrong_questions 记录)
 ```
@@ -304,6 +320,7 @@ wx.navigateTo('practice') source=ocr_improve
 | `cloudfunctions/ocrRecognize/config.json` | **新增** | 超时 60s |
 | `cloudfunctions/ocrRecognize/package.json` | **新增** | 依赖 openai |
 | `cloudfunctions/ocrRecognize/knowledgeMapping.js` | **新增** | 知识点模糊匹配 |
+| `cloudfunctions/ocrRecognize/knowledgeData.js` | **新增** | 从 `utils/knowledgeData.js` 拷贝 |
 | `pages/improve/improve.js` | **重写** | mock → 真实 OCR 流程 |
 | `pages/improve/improve.wxml` | **重写** | 图片标注区 + 列表选择区 |
 | `pages/improve/improve.wxss` | **扩展** | 标注样式、结果列表样式 |
