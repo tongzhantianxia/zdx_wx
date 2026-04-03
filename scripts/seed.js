@@ -10,9 +10,9 @@
  * 可选参数（环境变量）：
  *   QWEN_API_KEY     — 必填，通义千问 API Key
  *   QWEN_MODEL       — 模型名，默认 qwen-turbo
- *   PER_KNOWLEDGE    — 每个知识点生成题数，默认 10
  *   START_FROM       — 从第 N 个知识点开始（用于断点续跑），默认 0
- *   BATCH_SIZE       — 单次 API 调用生成几题，默认 5
+ *   GRADE            — 只生成指定年级，如 "一年级"、"三年级"（不填则全部年级）
+ *   CONCURRENCY      — 并发处理的知识点数量，默认 3
  */
 
 const fs = require('fs');
@@ -24,9 +24,9 @@ const { getAllKnowledges } = require(knowledgeDataPath);
 
 const API_KEY = process.env.QWEN_API_KEY || '';
 const MODEL = process.env.QWEN_MODEL || 'qwen-turbo';
-const PER_KNOWLEDGE = parseInt(process.env.PER_KNOWLEDGE, 10) || 10;
 const START_FROM = parseInt(process.env.START_FROM, 10) || 0;
-const BATCH_SIZE = parseInt(process.env.BATCH_SIZE, 10) || 5;
+const GRADE_FILTER = process.env.GRADE || '';
+const CONCURRENCY = parseInt(process.env.CONCURRENCY, 10) || 3;
 
 const PROGRESS_FILE = path.join(__dirname, 'seed_progress.json');
 const OUTPUT_FILE = path.join(__dirname, 'seed_import.json');
@@ -61,15 +61,32 @@ const TYPE_CN = { calculation: '计算题', fillBlank: '填空题', application:
 const DIFFICULTIES = ['easy', 'medium', 'hard'];
 const DIFF_CN = { easy: '简单', medium: '中等', hard: '困难' };
 
-function buildPrompt(knowledge, questionType, difficulty, count) {
+const COUNT_PER_CALL = 50;
+
+// 各题型/难度分配：50题 = 计算18 + 填空18 + 应用14，简单/中等/困难各约1/3
+const TYPE_DIST = [
+  { questionType: 'calculation', difficulty: 'easy',   count: 6 },
+  { questionType: 'calculation', difficulty: 'medium', count: 6 },
+  { questionType: 'calculation', difficulty: 'hard',   count: 6 },
+  { questionType: 'fillBlank',   difficulty: 'easy',   count: 6 },
+  { questionType: 'fillBlank',   difficulty: 'medium', count: 6 },
+  { questionType: 'fillBlank',   difficulty: 'hard',   count: 6 },
+  { questionType: 'application', difficulty: 'easy',   count: 5 },
+  { questionType: 'application', difficulty: 'medium', count: 5 },
+  { questionType: 'application', difficulty: 'hard',   count: 4 },
+];
+
+function buildPrompt(knowledge) {
   const grade = extractGrade(knowledge.semester);
-  return `你是资深小学数学出题老师，请严格按照以下要求生成题目。
+  const distDesc = TYPE_DIST.map(d =>
+    `${TYPE_CN[d.questionType]}/${DIFF_CN[d.difficulty]} ${d.count}题`
+  ).join('、');
+
+  return `你是资深小学数学出题老师，请严格按照以下要求一次性生成50道题目。
 
 年级：${grade}
 知识点：${knowledge.name}
-题型：${TYPE_CN[questionType]}
-难度：${DIFF_CN[difficulty]}
-数量：${count}题
+题目分布：${distDesc}
 
 要求：
 1. 题目必须紧扣「${knowledge.name}」这个知识点
@@ -77,9 +94,11 @@ function buildPrompt(knowledge, questionType, difficulty, count) {
 3. 每道题的情境、数值必须不同，不能雷同
 4. 小数最多两位
 5. 应用题要有完整的生活场景
+6. questionType 字段只能填 calculation / fillBlank / application
+7. difficulty 字段只能填 easy / medium / hard
 
 直接输出纯JSON，格式：
-{"questions":[{"content":"题目","answer":"答案","solution":"解题步骤","tip":"易错提示"}]}`;
+{"questions":[{"content":"题目","answer":"答案","solution":"解题步骤","tip":"易错提示","questionType":"calculation","difficulty":"easy"}]}`;
 }
 
 function parseQuestions(text) {
@@ -91,8 +110,8 @@ function parseQuestions(text) {
   return parsed.questions;
 }
 
-async function generateBatch(knowledge, questionType, difficulty, count) {
-  const prompt = buildPrompt(knowledge, questionType, difficulty, count);
+async function generate50(knowledge) {
+  const prompt = buildPrompt(knowledge);
 
   const completion = await client.chat.completions.create({
     model: MODEL,
@@ -100,13 +119,91 @@ async function generateBatch(knowledge, questionType, difficulty, count) {
       { role: 'system', content: '你是小学数学出题专家。只输出纯JSON，不加任何其他内容。' },
       { role: 'user', content: prompt }
     ],
-    temperature: 0.7,
-    max_tokens: count <= 3 ? 600 : 1200,
+    temperature: 0.3,
+    max_tokens: 12000,
     enable_thinking: false
   });
 
   const content = completion.choices?.[0]?.message?.content || '';
   return parseQuestions(content);
+}
+
+// 简单并发限制器
+function createPool(concurrency) {
+  let running = 0;
+  const queue = [];
+
+  function next() {
+    if (running >= concurrency || queue.length === 0) return;
+    running++;
+    const { fn, resolve, reject } = queue.shift();
+    fn().then(resolve, reject).finally(() => {
+      running--;
+      next();
+    });
+  }
+
+  return function run(fn) {
+    return new Promise((resolve, reject) => {
+      queue.push({ fn, resolve, reject });
+      next();
+    });
+  };
+}
+
+// 处理单个知识点：一次 API 调用生成 50 题
+async function processKnowledge(k, idx, total, progress, counters) {
+  const grade = extractGrade(k.semester);
+  const semesterPart = extractSemesterPart(k.semester);
+
+  if (progress[k.id]?.done) {
+    console.log(`[${idx}/${total}] skip ${k.id} — 已完成`);
+    return;
+  }
+
+  console.log(`[${idx}/${total}] ${k.id} — ${grade}${semesterPart} — ${k.name}`);
+
+  try {
+    const questions = await generate50(k);
+    const now = new Date().toISOString();
+    let saved = 0;
+
+    for (const q of questions) {
+      if (!q.content || !q.answer) continue;
+
+      const record = {
+        knowledgeId: k.id,
+        knowledgeName: k.name,
+        grade: grade,
+        semester: semesterPart,
+        unit: k.unit,
+        questionType: q.questionType || 'fillBlank',
+        difficulty: q.difficulty || 'medium',
+        content: String(q.content).trim(),
+        answer: String(q.answer).trim(),
+        solution: String(q.solution || '').trim(),
+        tip: String(q.tip || '').trim(),
+        source: 'ai_generated',
+        verified: true,
+        createdAt: now,
+        updatedAt: now
+      };
+
+      fs.appendFileSync(OUTPUT_FILE, JSON.stringify(record) + '\n');
+      saved++;
+      counters.generated++;
+    }
+
+    console.log(`  [${k.id}] ✓ ${saved}/${COUNT_PER_CALL} 题已保存`);
+    progress[k.id] = { done: true, generated: saved, lastUpdate: now };
+
+  } catch (e) {
+    counters.failed++;
+    console.log(`  [${k.id}] ✗ 失败: ${e.message}`);
+    progress[k.id] = { done: false, lastUpdate: new Date().toISOString() };
+  }
+
+  saveProgress(progress);
 }
 
 async function main() {
@@ -116,97 +213,49 @@ async function main() {
     process.exit(1);
   }
 
-  const allKnowledges = getAllKnowledges();
+  let allKnowledges = getAllKnowledges();
+
+  if (GRADE_FILTER) {
+    allKnowledges = allKnowledges.filter(k => extractGrade(k.semester) === GRADE_FILTER);
+    if (allKnowledges.length === 0) {
+      console.error(`未找到年级 "${GRADE_FILTER}" 的知识点，可用年级：一年级 二年级 三年级 四年级 五年级 六年级`);
+      process.exit(1);
+    }
+  }
+
+  const knowledges = allKnowledges.slice(START_FROM);
   const progress = loadProgress();
   const existingLines = fs.existsSync(OUTPUT_FILE)
-    ? fs.readFileSync(OUTPUT_FILE, 'utf-8').trim().split('\n').filter(Boolean)
-    : [];
+    ? fs.readFileSync(OUTPUT_FILE, 'utf-8').trim().split('\n').filter(Boolean).length
+    : 0;
 
   console.log(`\n========== 题库初始化 ==========`);
   console.log(`模型: ${MODEL}`);
-  console.log(`知识点总数: ${allKnowledges.length}`);
-  console.log(`每知识点: ${PER_KNOWLEDGE} 题`);
+  console.log(`年级过滤: ${GRADE_FILTER || '全部'}`);
+  console.log(`知识点总数: ${knowledges.length}`);
+  console.log(`每知识点: ${COUNT_PER_CALL} 题（单次调用）`);
+  console.log(`并发数: ${CONCURRENCY}`);
   console.log(`从第 ${START_FROM} 个开始`);
-  console.log(`已有记录: ${existingLines.length} 条`);
+  console.log(`已有记录: ${existingLines} 条`);
   console.log(`================================\n`);
 
-  let totalGenerated = 0;
-  let totalFailed = 0;
+  const counters = { generated: 0, failed: 0 };
+  const pool = createPool(CONCURRENCY);
+  const total = knowledges.length;
 
-  for (let i = START_FROM; i < allKnowledges.length; i++) {
-    const k = allKnowledges[i];
-
-    if (progress[k.id] && progress[k.id].generated >= PER_KNOWLEDGE) {
-      console.log(`[${i}/${allKnowledges.length}] skip ${k.id} — 已完成`);
-      continue;
-    }
-
-    const grade = extractGrade(k.semester);
-    const semesterPart = extractSemesterPart(k.semester);
-    const alreadyGenerated = progress[k.id]?.generated || 0;
-    const remaining = PER_KNOWLEDGE - alreadyGenerated;
-
-    console.log(`\n[${i}/${allKnowledges.length}] ${k.id} — ${grade}${semesterPart} — ${k.name} (需${remaining}题)`);
-
-    let knowledgeGenerated = alreadyGenerated;
-
-    while (knowledgeGenerated < PER_KNOWLEDGE) {
-      const batchCount = Math.min(BATCH_SIZE, PER_KNOWLEDGE - knowledgeGenerated);
-      const questionType = QUESTION_TYPES[knowledgeGenerated % QUESTION_TYPES.length];
-      const difficulty = DIFFICULTIES[Math.floor(knowledgeGenerated / QUESTION_TYPES.length) % DIFFICULTIES.length];
-
-      try {
-        const questions = await generateBatch(k, questionType, difficulty, batchCount);
-        const now = new Date().toISOString();
-
-        for (const q of questions) {
-          if (!q.content || !q.answer) continue;
-
-          const record = {
-            knowledgeId: k.id,
-            knowledgeName: k.name,
-            grade: grade,
-            semester: semesterPart,
-            unit: k.unit,
-            questionType: questionType,
-            difficulty: difficulty,
-            content: String(q.content).trim(),
-            answer: String(q.answer).trim(),
-            solution: String(q.solution || '').trim(),
-            tip: String(q.tip || '').trim(),
-            source: 'rewritten_exam',
-            verified: true,
-            createdAt: now,
-            updatedAt: now
-          };
-
-          fs.appendFileSync(OUTPUT_FILE, JSON.stringify(record) + '\n');
-          knowledgeGenerated++;
-          totalGenerated++;
-        }
-
-        console.log(`  ✓ +${questions.length} (${TYPE_CN[questionType]}/${DIFF_CN[difficulty]}) — 累计 ${knowledgeGenerated}/${PER_KNOWLEDGE}`);
-
-      } catch (e) {
-        totalFailed++;
-        console.log(`  ✗ 失败: ${e.message}`);
-        await sleep(3000);
-      }
-
-      progress[k.id] = { generated: knowledgeGenerated, lastUpdate: new Date().toISOString() };
-      saveProgress(progress);
-
-      await sleep(1200);
-    }
-  }
+  await Promise.all(
+    knowledges.map((k, i) =>
+      pool(() => processKnowledge(k, START_FROM + i, total, progress, counters))
+    )
+  );
 
   const finalCount = fs.existsSync(OUTPUT_FILE)
     ? fs.readFileSync(OUTPUT_FILE, 'utf-8').trim().split('\n').filter(Boolean).length
     : 0;
 
   console.log(`\n========== 完成 ==========`);
-  console.log(`本次生成: ${totalGenerated} 题`);
-  console.log(`失败批次: ${totalFailed}`);
+  console.log(`本次生成: ${counters.generated} 题`);
+  console.log(`失败批次: ${counters.failed}`);
   console.log(`文件总计: ${finalCount} 条`);
   console.log(`输出文件: ${OUTPUT_FILE}`);
   console.log(`\n下一步: 在微信云开发控制台导入 seed_import.json`);
