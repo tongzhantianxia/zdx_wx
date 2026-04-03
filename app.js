@@ -20,6 +20,10 @@ App({
 
     // 检查隐私协议
     this.checkPrivacyAgreement();
+
+    // 初始化鸭子数据
+    const duckManager = require('./utils/duckManager.js');
+    this.globalData.duckData = duckManager.getDuckData();
   },
 
   onShow: function () {
@@ -66,6 +70,9 @@ App({
 
     // 学科配置
     subjects: ['数学'],
-    grades: ['一年级', '二年级', '三年级', '四年级', '五年级', '六年级']
+    grades: ['一年级', '二年级', '三年级', '四年级', '五年级', '六年级'],
+
+    // 鸭子动画数据
+    duckData: null,
   }
 });
