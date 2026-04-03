@@ -2,11 +2,23 @@ const app = getApp();
 
 Page({
   data: {
+    statusBarHeight: 0,
     imagePath: '',
     analyzing: false,
     analysisResult: null,
     selectedPoints: {},
     hasSelected: false
+  },
+
+  onLoad: function () {
+    const sysInfo = wx.getSystemInfoSync();
+    this.setData({ statusBarHeight: sysInfo.statusBarHeight });
+  },
+
+  onShow: function () {
+    if (typeof this.getTabBar === 'function' && this.getTabBar()) {
+      this.getTabBar().setData({ active: 0 });
+    }
   },
 
   chooseImage: function () {

@@ -1,0 +1,228 @@
+.tab-bar-wrapper {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 999;
+  padding: 0 40rpx;
+  padding-bottom: calc(16rpx + env(safe-area-inset-bottom));
+  pointer-events: none;
+}
+
+.tab-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  height: 112rpx;
+  border-radius: 56rpx;
+  background: rgba(30, 30, 30, 0.45);
+  backdrop-filter: saturate(180%) blur(40px);
+  -webkit-backdrop-filter: saturate(180%) blur(40px);
+  box-shadow:
+    0 8rpx 40rpx rgba(0, 0, 0, 0.12),
+    0 2rpx 8rpx rgba(0, 0, 0, 0.06),
+    inset 0 1rpx 0 rgba(255, 255, 255, 0.1);
+  pointer-events: auto;
+  border: 1rpx solid rgba(255, 255, 255, 0.1);
+}
+
+.tab-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  position: relative;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.tab-item:active {
+  transform: scale(0.92);
+}
+
+.tab-icon-wrap {
+  position: relative;
+  width: 48rpx;
+  height: 48rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 4rpx;
+}
+
+.tab-icon-svg {
+  width: 44rpx;
+  height: 44rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ====== Active indicator dot ====== */
+.tab-active-dot {
+  position: absolute;
+  bottom: -8rpx;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 8rpx;
+  height: 8rpx;
+  border-radius: 50%;
+  background: #FFB800;
+  box-shadow: 0 0 12rpx rgba(255, 184, 0, 0.6);
+  animation: dotPulse 2s ease-in-out infinite;
+}
+
+@keyframes dotPulse {
+  0%, 100% { opacity: 1; transform: translateX(-50%) scale(1); }
+  50% { opacity: 0.7; transform: translateX(-50%) scale(1.3); }
+}
+
+/* ====== Tab text ====== */
+.tab-text {
+  font-size: 20rpx;
+  color: rgba(255, 255, 255, 0.5);
+  font-weight: 500;
+  letter-spacing: 1rpx;
+  transition: all 0.3s ease;
+  margin-top: 2rpx;
+}
+
+.text-active {
+  color: #FFB800;
+  font-weight: 600;
+}
+
+/* ====== Pure CSS Icons ====== */
+
+/* --- 提高 (Improve) icon: upward trending arrow --- */
+.icon-improve {
+  width: 40rpx;
+  height: 40rpx;
+  position: relative;
+}
+
+.improve-line {
+  position: absolute;
+  bottom: 8rpx;
+  left: 6rpx;
+  width: 28rpx;
+  height: 3rpx;
+  background: rgba(255, 255, 255, 0.45);
+  border-radius: 2rpx;
+  transform: rotate(-35deg);
+  transform-origin: left center;
+  transition: background 0.3s ease;
+}
+
+.improve-arrow {
+  position: absolute;
+  top: 6rpx;
+  right: 4rpx;
+  width: 0;
+  height: 0;
+  border-left: 8rpx solid transparent;
+  border-right: 8rpx solid transparent;
+  border-bottom: 12rpx solid rgba(255, 255, 255, 0.45);
+  transform: rotate(35deg);
+  transition: border-color 0.3s ease;
+}
+
+.icon-improve.icon-active .improve-line {
+  background: #FFB800;
+}
+
+.icon-improve.icon-active .improve-arrow {
+  border-bottom-color: #FFB800;
+}
+
+/* --- 练习 (Practice) icon: document with pencil --- */
+.icon-practice {
+  width: 40rpx;
+  height: 40rpx;
+  position: relative;
+}
+
+.practice-page {
+  position: absolute;
+  top: 4rpx;
+  left: 6rpx;
+  width: 22rpx;
+  height: 28rpx;
+  border: 3rpx solid rgba(255, 255, 255, 0.45);
+  border-radius: 4rpx;
+  transition: border-color 0.3s ease;
+}
+
+.practice-pen {
+  position: absolute;
+  bottom: 4rpx;
+  right: 4rpx;
+  width: 4rpx;
+  height: 18rpx;
+  background: rgba(255, 255, 255, 0.45);
+  border-radius: 2rpx;
+  transform: rotate(-30deg);
+  transition: background 0.3s ease;
+}
+
+.practice-pen::after {
+  content: '';
+  position: absolute;
+  bottom: -3rpx;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 3rpx solid transparent;
+  border-right: 3rpx solid transparent;
+  border-top: 5rpx solid rgba(255, 255, 255, 0.45);
+}
+
+.icon-practice.icon-active .practice-page {
+  border-color: #FFB800;
+}
+
+.icon-practice.icon-active .practice-pen {
+  background: #FFB800;
+}
+
+.icon-practice.icon-active .practice-pen::after {
+  border-top-color: #FFB800;
+}
+
+/* --- 我的 (Mine) icon: person silhouette --- */
+.icon-mine {
+  width: 40rpx;
+  height: 40rpx;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.mine-head {
+  width: 14rpx;
+  height: 14rpx;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.45);
+  margin-top: 4rpx;
+  transition: background 0.3s ease;
+}
+
+.mine-body {
+  width: 26rpx;
+  height: 14rpx;
+  border-radius: 14rpx 14rpx 0 0;
+  background: rgba(255, 255, 255, 0.45);
+  margin-top: 3rpx;
+  transition: background 0.3s ease;
+}
+
+.icon-mine.icon-active .mine-head {
+  background: #FFB800;
+}
+
+.icon-mine.icon-active .mine-body {
+  background: #FFB800;
+}

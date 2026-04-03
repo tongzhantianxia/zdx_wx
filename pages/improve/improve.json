@@ -1,3 +1,5 @@
 {
-  "navigationBarTitleText": "提高"
+  "navigationBarTitleText": "提高",
+  "navigationStyle": "custom",
+  "usingComponents": {}
 }

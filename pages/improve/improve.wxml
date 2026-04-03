@@ -1,5 +1,16 @@
 <view class="improve-page">
 
+  <!-- 自定义导航栏 -->
+  <view class="nav-bar" style="padding-top: {{statusBarHeight}}px;">
+    <view class="nav-content">
+      <view class="nav-logo">
+        <image class="nav-duck" src="/images/duck-avatar.png" mode="aspectFit"></image>
+        <text class="nav-title">出题鸭</text>
+      </view>
+      <view class="capsule-placeholder"></view>
+    </view>
+  </view>
+
   <!-- 引导区 -->
   <view class="guide-section">
     <view class="guide-icon-wrap">

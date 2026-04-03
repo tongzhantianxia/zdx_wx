@@ -4,7 +4,7 @@
 .page {
   min-height: 100vh;
   background-color: var(--bg-page);
-  padding-bottom: calc(160rpx + env(safe-area-inset-bottom));
+  padding-bottom: calc(300rpx + env(safe-area-inset-bottom));
 }
 
 /* ==================== 自定义导航栏 ==================== */
@@ -401,14 +401,15 @@
 /* ==================== 底部生成按钮 ==================== */
 .footer-bar {
   position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  background-color: #FFFFFF;
-  border-top: 1rpx solid var(--border-light);
-  padding: 20rpx 32rpx;
-  padding-bottom: calc(20rpx + env(safe-area-inset-bottom));
-  box-shadow: 0 -4rpx 20rpx rgba(0, 0, 0, 0.06);
+  bottom: calc(144rpx + env(safe-area-inset-bottom));
+  left: 24rpx;
+  right: 24rpx;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-radius: 28rpx;
+  padding: 20rpx 24rpx;
+  box-shadow: 0 4rpx 24rpx rgba(0, 0, 0, 0.08);
   z-index: 50;
 }
 

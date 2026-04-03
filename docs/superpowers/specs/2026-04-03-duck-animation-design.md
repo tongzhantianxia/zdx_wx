@@ -169,9 +169,16 @@
 | `pages/mine/mine.wxss` | 农场区域布局样式 |
 | `pages/mine/mine.json` | 注册 `duck-farm` 组件 |
 
+## 约束：只新增，不改动现有代码
+
+所有现有文件的现有代码保持不动。鸭子功能通过以下方式实现：
+- **新增文件**：组件、工具函数
+- **现有文件仅追加**：在现有 JS 中追加新方法/生命周期钩子调用，在现有 WXML 中追加组件引用，在 JSON 中追加组件注册。不修改、不重构任何现有逻辑。
+
 ## 不改动的部分
 
 - 云函数：无改动
 - 数据库：无新增 collection
 - 其他页面（`practice-select`、`improve`、`privacy`）：无改动
 - `getQuestions`、`generateQuestions` 等云函数逻辑不受影响
+- 现有的 `submitAnswer`、`handleNext`、`goToResult`、结果页、"我的"页等**现有逻辑全部保持原样**
