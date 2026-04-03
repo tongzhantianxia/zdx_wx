@@ -1,19 +1,19 @@
 /* ==============================
-   Farm card
+   Farm card & layout
    ============================== */
 
 .farm-container {
   background: #fff;
   border-radius: 24rpx;
   margin-bottom: 30rpx;
-  box-shadow: 0 8rpx 28rpx rgba(0, 0, 0, 0.08);
   overflow: hidden;
+  box-shadow: 0 8rpx 24rpx rgba(0, 0, 0, 0.08);
 }
 
 .farm-title-row {
-  padding: 24rpx 28rpx 0;
   display: flex;
   align-items: center;
+  padding: 24rpx 28rpx 0;
 }
 
 .farm-title {
@@ -22,71 +22,65 @@
   color: #333;
 }
 
-/* ==============================
-   Ground & grass
-   ============================== */
-
 .farm-ground {
   height: 240rpx;
   overflow: hidden;
   width: 100%;
+  box-sizing: border-box;
 }
 
 .farm-grass {
+  position: relative;
   display: inline-flex;
   flex-direction: row;
   flex-wrap: nowrap;
   align-items: flex-end;
-  align-content: flex-end;
+  justify-content: flex-start;
+  box-sizing: border-box;
   min-height: 200rpx;
   min-width: 100%;
   padding: 20rpx;
-  box-sizing: border-box;
-  background:
-    repeating-linear-gradient(
-      90deg,
-      transparent 0,
-      transparent 14rpx,
-      rgba(46, 125, 50, 0.18) 14rpx,
-      rgba(46, 125, 50, 0.18) 16rpx
-    ),
-    linear-gradient(
-      180deg,
-      rgba(56, 142, 60, 0.25) 0%,
-      rgba(56, 142, 60, 0.25) 8rpx,
-      transparent 8rpx,
-      transparent 100%
-    ),
-    linear-gradient(180deg, #a5d6a7 0%, #81c784 50%, #66bb6a 100%);
-  background-size: 100% 100%, 100% 100%, 100% 100%;
-  background-position: bottom, top, center;
+  padding-bottom: 28rpx;
+  background: linear-gradient(180deg, #a5d6a7 0%, #81c784 50%, #66bb6a 100%);
 }
 
-/* ==============================
-   Duck slots & wobble
-   ============================== */
+/* Bottom pixel-style grass strip */
+.farm-grass::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 12rpx;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    90deg,
+    #43a047 0rpx,
+    #43a047 6rpx,
+    #2e7d32 6rpx,
+    #2e7d32 10rpx,
+    #388e3c 10rpx,
+    #388e3c 14rpx,
+    #1b5e20 14rpx,
+    #1b5e20 16rpx
+  );
+  opacity: 0.85;
+}
 
 .farm-duck-slot {
+  position: relative;
   display: inline-flex;
-  flex-direction: column;
-  justify-content: flex-end;
-  align-items: center;
+  align-items: flex-end;
+  justify-content: center;
   flex-shrink: 0;
-  margin-right: 16rpx;
-  padding-bottom: 4rpx;
-  animation: idle-wobble 2s ease-in-out infinite;
+  margin-right: 20rpx;
+  padding-top: 20rpx;
   transform-origin: 50% 100%;
+  animation: idle-wobble 2s ease-in-out infinite;
 }
 
-@keyframes idle-wobble {
-  0%,
-  100% {
-    transform: rotate(-3deg);
-  }
-
-  50% {
-    transform: rotate(3deg);
-  }
+.farm-duck-slot:last-child {
+  margin-right: 20rpx;
 }
 
 /* ==============================
@@ -181,7 +175,7 @@
 }
 
 /*
-  Crown 5x3 (half scale of .pixel-crown)
+  Mini crown (5x3), same pattern as .pixel-crown
 */
 .pixel-crown-mini {
   width: 8rpx;
@@ -207,8 +201,19 @@
     32rpx 16rpx 0 #ffd700;
 }
 
+@keyframes idle-wobble {
+  0%,
+  100% {
+    transform: rotate(-3deg);
+  }
+
+  50% {
+    transform: rotate(3deg);
+  }
+}
+
 /* ==============================
-   Stats row
+   Stats & empty state
    ============================== */
 
 .farm-stats {
@@ -236,24 +241,16 @@
   font-size: 24rpx;
 }
 
-/* ==============================
-   Empty state
-   ============================== */
-
 .farm-empty {
   padding: 40rpx;
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  justify-content: center;
+  text-align: center;
   background: #fff;
   border-radius: 24rpx;
   margin-bottom: 30rpx;
-  box-shadow: 0 8rpx 28rpx rgba(0, 0, 0, 0.06);
+  box-shadow: 0 8rpx 24rpx rgba(0, 0, 0, 0.06);
 }
 
 .farm-empty-text {
   font-size: 26rpx;
   color: #bbb;
-  text-align: center;
 }

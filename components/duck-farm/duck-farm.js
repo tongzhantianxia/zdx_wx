@@ -17,7 +17,7 @@ Component({
 
   lifetimes: {
     attached() {
-      this.buildDuckList(this.data.normalDucks, this.data.goldenDucks);
+      this.buildDuckList(this.properties.normalDucks, this.properties.goldenDucks);
     }
   },
 
