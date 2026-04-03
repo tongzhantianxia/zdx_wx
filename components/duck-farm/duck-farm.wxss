@@ -1,0 +1,259 @@
+/* ==============================
+   Farm card
+   ============================== */
+
+.farm-container {
+  background: #fff;
+  border-radius: 24rpx;
+  margin-bottom: 30rpx;
+  box-shadow: 0 8rpx 28rpx rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+}
+
+.farm-title-row {
+  padding: 24rpx 28rpx 0;
+  display: flex;
+  align-items: center;
+}
+
+.farm-title {
+  font-size: 30rpx;
+  font-weight: 600;
+  color: #333;
+}
+
+/* ==============================
+   Ground & grass
+   ============================== */
+
+.farm-ground {
+  height: 240rpx;
+  overflow: hidden;
+  width: 100%;
+}
+
+.farm-grass {
+  display: inline-flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  align-items: flex-end;
+  align-content: flex-end;
+  min-height: 200rpx;
+  min-width: 100%;
+  padding: 20rpx;
+  box-sizing: border-box;
+  background:
+    repeating-linear-gradient(
+      90deg,
+      transparent 0,
+      transparent 14rpx,
+      rgba(46, 125, 50, 0.18) 14rpx,
+      rgba(46, 125, 50, 0.18) 16rpx
+    ),
+    linear-gradient(
+      180deg,
+      rgba(56, 142, 60, 0.25) 0%,
+      rgba(56, 142, 60, 0.25) 8rpx,
+      transparent 8rpx,
+      transparent 100%
+    ),
+    linear-gradient(180deg, #a5d6a7 0%, #81c784 50%, #66bb6a 100%);
+  background-size: 100% 100%, 100% 100%, 100% 100%;
+  background-position: bottom, top, center;
+}
+
+/* ==============================
+   Duck slots & wobble
+   ============================== */
+
+.farm-duck-slot {
+  display: inline-flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: center;
+  flex-shrink: 0;
+  margin-right: 16rpx;
+  padding-bottom: 4rpx;
+  animation: idle-wobble 2s ease-in-out infinite;
+  transform-origin: 50% 100%;
+}
+
+@keyframes idle-wobble {
+  0%,
+  100% {
+    transform: rotate(-3deg);
+  }
+
+  50% {
+    transform: rotate(3deg);
+  }
+}
+
+/* ==============================
+   Mini pixel duck (8rpx grid, half of duck-animation)
+   ============================== */
+
+.pixel-duck-mini {
+  width: 8rpx;
+  height: 8rpx;
+  overflow: visible;
+  position: relative;
+}
+
+/*
+  Normal duck 8x7 grid (same layout as .pixel-duck.normal)
+*/
+.pixel-duck-mini.normal {
+  background: #ffd600;
+  box-shadow:
+    16rpx 0 0 #ffd600,
+    24rpx 0 0 #ffd600,
+    32rpx 0 0 #ffd600,
+    8rpx 8rpx 0 #ffd600,
+    16rpx 8rpx 0 #ffd600,
+    24rpx 8rpx 0 #ffd600,
+    32rpx 8rpx 0 #ffd600,
+    40rpx 8rpx 0 #ffd600,
+    8rpx 16rpx 0 #ffd600,
+    16rpx 16rpx 0 #333333,
+    24rpx 16rpx 0 #ffd600,
+    32rpx 16rpx 0 #ffd600,
+    40rpx 16rpx 0 #ffd600,
+    48rpx 16rpx 0 #ff8f00,
+    16rpx 24rpx 0 #ffd600,
+    24rpx 24rpx 0 #ffd600,
+    32rpx 24rpx 0 #ffd600,
+    40rpx 24rpx 0 #ffd600,
+    48rpx 24rpx 0 #ff8f00,
+    0rpx 32rpx 0 #ffd600,
+    8rpx 32rpx 0 #ffd600,
+    16rpx 32rpx 0 #ffd600,
+    24rpx 32rpx 0 #ffd600,
+    32rpx 32rpx 0 #ffd600,
+    40rpx 32rpx 0 #ffd600,
+    8rpx 40rpx 0 #ffd600,
+    16rpx 40rpx 0 #ffd600,
+    32rpx 40rpx 0 #ffd600,
+    40rpx 40rpx 0 #ffd600,
+    8rpx 48rpx 0 #ff8f00,
+    16rpx 48rpx 0 #ff8f00,
+    32rpx 48rpx 0 #ff8f00,
+    40rpx 48rpx 0 #ff8f00;
+}
+
+.pixel-duck-mini.golden {
+  background: #ffd700;
+  filter: drop-shadow(0 0 4rpx rgba(255, 215, 0, 0.8));
+  box-shadow:
+    16rpx 0 0 #ffd700,
+    24rpx 0 0 #ffd700,
+    32rpx 0 0 #ffd700,
+    8rpx 8rpx 0 #ffd700,
+    16rpx 8rpx 0 #ffd700,
+    24rpx 8rpx 0 #ffa000,
+    32rpx 8rpx 0 #ffd700,
+    40rpx 8rpx 0 #ffd700,
+    8rpx 16rpx 0 #ffd700,
+    16rpx 16rpx 0 #5d4037,
+    24rpx 16rpx 0 #ffd700,
+    32rpx 16rpx 0 #ffd700,
+    40rpx 16rpx 0 #ffd700,
+    48rpx 16rpx 0 #ffa000,
+    16rpx 24rpx 0 #ffd700,
+    24rpx 24rpx 0 #ffd700,
+    32rpx 24rpx 0 #ffd700,
+    40rpx 24rpx 0 #ffd700,
+    48rpx 24rpx 0 #ffa000,
+    0rpx 32rpx 0 #ffd700,
+    8rpx 32rpx 0 #ffa000,
+    16rpx 32rpx 0 #ffd700,
+    24rpx 32rpx 0 #ffd700,
+    32rpx 32rpx 0 #ffa000,
+    40rpx 32rpx 0 #ffd700,
+    8rpx 40rpx 0 #ffd700,
+    16rpx 40rpx 0 #ffd700,
+    32rpx 40rpx 0 #ffd700,
+    40rpx 40rpx 0 #ffd700,
+    8rpx 48rpx 0 #ffa000,
+    16rpx 48rpx 0 #ffa000,
+    32rpx 48rpx 0 #ffa000,
+    40rpx 48rpx 0 #ffa000;
+}
+
+/*
+  Crown 5x3 (half scale of .pixel-crown)
+*/
+.pixel-crown-mini {
+  width: 8rpx;
+  height: 8rpx;
+  background: #ffd700;
+  position: absolute;
+  top: -12rpx;
+  left: 50%;
+  margin-left: -12rpx;
+  box-shadow:
+    0rpx 0 0 #ffd700,
+    16rpx 0 0 #ffd700,
+    32rpx 0 0 #ffd700,
+    0rpx 8rpx 0 #ffd700,
+    8rpx 8rpx 0 #ffd700,
+    16rpx 8rpx 0 #ffd700,
+    24rpx 8rpx 0 #ffd700,
+    32rpx 8rpx 0 #ffd700,
+    0rpx 16rpx 0 #ffd700,
+    8rpx 16rpx 0 #ffd700,
+    16rpx 16rpx 0 #ff0000,
+    24rpx 16rpx 0 #ffd700,
+    32rpx 16rpx 0 #ffd700;
+}
+
+/* ==============================
+   Stats row
+   ============================== */
+
+.farm-stats {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  padding: 12rpx 28rpx 20rpx;
+  gap: 0;
+}
+
+.farm-stat {
+  font-size: 24rpx;
+  color: #888;
+}
+
+.golden-stat {
+  color: #ffa000;
+  font-weight: 600;
+}
+
+.farm-stat-divider {
+  color: #ddd;
+  margin: 0 12rpx;
+  font-size: 24rpx;
+}
+
+/* ==============================
+   Empty state
+   ============================== */
+
+.farm-empty {
+  padding: 40rpx;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  background: #fff;
+  border-radius: 24rpx;
+  margin-bottom: 30rpx;
+  box-shadow: 0 8rpx 28rpx rgba(0, 0, 0, 0.06);
+}
+
+.farm-empty-text {
+  font-size: 26rpx;
+  color: #bbb;
+  text-align: center;
+}

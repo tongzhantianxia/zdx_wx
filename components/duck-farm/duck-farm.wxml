@@ -1,0 +1,28 @@
+<view class="farm-container" wx:if="{{totalCount > 0}}">
+  <view class="farm-title-row">
+    <text class="farm-title">🐥 我的鸭子农场</text>
+  </view>
+  <scroll-view class="farm-ground" scroll-x="{{totalCount > 8}}" enhanced show-scrollbar="{{false}}">
+    <view class="farm-grass">
+      <view
+        class="farm-duck-slot"
+        wx:for="{{ducks}}"
+        wx:key="id"
+        style="margin-left: {{item.offsetX}}rpx; animation-delay: {{item.delay}}s;"
+      >
+        <view class="pixel-duck-mini {{item.type}}">
+          <view class="pixel-crown-mini" wx:if="{{item.type === 'golden'}}"></view>
+        </view>
+      </view>
+    </view>
+  </scroll-view>
+  <view class="farm-stats">
+    <text class="farm-stat">普通鸭 x{{normalDucks}}</text>
+    <text class="farm-stat-divider">|</text>
+    <text class="farm-stat golden-stat">金色鸭 x{{goldenDucks}}</text>
+  </view>
+</view>
+
+<view class="farm-empty" wx:else>
+  <text class="farm-empty-text">还没有鸭子，去答题孵化吧！</text>
+</view>
