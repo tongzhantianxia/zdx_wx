@@ -1,0 +1,9 @@
+{
+  "name": "zdx_wx",
+  "version": "1.0.0",
+  "private": true,
+  "description": "小学数学错题针对性练习工具（出题鸭）",
+  "dependencies": {
+    "@rojer/katex-mini": "^1.3.4"
+  }
+}
