@@ -1,0 +1,157 @@
+.mine-page {
+  min-height: 100vh;
+  background: #FFFEF5;
+  padding: 30rpx;
+  padding-bottom: calc(120rpx + env(safe-area-inset-bottom));
+}
+
+.user-section {
+  display: flex;
+  align-items: center;
+  background: linear-gradient(135deg, #FFB300 0%, #FFD54F 100%);
+  border-radius: 24rpx;
+  padding: 40rpx 30rpx;
+  margin-bottom: 30rpx;
+}
+
+.avatar-wrap {
+  width: 120rpx;
+  height: 120rpx;
+  border-radius: 50%;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 24rpx;
+  box-shadow: 0 4rpx 12rpx rgba(0,0,0,0.1);
+}
+
+.avatar {
+  width: 80rpx;
+  height: 80rpx;
+}
+
+.user-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.user-name {
+  font-size: 36rpx;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 8rpx;
+}
+
+.user-desc {
+  font-size: 24rpx;
+  color: rgba(255,255,255,0.85);
+}
+
+.settings-section {
+  margin-bottom: 30rpx;
+}
+
+.section-title {
+  font-size: 30rpx;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 20rpx;
+  padding-left: 8rpx;
+}
+
+.mode-card {
+  background: #fff;
+  border-radius: 20rpx;
+  padding: 28rpx 24rpx;
+  margin-bottom: 16rpx;
+  border: 3rpx solid #E8E0D0;
+  transition: all 0.2s;
+}
+
+.mode-active {
+  border-color: #FFB300;
+  background: #FFFCF0;
+}
+
+.mode-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 12rpx;
+}
+
+.mode-radio {
+  width: 40rpx;
+  height: 40rpx;
+  border-radius: 50%;
+  border: 3rpx solid #CCC;
+  margin-right: 16rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.radio-checked {
+  border-color: #FFB300;
+}
+
+.radio-dot {
+  width: 22rpx;
+  height: 22rpx;
+  border-radius: 50%;
+  background: #FFB300;
+}
+
+.mode-name {
+  font-size: 30rpx;
+  font-weight: 600;
+  color: #333;
+}
+
+.mode-tag {
+  font-size: 20rpx;
+  padding: 4rpx 12rpx;
+  border-radius: 8rpx;
+  margin-left: 12rpx;
+}
+
+.mode-tag-recommend {
+  background: #FFF3E0;
+  color: #FFB300;
+}
+
+.mode-desc {
+  font-size: 24rpx;
+  color: #888;
+  line-height: 1.5;
+  padding-left: 56rpx;
+}
+
+.about-section {
+  background: #fff;
+  border-radius: 20rpx;
+  padding: 8rpx 24rpx;
+  border: 3rpx solid #E8E0D0;
+}
+
+.about-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24rpx 0;
+  border-bottom: 1rpx solid #F0ECE0;
+}
+
+.about-row:last-child {
+  border-bottom: none;
+}
+
+.about-label {
+  font-size: 28rpx;
+  color: #666;
+}
+
+.about-value {
+  font-size: 28rpx;
+  color: #333;
+}

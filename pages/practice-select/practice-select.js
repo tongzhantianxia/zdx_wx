@@ -1,4 +1,4 @@
-// pages/index/index.js
+// pages/practice-select/practice-select.js
 const app = getApp();
 const { knowledgeData } = require('../../utils/knowledgeData');
 
@@ -40,15 +40,13 @@ Page({
   },
 
   onLoad: function () {
-    wx.switchTab({
-      url: '/pages/practice-select/practice-select'
-    });
+    const sysInfo = wx.getSystemInfoSync();
+    this.setData({ statusBarHeight: sysInfo.statusBarHeight });
+    this.initKnowledgeList();
   },
 
   onShow: function () {
-    wx.switchTab({
-      url: '/pages/practice-select/practice-select'
-    });
+    this.checkRateLimit();
   },
 
   // 切换年级
@@ -189,8 +187,10 @@ Page({
     try {
       const sessionId = buildSessionId();
       const gradeLabel = this._gradeLabel();
+      const questionMode = wx.getStorageSync('questionMode') || 'bank';
+      const cloudFnName = questionMode === 'auto' ? 'generateQuestions' : 'getQuestions';
       const res = await wx.cloud.callFunction({
-        name: 'getQuestions',
+        name: cloudFnName,
         data: {
           knowledgeId: selectedKnowledge.id,
           knowledgeName: selectedKnowledge.name,
@@ -268,7 +268,7 @@ Page({
   onShareAppMessage: function () {
     return {
       title: '小学数学错题练习',
-      path: '/pages/index/index'
+      path: '/pages/practice-select/practice-select'
     };
   }
 });

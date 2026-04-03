@@ -39,8 +39,8 @@ Page({
 
   // 换个知识点练习
   handleChange: function () {
-    wx.redirectTo({
-      url: '/pages/index/index'
+    wx.switchTab({
+      url: '/pages/practice-select/practice-select'
     });
   },
 
@@ -48,7 +48,7 @@ Page({
   onShareAppMessage: function () {
     return {
       title: '孩子在用的数学练习神器',
-      path: '/pages/index/index',
+      path: '/pages/practice-select/practice-select',
       imageUrl: '/images/share.png'
     };
   }

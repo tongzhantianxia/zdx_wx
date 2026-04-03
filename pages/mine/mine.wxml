@@ -1,0 +1,54 @@
+<view class="mine-page">
+
+  <!-- 用户信息区 -->
+  <view class="user-section">
+    <view class="avatar-wrap">
+      <image class="avatar" src="/images/duck-avatar.png" mode="aspectFit"></image>
+    </view>
+    <view class="user-info">
+      <text class="user-name">出题鸭用户</text>
+      <text class="user-desc">坚持练习，天天进步</text>
+    </view>
+  </view>
+
+  <!-- 出题模式设置 -->
+  <view class="settings-section">
+    <view class="section-title">出题模式</view>
+    <view class="mode-card {{questionMode === 'bank' ? 'mode-active' : ''}}" bindtap="setMode" data-mode="bank">
+      <view class="mode-header">
+        <view class="mode-radio {{questionMode === 'bank' ? 'radio-checked' : ''}}">
+          <view wx:if="{{questionMode === 'bank'}}" class="radio-dot"></view>
+        </view>
+        <text class="mode-name">真题优先</text>
+        <text class="mode-tag mode-tag-recommend">推荐</text>
+      </view>
+      <text class="mode-desc">优先从题库中匹配真题风格题目，题库用尽后自动切换AI生成</text>
+    </view>
+    <view class="mode-card {{questionMode === 'auto' ? 'mode-active' : ''}}" bindtap="setMode" data-mode="auto">
+      <view class="mode-header">
+        <view class="mode-radio {{questionMode === 'auto' ? 'radio-checked' : ''}}">
+          <view wx:if="{{questionMode === 'auto'}}" class="radio-dot"></view>
+        </view>
+        <text class="mode-name">自动生成</text>
+      </view>
+      <text class="mode-desc">全程使用AI实时生成题目，题目更多样但质量可能波动</text>
+    </view>
+  </view>
+
+  <!-- 关于 -->
+  <view class="about-section">
+    <view class="about-row">
+      <text class="about-label">版本</text>
+      <text class="about-value">1.0.0</text>
+    </view>
+    <view class="about-row">
+      <text class="about-label">教材</text>
+      <text class="about-value">人教版2022新课标</text>
+    </view>
+    <view class="about-row">
+      <text class="about-label">覆盖</text>
+      <text class="about-value">1-6年级 249个知识点</text>
+    </view>
+  </view>
+
+</view>
