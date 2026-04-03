@@ -53,6 +53,11 @@ Page({
   loadQuestionsFromData: function (data) {
     const { questions, knowledge, meta, generateParams } = data;
 
+    if (meta && meta.pending) {
+      this.initOcrPractice(data);
+      return;
+    }
+
     if (!questions || questions.length === 0) {
       wx.showToast({ title: '暂无题目', icon: 'none' });
       setTimeout(() => wx.navigateBack(), 1500);
@@ -82,6 +87,136 @@ Page({
     console.log('当前题目:', formattedQuestions[0]);
   },
 
+  initOcrPractice: function (data) {
+    const { knowledge, meta } = data;
+    const { expectedCount, analyzedQuestions } = meta;
+
+    this.ocrDestroyed = false;
+    this.ocrAllQuestions = [];
+
+    this.setData({
+      questions: [],
+      totalQuestions: expectedCount || 6,
+      currentQuestion: null,
+      practiceType: meta.questionType || 'calculation',
+      knowledgeInfo: knowledge,
+      meta: meta,
+      progressPercent: 0,
+      waitingForNext: true
+    });
+
+    console.log('[ocrPractice] 开始, 预计:', expectedCount);
+    this.runOcrGenerate(analyzedQuestions || []);
+  },
+
+  runOcrGenerate: async function (analyzed) {
+    const DIFFICULTY_COUNT = { easy: 2, medium: 3, hard: 5 };
+    const questionMode = wx.getStorageSync('questionMode') || 'bank';
+
+    if (!analyzed.length) {
+      wx.showToast({ title: '无题目可生成', icon: 'none' });
+      setTimeout(() => wx.navigateBack(), 1500);
+      return;
+    }
+
+    try {
+      const genCalls = analyzed.map(q => {
+        const count = DIFFICULTY_COUNT[q.difficulty] || 3;
+        const gradeLabel = q.grade || '五年级';
+
+        if (q.knowledgeId) {
+          const fnName = questionMode === 'auto' ? 'generateQuestions' : 'getQuestions';
+          return wx.cloud.callFunction({
+            name: fnName,
+            data: {
+              knowledgeId: q.knowledgeId,
+              knowledgeName: q.knowledgeName,
+              grade: gradeLabel,
+              count,
+              difficulty: q.difficulty || 'medium',
+              questionType: 'calculation',
+              existingQuestions: []
+            }
+          }).then(res => res.result).catch(err => {
+            console.error('[ocrPractice] generate error:', err);
+            return { success: false };
+          });
+        }
+        const hint = (q.content || '').slice(0, 80);
+        return wx.cloud.callFunction({
+          name: 'generateQuestions',
+          data: {
+            knowledgeName: (q.knowledgePoint || '数学题').slice(0, 50),
+            grade: gradeLabel,
+            count,
+            difficulty: q.difficulty || 'medium',
+            questionType: 'calculation',
+            existingQuestions: [],
+            prefetchHint: hint
+          }
+        }).then(res => res.result).catch(err => {
+          console.error('[ocrPractice] generate error:', err);
+          return { success: false };
+        });
+      });
+
+      await this.settleProgressively(genCalls);
+
+      if (this.ocrAllQuestions.length === 0) {
+        wx.showToast({ title: '生成失败，请重试', icon: 'none' });
+        setTimeout(() => wx.navigateBack(), 1500);
+      }
+
+    } catch (err) {
+      console.error('[ocrPractice] pipeline error:', err);
+      if (this.ocrAllQuestions.length === 0) {
+        wx.showToast({ title: '加载失败', icon: 'none' });
+        setTimeout(() => wx.navigateBack(), 1500);
+      }
+    }
+  },
+
+  settleProgressively: function (promises) {
+    const self = this;
+    return new Promise(resolve => {
+      let done = 0;
+      const total = promises.length;
+
+      promises.forEach(p => {
+        p.then(result => {
+          if (self.ocrDestroyed) return;
+          if (result && result.success && result.questions) {
+            const newQs = result.questions.map(q => self.formatSingleQuestion(q));
+            self.ocrAllQuestions.push(...newQs);
+            self.appendOcrQuestions(newQs);
+          }
+        }).finally(() => {
+          done++;
+          if (done >= total) resolve();
+        });
+      });
+    });
+  },
+
+  appendOcrQuestions: function (newQs) {
+    const current = this.data.questions;
+    const merged = current.concat(newQs);
+    const updates = {
+      questions: merged,
+      totalQuestions: Math.max(this.data.totalQuestions, merged.length)
+    };
+
+    if (!this.data.currentQuestion && merged.length > 0) {
+      updates.currentQuestion = merged[0];
+      updates.currentIndex = 0;
+      updates.waitingForNext = false;
+      updates.progressPercent = (1 / updates.totalQuestions) * 100;
+    }
+
+    this.setData(updates);
+    console.log('[ocrPractice] 已加载:', merged.length, '道');
+  },
+
   normContentKey: function (s) {
     return String(s || '').replace(/\s/g, '');
   },
@@ -89,14 +224,17 @@ Page({
   formatSingleQuestion: function (q) {
     return {
       id: q.id || Date.now() + Math.random(),
-      question: q.content,
-      answer: q.answer,
+      contentBlocks: q.contentBlocks || [{ type: 'text', value: String(q.content || q.question || '').trim() }],
+      diagram: q.diagram || null,
+      answer: String(q.answer || '').trim(),
+      answerFormat: q.answerFormat || 'number',
+      answerUnit: q.answerUnit || '',
       type: q.type || '计算题',
       typeName: q.type || '计算题',
       difficulty: this.getDifficultyLevel(q.difficulty),
       difficultyText: q.difficulty || '中等',
       hint: q.tip || '',
-      explanation: q.solution || '',
+      solutionBlocks: q.solutionBlocks || (q.solution ? [{ type: 'text', value: String(q.solution).trim() }] : null),
       _bankId: q._bankId || null
     };
   },
@@ -105,7 +243,7 @@ Page({
     const { questions, knowledge, meta, generateParams } = data;
     const raw = questions[0];
 
-    if (!raw || !raw.content) {
+    if (!raw || (!raw.content && (!raw.contentBlocks || raw.contentBlocks.length === 0))) {
       wx.showToast({ title: '暂无题目', icon: 'none' });
       setTimeout(() => wx.navigateBack(), 1500);
       return;
@@ -208,7 +346,7 @@ Page({
 
     if (result && result.success && result.questions && result.questions[0]) {
       const raw = result.questions[0];
-      const rawContent = String(raw.content || '');
+      const rawContent = raw.content || (raw.contentBlocks ? raw.contentBlocks.map(b => b.value).join('') : '');
       const key = this.normContentKey(rawContent);
       const dup = this.allExistingContents.some(
         (ex) => this.normContentKey(ex) === key
@@ -401,22 +539,23 @@ Page({
   processQuestions: function (data) {
     return data.map(q => ({
       id: q._id,
-      question: q.question,
-      answer: q.answer,
+      contentBlocks: q.contentBlocks || [{ type: 'text', value: String(q.question || '').trim() }],
+      diagram: q.diagram || null,
+      answer: String(q.answer || '').trim(),
+      answerFormat: q.answerFormat || 'number',
+      answerUnit: q.answerUnit || '',
       type: q.type,
       typeName: this.getTypeName(q.type),
       difficulty: q.difficulty || 1,
       difficultyText: this.getDifficultyText(q.difficulty),
-      hint: q.hint,
-      explanation: q.explanation,
-      inputType: q.inputType || 'number'
+      hint: q.hint || '',
+      solutionBlocks: q.solutionBlocks || (q.explanation ? [{ type: 'text', value: q.explanation }] : null),
     }));
   },
 
-  // 处理答案输入
-  handleAnswerInput: function (e) {
+  onAnswerInput: function (e) {
     this.setData({
-      userAnswer: e.detail.value.trim()
+      userAnswer: e.detail.value
     });
   },
 
@@ -428,21 +567,6 @@ Page({
   // 收起键盘
   hideKeyboard: function () {
     wx.hideKeyboard();
-  },
-
-  onInputFocus: function (e) {
-    const height = e.detail.height || 0;
-    this.setData({
-      keyboardHeight: height,
-      scrollTarget: 'answerArea'
-    });
-  },
-
-  onInputBlur: function () {
-    this.setData({
-      keyboardHeight: 0,
-      scrollTarget: ''
-    });
   },
 
   // 提交答案
@@ -457,13 +581,11 @@ Page({
       return;
     }
 
-    // 判断答案是否正确
-    const isCorrect = this.checkAnswer(userAnswer, currentQuestion.answer);
+    const isCorrect = this.checkAnswer(userAnswer, currentQuestion.answer, currentQuestion.answerFormat);
 
-    // 记录答题
     const answerRecord = {
       questionId: currentQuestion.id,
-      question: currentQuestion.question,
+      contentBlocks: currentQuestion.contentBlocks,
       correctAnswer: currentQuestion.answer,
       userAnswer,
       isCorrect,
@@ -524,23 +646,36 @@ Page({
     }
   },
 
-  // 检查答案
-  checkAnswer: function (userAnswer, correctAnswer) {
-    // 数字类型答案，支持多种写法
+  checkAnswer: function (userAnswer, correctAnswer, answerFormat) {
+    if (answerFormat === 'fraction') {
+      const userVal = this.parseFraction(userAnswer);
+      const correctVal = this.parseFraction(correctAnswer);
+      if (userVal !== null && correctVal !== null) {
+        return Math.abs(userVal - correctVal) < 0.0001;
+      }
+    }
     const userNum = parseFloat(userAnswer);
     const correctNum = parseFloat(correctAnswer);
-
     if (!isNaN(userNum) && !isNaN(correctNum)) {
-      // 允许小数点误差
       return Math.abs(userNum - correctNum) < 0.0001;
     }
-
-    // 字符串类型答案，忽略大小写和空格
     return userAnswer.toLowerCase().replace(/\s/g, '') ===
            correctAnswer.toLowerCase().replace(/\s/g, '');
   },
 
-  // 下一题
+  parseFraction: function (str) {
+    if (str.includes('/')) {
+      const parts = str.split('/');
+      const num = parseFloat(parts[0]);
+      const den = parseFloat(parts[1]);
+      if (!isNaN(num) && !isNaN(den) && den !== 0) {
+        return num / den;
+      }
+    }
+    const val = parseFloat(str);
+    return isNaN(val) ? null : val;
+  },
+
   handleNext: function () {
     const { currentIndex, totalQuestions } = this.data;
 
@@ -549,6 +684,9 @@ Page({
       showHint: false,
       userAnswer: ''
     });
+
+    const mathInput = this.selectComponent('#mathInput');
+    if (mathInput) mathInput.reset();
 
     if (!this.generateParams) {
       this.setData({
@@ -635,20 +773,13 @@ Page({
     });
   },
 
-  // 加入错题库
   addToWrongQuestions: function (question, wrongAnswer) {
     const db = wx.cloud.database();
-
-    // 先检查是否已存在
     db.collection('wrong_questions')
-      .where({
-        _openid: '{openid}',
-        questionId: question.id
-      })
+      .where({ _openid: '{openid}', questionId: question.id })
       .get()
       .then(res => {
         if (res.data.length > 0) {
-          // 更新错误次数
           db.collection('wrong_questions')
             .doc(res.data[0]._id)
             .update({
@@ -659,12 +790,15 @@ Page({
               }
             });
         } else {
-          // 新增错题
           db.collection('wrong_questions').add({
             data: {
               questionId: question.id,
-              question: question.question,
+              contentBlocks: question.contentBlocks,
+              diagram: question.diagram,
               answer: question.answer,
+              answerFormat: question.answerFormat,
+              answerUnit: question.answerUnit,
+              solutionBlocks: question.solutionBlocks,
               type: question.type,
               wrongAnswer,
               wrongCount: 1,
@@ -675,9 +809,7 @@ Page({
           });
         }
       })
-      .catch(err => {
-        console.error('添加错题失败：', err);
-      });
+      .catch(err => { console.error('添加错题失败：', err); });
   },
 
   // 获取薄弱题型
@@ -724,6 +856,7 @@ Page({
 
   onUnload: function () {
     this.destroyed = true;
+    this.ocrDestroyed = true;
     app.globalData.currentQuestions = null;
   }
 });

@@ -35,7 +35,7 @@
   <!-- 等待下一题 / 题目卡片 -->
   <view class="waiting-card" wx:if="{{waitingForNext}}">
     <image class="waiting-duck" src="/images/duck-avatar.png" mode="aspectFit"></image>
-    <text class="waiting-text">下一题准备中...</text>
+    <text class="waiting-text">{{!currentQuestion ? '正在生成题目...' : '下一题准备中...'}}</text>
   </view>
   <view class="question-card" wx:elif="{{currentQuestion}}">
     <view class="question-meta">
@@ -45,8 +45,9 @@
       </view>
     </view>
     <view class="question-body">
-      <text class="question-text">{{currentQuestion.question}}</text>
+      <math-text blocks="{{currentQuestion.contentBlocks}}" />
     </view>
+    <geometry-canvas wx:if="{{currentQuestion.diagram}}" diagram="{{currentQuestion.diagram}}" />
     <!-- 提示 -->
     <view class="hint-box" wx:if="{{showHint && currentQuestion.hint}}">
       <text class="hint-icon">💡</text>
@@ -57,22 +58,12 @@
   <!-- 答题区 -->
   <view id="answerArea" class="answer-section" wx:if="{{currentQuestion && !waitingForNext}}">
     <text class="answer-label">写下你的答案</text>
-    <view class="answer-input-wrap">
-      <input
-        class="answer-input"
-        type="text"
-        placeholder="点击输入答案"
-        placeholder-class="answer-placeholder"
-        value="{{userAnswer}}"
-        bindinput="handleAnswerInput"
-        confirm-type="done"
-        adjust-position="{{false}}"
-        bindfocus="onInputFocus"
-        bindblur="onInputBlur"
-        bindconfirm="handleSubmit"
-      />
-      <view class="confirm-btn" bindtap="hideKeyboard" wx:if="{{userAnswer}}">✓</view>
-    </view>
+    <math-input
+      id="mathInput"
+      format="{{currentQuestion.answerFormat || 'number'}}"
+      unit="{{currentQuestion.answerUnit || ''}}"
+      bind:answer="onAnswerInput"
+    />
 
     <view class="action-row">
       <button
@@ -106,7 +97,9 @@
         {{isCorrect ? '答对了！真棒 🎉' : '这次没对～'}}
       </text>
       <text class="feedback-answer" wx:if="{{!isCorrect}}">正确答案：{{currentQuestion.answer}}</text>
-      <text class="feedback-explain" wx:if="{{currentQuestion && currentQuestion.explanation}}">{{currentQuestion.explanation}}</text>
+      <view class="feedback-solution" wx:if="{{currentQuestion && currentQuestion.solutionBlocks}}">
+        <math-text blocks="{{currentQuestion.solutionBlocks}}" />
+      </view>
     </view>
   </view>
   <button class="next-btn" bindtap="handleNext">
