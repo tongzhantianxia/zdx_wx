@@ -43,6 +43,18 @@
 - `app.js` 的 `onLaunch` 中初始化默认值（不存在则创建）
 - `app.globalData.duckData` 在页面间共享，每次变更后同步回 Storage
 
+### 本次练习增量追踪
+
+练习页在开始时记录 `sessionDuckDelta = { hatched: 0, died: 0 }`，每答一题实时累加。练习结束时将 delta 写入 `app.globalData.currentPractice.duckDelta`，结果页从中读取展示摘要。不通过对比 Storage 前后值计算。
+
+### 金鸭达成与最后一题的关系
+
+达成金色鸭子的那次练习中，最后一题答对时**仍然播放普通鸭孵化动画**（因为每题答对都孵化一只）。之后进入结果页时，**额外播放金色鸭子孵化动画**。两次动画是独立的，普通孵化在答题页，金鸭孵化在结果页，不合并。
+
+### 中途退出练习
+
+若用户中途退出练习（未到达结果页），`consecutivePerfect` 不变更（既不加也不清零），本次不算一个 session。答题过程中已经增减的普通鸭子数量保留（因为已实时写入 Storage）。
+
 ## 动画效果体系
 
 ### 普通鸭子 — 孵化（答对），总时长 ~1s
@@ -104,9 +116,17 @@
 
 ### 2. 结果页 (`pages/result/result`)
 
-- 从 `app.globalData.currentPractice` 读取真实成绩数据（修复现有未读取的问题）
-- 展示本次鸭子变化摘要（如 "+3 普通, -1 普通"）
-- 若本次触发金色鸭子：播放金色鸭子孵化动画
+- 从 `app.globalData.currentPractice` 读取真实数据（修复现有未读取的问题），需要的字段：
+  - `score`：总分
+  - `correctCount`：答对题数
+  - `totalQuestions`：总题数
+  - `accuracy`：正确率百分比
+  - `answers`：每题答案详情
+  - `duckDelta`：`{ hatched: Number, died: Number }`，本次练习鸭子增量
+  - `goldenDuckEarned`：`Boolean`，本次是否触发金色鸭子
+  - `consecutivePerfect`：`Number`，当前连胜次数（0-4，因为触发金鸭时已重置为 0）
+- 展示本次鸭子变化摘要（从 `duckDelta` 读取，如 "+3 孵化, -1 阵亡"）
+- 若 `goldenDuckEarned === true`：播放金色鸭子孵化动画
 - 展示连胜进度条：`●●●○○`（3/5），让用户看到离金鸭还差几次
 
 ### 3. "我的"页 (`pages/mine/mine`)
