@@ -3,25 +3,44 @@
   <!-- 普通孵化 -->
   <view class="anim-container" wx:if="{{animationType === 'normal_hatch'}}">
     <view class="egg-wrap normal-egg-anim">
-      <view class="pixel-egg"></view>
+      <view class="cartoon-egg">
+        <view class="egg-crack"></view>
+      </view>
     </view>
     <view class="duck-appear normal-duck-appear">
-      <view class="pixel-duck normal"></view>
+      <view class="cartoon-duck normal">
+        <view class="duck-body"></view>
+        <view class="duck-head">
+          <view class="duck-eye"><view class="eye-highlight"></view></view>
+          <view class="duck-beak"></view>
+          <view class="duck-blush"></view>
+        </view>
+        <view class="duck-wing"></view>
+        <view class="duck-feet">
+          <view class="duck-foot"></view>
+          <view class="duck-foot"></view>
+        </view>
+      </view>
     </view>
   </view>
 
   <!-- 普通死亡 -->
   <view class="anim-container" wx:if="{{animationType === 'normal_death'}}">
     <view class="duck-shatter normal-shatter">
-      <view class="pixel-duck normal shattering"></view>
-      <view class="pixel-fragment frag-1"></view>
-      <view class="pixel-fragment frag-2"></view>
-      <view class="pixel-fragment frag-3"></view>
-      <view class="pixel-fragment frag-4"></view>
-      <view class="pixel-fragment frag-5"></view>
-      <view class="pixel-fragment frag-6"></view>
-      <view class="pixel-fragment frag-7"></view>
-      <view class="pixel-fragment frag-8"></view>
+      <view class="cartoon-duck normal death-duck">
+        <view class="duck-body"></view>
+        <view class="duck-head">
+          <view class="duck-eye dead-eye">✕</view>
+          <view class="duck-beak"></view>
+        </view>
+        <view class="duck-wing"></view>
+      </view>
+      <view class="break-particle bp-1">💔</view>
+      <view class="break-particle bp-2">💫</view>
+      <view class="break-particle bp-3">💔</view>
+      <view class="break-particle bp-4">💫</view>
+      <view class="break-particle bp-5">💔</view>
+      <view class="break-particle bp-6">💫</view>
     </view>
   </view>
 
@@ -29,17 +48,36 @@
   <view class="anim-container" wx:if="{{animationType === 'golden_hatch'}}">
     <view class="spotlight"></view>
     <view class="golden-egg-drop">
-      <view class="pixel-egg golden"></view>
+      <view class="cartoon-egg golden">
+        <view class="egg-crack"></view>
+      </view>
       <view class="sparkle sp-1">✦</view>
       <view class="sparkle sp-2">✦</view>
       <view class="sparkle sp-3">✦</view>
     </view>
     <view class="duck-appear golden-duck-appear">
-      <view class="pixel-duck golden"></view>
-      <view class="pixel-crown"></view>
+      <view class="cartoon-duck golden">
+        <view class="duck-body"></view>
+        <view class="duck-head">
+          <view class="duck-eye"><view class="eye-highlight"></view></view>
+          <view class="duck-beak"></view>
+          <view class="duck-blush"></view>
+        </view>
+        <view class="duck-wing"></view>
+        <view class="duck-crown">
+          <view class="crown-point"></view>
+          <view class="crown-point"></view>
+          <view class="crown-point"></view>
+          <view class="crown-base"></view>
+        </view>
+        <view class="duck-feet">
+          <view class="duck-foot"></view>
+          <view class="duck-foot"></view>
+        </view>
+      </view>
     </view>
     <view class="golden-particles">
-      <view class="g-particle" wx:for="{{[0,1,2,3,4,5,6,7,8,9,10,11]}}" wx:key="*this"></view>
+      <view class="g-particle" wx:for="{{[0,1,2,3,4,5,6,7,8,9,10,11]}}" wx:key="*this">✦</view>
     </view>
     <view class="achievement-text" wx:if="{{showText}}">连胜5次！金色鸭子！</view>
   </view>
@@ -48,17 +86,26 @@
   <view class="anim-container" wx:if="{{animationType === 'golden_death'}}">
     <view class="red-flash"></view>
     <view class="golden-death-scene">
-      <view class="pixel-crown crown-fall"></view>
-      <view class="pixel-duck golden shattering golden-shatter">
-        <view class="pixel-fragment golden-frag frag-1"></view>
-        <view class="pixel-fragment golden-frag frag-2"></view>
-        <view class="pixel-fragment golden-frag frag-3"></view>
-        <view class="pixel-fragment golden-frag frag-4"></view>
-        <view class="pixel-fragment golden-frag frag-5"></view>
-        <view class="pixel-fragment golden-frag frag-6"></view>
-        <view class="pixel-fragment golden-frag frag-7"></view>
-        <view class="pixel-fragment golden-frag frag-8"></view>
+      <view class="duck-crown crown-fall">
+        <view class="crown-point"></view>
+        <view class="crown-point"></view>
+        <view class="crown-point"></view>
+        <view class="crown-base"></view>
       </view>
+      <view class="cartoon-duck golden death-duck golden-shatter">
+        <view class="duck-body"></view>
+        <view class="duck-head">
+          <view class="duck-eye dead-eye">✕</view>
+          <view class="duck-beak"></view>
+        </view>
+        <view class="duck-wing"></view>
+      </view>
+      <view class="break-particle golden-bp bp-1">✦</view>
+      <view class="break-particle golden-bp bp-2">💔</view>
+      <view class="break-particle golden-bp bp-3">✦</view>
+      <view class="break-particle golden-bp bp-4">💔</view>
+      <view class="break-particle golden-bp bp-5">✦</view>
+      <view class="break-particle golden-bp bp-6">💔</view>
     </view>
   </view>
 

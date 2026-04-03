@@ -33,271 +33,228 @@
 }
 
 /* ==============================
-   Pixel Duck (box-shadow technique)
-   8x7 grid, each pixel = 16rpx
+   Cartoon Duck
    ============================== */
 
-.pixel-duck {
-  width: 16rpx;
-  height: 16rpx;
-  overflow: visible;
+.cartoon-duck {
   position: relative;
+  width: 160rpx;
+  height: 200rpx;
 }
 
-/*
-  Normal duck layout (8 wide x 7 tall):
-  Row 0:     . . # # # . . .
-  Row 1:     . # # # # # . .
-  Row 2:     . # E # # # B .
-  Row 3:     . . # # # # B .
-  Row 4:     # # # # # # . .
-  Row 5:     . # # . # # . .
-  Row 6:     . F F . F F . .
-  # = body (#FFD600), E = eye (#333), B = beak (#FF8F00), F = feet (#FF8F00)
-*/
-.pixel-duck.normal {
-  background: #FFD600;
-  box-shadow:
-    /* Row 0: head top */
-    32rpx 0 0 #FFD600,
-    48rpx 0 0 #FFD600,
-    64rpx 0 0 #FFD600,
-    /* Row 1: head */
-    16rpx 16rpx 0 #FFD600,
-    32rpx 16rpx 0 #FFD600,
-    48rpx 16rpx 0 #FFD600,
-    64rpx 16rpx 0 #FFD600,
-    80rpx 16rpx 0 #FFD600,
-    /* Row 2: head with eye + beak */
-    16rpx 32rpx 0 #FFD600,
-    32rpx 32rpx 0 #333333,
-    48rpx 32rpx 0 #FFD600,
-    64rpx 32rpx 0 #FFD600,
-    80rpx 32rpx 0 #FFD600,
-    96rpx 32rpx 0 #FF8F00,
-    /* Row 3: neck/beak */
-    32rpx 48rpx 0 #FFD600,
-    48rpx 48rpx 0 #FFD600,
-    64rpx 48rpx 0 #FFD600,
-    80rpx 48rpx 0 #FFD600,
-    96rpx 48rpx 0 #FF8F00,
-    /* Row 4: body */
-    0rpx 64rpx 0 #FFD600,
-    16rpx 64rpx 0 #FFD600,
-    32rpx 64rpx 0 #FFD600,
-    48rpx 64rpx 0 #FFD600,
-    64rpx 64rpx 0 #FFD600,
-    80rpx 64rpx 0 #FFD600,
-    /* Row 5: lower body */
-    16rpx 80rpx 0 #FFD600,
-    32rpx 80rpx 0 #FFD600,
-    64rpx 80rpx 0 #FFD600,
-    80rpx 80rpx 0 #FFD600,
-    /* Row 6: feet */
-    16rpx 96rpx 0 #FF8F00,
-    32rpx 96rpx 0 #FF8F00,
-    64rpx 96rpx 0 #FF8F00,
-    80rpx 96rpx 0 #FF8F00;
-}
-
-.pixel-duck.golden {
-  background: #FFD700;
-  filter: drop-shadow(0 0 8rpx rgba(255, 215, 0, 0.8));
-  box-shadow:
-    /* Row 0 */
-    32rpx 0 0 #FFD700,
-    48rpx 0 0 #FFD700,
-    64rpx 0 0 #FFD700,
-    /* Row 1 */
-    16rpx 16rpx 0 #FFD700,
-    32rpx 16rpx 0 #FFD700,
-    48rpx 16rpx 0 #FFA000,
-    64rpx 16rpx 0 #FFD700,
-    80rpx 16rpx 0 #FFD700,
-    /* Row 2 */
-    16rpx 32rpx 0 #FFD700,
-    32rpx 32rpx 0 #5D4037,
-    48rpx 32rpx 0 #FFD700,
-    64rpx 32rpx 0 #FFD700,
-    80rpx 32rpx 0 #FFD700,
-    96rpx 32rpx 0 #FFA000,
-    /* Row 3 */
-    32rpx 48rpx 0 #FFD700,
-    48rpx 48rpx 0 #FFD700,
-    64rpx 48rpx 0 #FFD700,
-    80rpx 48rpx 0 #FFD700,
-    96rpx 48rpx 0 #FFA000,
-    /* Row 4 */
-    0rpx 64rpx 0 #FFD700,
-    16rpx 64rpx 0 #FFA000,
-    32rpx 64rpx 0 #FFD700,
-    48rpx 64rpx 0 #FFD700,
-    64rpx 64rpx 0 #FFA000,
-    80rpx 64rpx 0 #FFD700,
-    /* Row 5 */
-    16rpx 80rpx 0 #FFD700,
-    32rpx 80rpx 0 #FFD700,
-    64rpx 80rpx 0 #FFD700,
-    80rpx 80rpx 0 #FFD700,
-    /* Row 6 */
-    16rpx 96rpx 0 #FFA000,
-    32rpx 96rpx 0 #FFA000,
-    64rpx 96rpx 0 #FFA000,
-    80rpx 96rpx 0 #FFA000;
-}
-
-/* ==============================
-   Pixel Egg (box-shadow, ~6x8 oval)
-   ============================== */
-
-/*
-  Egg layout (6 wide x 8 tall):
-  Row 0:   . . # # . .
-  Row 1:   . # # # # .
-  Row 2:   # # # # # #
-  Row 3:   # # # # # #
-  Row 4:   # # # # # #
-  Row 5:   # # # # # #
-  Row 6:   . # # # # .
-  Row 7:   . . # # . .
-*/
-.pixel-egg {
-  width: 16rpx;
-  height: 16rpx;
-  background: #FFF8E1;
-  box-shadow:
-    /* Row 0 */
-    32rpx 0 0 #FFFFFF,
-    48rpx 0 0 #FFFFFF,
-    /* Row 1 */
-    16rpx 16rpx 0 #FFFFFF,
-    32rpx 16rpx 0 #FFF8E1,
-    48rpx 16rpx 0 #FFF8E1,
-    64rpx 16rpx 0 #FFFFFF,
-    /* Row 2 */
-    0rpx 32rpx 0 #FFFFFF,
-    16rpx 32rpx 0 #FFF8E1,
-    32rpx 32rpx 0 #FFF8E1,
-    48rpx 32rpx 0 #FFF8E1,
-    64rpx 32rpx 0 #FFF8E1,
-    80rpx 32rpx 0 #FFFFFF,
-    /* Row 3 */
-    0rpx 48rpx 0 #FFFFFF,
-    16rpx 48rpx 0 #FFF8E1,
-    32rpx 48rpx 0 #FFF8E1,
-    48rpx 48rpx 0 #FFF8E1,
-    64rpx 48rpx 0 #FFF8E1,
-    80rpx 48rpx 0 #FFFFFF,
-    /* Row 4 */
-    0rpx 64rpx 0 #F5F5DC,
-    16rpx 64rpx 0 #FFF8E1,
-    32rpx 64rpx 0 #FFF8E1,
-    48rpx 64rpx 0 #FFF8E1,
-    64rpx 64rpx 0 #FFF8E1,
-    80rpx 64rpx 0 #F5F5DC,
-    /* Row 5 */
-    0rpx 80rpx 0 #F5F5DC,
-    16rpx 80rpx 0 #F5F5DC,
-    32rpx 80rpx 0 #FFF8E1,
-    48rpx 80rpx 0 #FFF8E1,
-    64rpx 80rpx 0 #F5F5DC,
-    80rpx 80rpx 0 #F5F5DC,
-    /* Row 6 */
-    16rpx 96rpx 0 #F5F5DC,
-    32rpx 96rpx 0 #F5F5DC,
-    48rpx 96rpx 0 #F5F5DC,
-    64rpx 96rpx 0 #F5F5DC,
-    /* Row 7 */
-    32rpx 112rpx 0 #F5F5DC,
-    48rpx 112rpx 0 #F5F5DC;
-}
-
-.pixel-egg.golden {
-  background: #FFD700;
-  filter: drop-shadow(0 0 10rpx rgba(255, 215, 0, 0.9));
-  box-shadow:
-    /* Row 0 */
-    32rpx 0 0 #FFE44D,
-    48rpx 0 0 #FFE44D,
-    /* Row 1 */
-    16rpx 16rpx 0 #FFE44D,
-    32rpx 16rpx 0 #FFD700,
-    48rpx 16rpx 0 #FFD700,
-    64rpx 16rpx 0 #FFE44D,
-    /* Row 2 */
-    0rpx 32rpx 0 #FFE44D,
-    16rpx 32rpx 0 #FFD700,
-    32rpx 32rpx 0 #FFC107,
-    48rpx 32rpx 0 #FFD700,
-    64rpx 32rpx 0 #FFD700,
-    80rpx 32rpx 0 #FFE44D,
-    /* Row 3 */
-    0rpx 48rpx 0 #FFE44D,
-    16rpx 48rpx 0 #FFD700,
-    32rpx 48rpx 0 #FFD700,
-    48rpx 48rpx 0 #FFC107,
-    64rpx 48rpx 0 #FFD700,
-    80rpx 48rpx 0 #FFE44D,
-    /* Row 4 */
-    0rpx 64rpx 0 #FFC107,
-    16rpx 64rpx 0 #FFD700,
-    32rpx 64rpx 0 #FFD700,
-    48rpx 64rpx 0 #FFD700,
-    64rpx 64rpx 0 #FFD700,
-    80rpx 64rpx 0 #FFC107,
-    /* Row 5 */
-    0rpx 80rpx 0 #FFA000,
-    16rpx 80rpx 0 #FFC107,
-    32rpx 80rpx 0 #FFD700,
-    48rpx 80rpx 0 #FFD700,
-    64rpx 80rpx 0 #FFC107,
-    80rpx 80rpx 0 #FFA000,
-    /* Row 6 */
-    16rpx 96rpx 0 #FFA000,
-    32rpx 96rpx 0 #FFC107,
-    48rpx 96rpx 0 #FFC107,
-    64rpx 96rpx 0 #FFA000,
-    /* Row 7 */
-    32rpx 112rpx 0 #FFA000,
-    48rpx 112rpx 0 #FFA000;
-}
-
-/* ==============================
-   Pixel Crown (5x3, gold + red gem)
-   ============================== */
-
-/*
-  Crown layout (5 wide x 3 tall):
-  Row 0:  # . # . #
-  Row 1:  # # # # #
-  Row 2:  # # R # #
-  # = gold (#FFD700), R = red gem (#FF0000)
-*/
-.pixel-crown {
-  width: 16rpx;
-  height: 16rpx;
-  background: #FFD700;
+.duck-body {
   position: absolute;
-  top: -52rpx;
+  bottom: 24rpx;
   left: 50%;
-  margin-left: -24rpx;
-  box-shadow:
-    /* Row 0: three points */
-    0rpx 0 0 #FFD700,
-    32rpx 0 0 #FFD700,
-    64rpx 0 0 #FFD700,
-    /* Row 1: full band */
-    0rpx 16rpx 0 #FFD700,
-    16rpx 16rpx 0 #FFD700,
-    32rpx 16rpx 0 #FFD700,
-    48rpx 16rpx 0 #FFD700,
-    64rpx 16rpx 0 #FFD700,
-    /* Row 2: band with red gem */
-    0rpx 32rpx 0 #FFD700,
-    16rpx 32rpx 0 #FFD700,
-    32rpx 32rpx 0 #FF0000,
-    48rpx 32rpx 0 #FFD700,
-    64rpx 32rpx 0 #FFD700;
+  transform: translateX(-50%);
+  width: 140rpx;
+  height: 120rpx;
+  background: #FFD600;
+  border-radius: 50%;
+}
+
+.duck-head {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100rpx;
+  height: 90rpx;
+  background: #FFD600;
+  border-radius: 50%;
+  z-index: 2;
+}
+
+.duck-eye {
+  position: absolute;
+  top: 28rpx;
+  right: 22rpx;
+  width: 20rpx;
+  height: 22rpx;
+  background: #333;
+  border-radius: 50%;
+}
+
+.eye-highlight {
+  position: absolute;
+  top: 4rpx;
+  right: 4rpx;
+  width: 8rpx;
+  height: 8rpx;
+  background: #fff;
+  border-radius: 50%;
+}
+
+.duck-beak {
+  position: absolute;
+  top: 40rpx;
+  right: -16rpx;
+  width: 28rpx;
+  height: 16rpx;
+  background: #FF8F00;
+  border-radius: 0 60% 60% 0;
+}
+
+.duck-blush {
+  position: absolute;
+  bottom: 16rpx;
+  right: 14rpx;
+  width: 20rpx;
+  height: 14rpx;
+  background: rgba(255, 171, 145, 0.5);
+  border-radius: 50%;
+}
+
+.duck-wing {
+  position: absolute;
+  top: 90rpx;
+  left: -4rpx;
+  width: 50rpx;
+  height: 40rpx;
+  background: #FFC107;
+  border-radius: 50%;
+  transform: rotate(-20deg);
+  z-index: 1;
+}
+
+.duck-feet {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 20rpx;
+}
+
+.duck-foot {
+  width: 24rpx;
+  height: 10rpx;
+  background: #FF8F00;
+  border-radius: 50%;
+}
+
+/* Dead eye — ✕ text replaces circle */
+.dead-eye {
+  background: none !important;
+  font-size: 20rpx;
+  color: #333;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  line-height: 1;
+}
+
+.dead-eye .eye-highlight {
+  display: none;
+}
+
+/* ==============================
+   Golden Duck Overrides
+   ============================== */
+
+.cartoon-duck.golden .duck-body {
+  background: #FFD700;
+}
+
+.cartoon-duck.golden .duck-head {
+  background: #FFD700;
+}
+
+.cartoon-duck.golden .duck-wing {
+  background: #FFA000;
+}
+
+.cartoon-duck.golden {
+  filter: drop-shadow(0 0 16rpx rgba(255, 215, 0, 0.5));
+}
+
+.cartoon-duck.golden .duck-eye {
+  background: #5D4037;
+}
+
+.cartoon-duck.golden .duck-beak {
+  background: #FFA000;
+}
+
+.cartoon-duck.golden .duck-foot {
+  background: #FFA000;
+}
+
+/* ==============================
+   Crown (CSS triangles)
+   ============================== */
+
+.duck-crown {
+  position: absolute;
+  top: -28rpx;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 0;
+  z-index: 3;
+}
+
+.crown-point {
+  width: 0;
+  height: 0;
+  border-left: 8rpx solid transparent;
+  border-right: 8rpx solid transparent;
+  border-bottom: 14rpx solid #FFD700;
+  margin: 0 1rpx;
+}
+
+.crown-base {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 52rpx;
+  height: 8rpx;
+  background: #FFD700;
+  border-radius: 0 0 4rpx 4rpx;
+}
+
+/* ==============================
+   Cartoon Egg
+   ============================== */
+
+.cartoon-egg {
+  width: 100rpx;
+  height: 130rpx;
+  background: #FFF8E1;
+  border-radius: 45% 45% 50% 50%;
+  border: 3rpx solid #E0D5C0;
+  position: relative;
+  overflow: hidden;
+}
+
+.cartoon-egg.golden {
+  background: linear-gradient(135deg, #FFE44D 0%, #FFD700 40%, #FFC107 70%, #FFA000 100%);
+  border-color: #FFA000;
+  box-shadow: 0 0 20rpx rgba(255, 215, 0, 0.5);
+}
+
+.egg-crack {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 100%;
+  height: 0;
+  opacity: 0;
+}
+
+.egg-crack::after {
+  content: '';
+  position: absolute;
+  top: -2rpx;
+  left: 10%;
+  width: 80%;
+  height: 4rpx;
+  background:
+    linear-gradient(135deg, transparent 20%, #8D6E63 20%, #8D6E63 25%, transparent 25%) 0 0 / 14rpx 4rpx repeat-x;
 }
 
 /* ==============================
@@ -313,6 +270,10 @@
 
 .normal-egg-anim {
   animation: eggBounceIn 0.3s ease-out, eggCrack 0.4s ease 0.3s forwards;
+}
+
+.normal-egg-anim .egg-crack {
+  animation: crackReveal 0.4s ease 0.3s forwards;
 }
 
 .duck-appear {
@@ -343,6 +304,12 @@
     transform: scale(1) translateY(0);
     opacity: 1;
   }
+}
+
+@keyframes crackReveal {
+  0% { opacity: 0; }
+  40% { opacity: 1; }
+  100% { opacity: 1; }
 }
 
 @keyframes eggCrack {
@@ -402,26 +369,27 @@
   animation: duckFadeIn 0.2s ease;
 }
 
-.shattering {
+.death-duck {
   animation: shatterOut 0.5s ease 0.2s forwards;
 }
 
-.pixel-fragment {
+.break-particle {
   position: absolute;
-  width: 16rpx;
-  height: 16rpx;
-  background: #999999;
+  font-size: 36rpx;
   opacity: 1;
 }
 
-.frag-1 { animation: fragmentFly1 0.8s ease-out 0.2s forwards; }
-.frag-2 { animation: fragmentFly2 0.8s ease-out 0.2s forwards; }
-.frag-3 { animation: fragmentFly3 0.8s ease-out 0.2s forwards; }
-.frag-4 { animation: fragmentFly4 0.8s ease-out 0.2s forwards; }
-.frag-5 { animation: fragmentFly5 0.8s ease-out 0.2s forwards; }
-.frag-6 { animation: fragmentFly6 0.8s ease-out 0.2s forwards; }
-.frag-7 { animation: fragmentFly7 0.8s ease-out 0.2s forwards; }
-.frag-8 { animation: fragmentFly8 0.8s ease-out 0.2s forwards; }
+.bp-1 { animation: bpFly1 0.8s ease-out 0.2s forwards; }
+.bp-2 { animation: bpFly2 0.8s ease-out 0.25s forwards; }
+.bp-3 { animation: bpFly3 0.8s ease-out 0.2s forwards; }
+.bp-4 { animation: bpFly4 0.8s ease-out 0.25s forwards; }
+.bp-5 { animation: bpFly5 0.8s ease-out 0.2s forwards; }
+.bp-6 { animation: bpFly6 0.8s ease-out 0.25s forwards; }
+
+.golden-bp {
+  font-size: 42rpx;
+  filter: drop-shadow(0 0 6rpx rgba(255, 215, 0, 0.6));
+}
 
 @keyframes duckFadeIn {
   0% { opacity: 0; transform: scale(0.8); }
@@ -434,44 +402,34 @@
   100% { transform: scale(0); opacity: 0; }
 }
 
-@keyframes fragmentFly1 {
-  0% { transform: translate(0, 0) rotate(0deg); opacity: 1; }
-  100% { transform: translate(-80rpx, -120rpx) rotate(180deg); opacity: 0; }
+@keyframes bpFly1 {
+  0% { transform: translate(0, 0) scale(1); opacity: 1; }
+  100% { transform: translate(-100rpx, -140rpx) scale(0.4); opacity: 0; }
 }
 
-@keyframes fragmentFly2 {
-  0% { transform: translate(0, 0) rotate(0deg); opacity: 1; }
-  100% { transform: translate(80rpx, -100rpx) rotate(-150deg); opacity: 0; }
+@keyframes bpFly2 {
+  0% { transform: translate(0, 0) scale(1); opacity: 1; }
+  100% { transform: translate(90rpx, -120rpx) scale(0.4); opacity: 0; }
 }
 
-@keyframes fragmentFly3 {
-  0% { transform: translate(0, 0) rotate(0deg); opacity: 1; }
-  100% { transform: translate(-120rpx, 40rpx) rotate(210deg); opacity: 0; }
+@keyframes bpFly3 {
+  0% { transform: translate(0, 0) scale(1); opacity: 1; }
+  100% { transform: translate(-130rpx, 50rpx) scale(0.4); opacity: 0; }
 }
 
-@keyframes fragmentFly4 {
-  0% { transform: translate(0, 0) rotate(0deg); opacity: 1; }
-  100% { transform: translate(100rpx, 60rpx) rotate(-120deg); opacity: 0; }
+@keyframes bpFly4 {
+  0% { transform: translate(0, 0) scale(1); opacity: 1; }
+  100% { transform: translate(110rpx, 70rpx) scale(0.4); opacity: 0; }
 }
 
-@keyframes fragmentFly5 {
-  0% { transform: translate(0, 0) rotate(0deg); opacity: 1; }
-  100% { transform: translate(-60rpx, 120rpx) rotate(270deg); opacity: 0; }
+@keyframes bpFly5 {
+  0% { transform: translate(0, 0) scale(1); opacity: 1; }
+  100% { transform: translate(-70rpx, 130rpx) scale(0.4); opacity: 0; }
 }
 
-@keyframes fragmentFly6 {
-  0% { transform: translate(0, 0) rotate(0deg); opacity: 1; }
-  100% { transform: translate(60rpx, 100rpx) rotate(-240deg); opacity: 0; }
-}
-
-@keyframes fragmentFly7 {
-  0% { transform: translate(0, 0) rotate(0deg); opacity: 1; }
-  100% { transform: translate(-100rpx, -60rpx) rotate(300deg); opacity: 0; }
-}
-
-@keyframes fragmentFly8 {
-  0% { transform: translate(0, 0) rotate(0deg); opacity: 1; }
-  100% { transform: translate(120rpx, -40rpx) rotate(-330deg); opacity: 0; }
+@keyframes bpFly6 {
+  0% { transform: translate(0, 0) scale(1); opacity: 1; }
+  100% { transform: translate(70rpx, 110rpx) scale(0.4); opacity: 0; }
 }
 
 /* ==============================
@@ -502,6 +460,10 @@
   position: relative;
   opacity: 0;
   animation: goldenEggDrop 0.5s ease 0.3s both;
+}
+
+.golden-egg-drop .egg-crack {
+  animation: crackReveal 0.6s ease 0.6s forwards;
 }
 
 @keyframes goldenEggDrop {
@@ -593,10 +555,10 @@
 
 .g-particle {
   position: absolute;
-  width: 12rpx;
-  height: 12rpx;
-  background: #FFD700;
+  font-size: 28rpx;
+  color: #FFD700;
   opacity: 0;
+  text-shadow: 0 0 8rpx rgba(255, 215, 0, 0.8);
 }
 
 .g-particle:nth-child(1) { animation: particleFly0 1s ease-out 1.4s forwards; }
@@ -616,46 +578,57 @@
   0% { opacity: 1; transform: translate(0, 0) scale(1); }
   100% { opacity: 0; transform: translate(-140rpx, -200rpx) scale(0.3); }
 }
+
 @keyframes particleFly1 {
   0% { opacity: 1; transform: translate(0, 0) scale(1); }
   100% { opacity: 0; transform: translate(-60rpx, -220rpx) scale(0.3); }
 }
+
 @keyframes particleFly2 {
   0% { opacity: 1; transform: translate(0, 0) scale(1); }
   100% { opacity: 0; transform: translate(60rpx, -200rpx) scale(0.3); }
 }
+
 @keyframes particleFly3 {
   0% { opacity: 1; transform: translate(0, 0) scale(1); }
   100% { opacity: 0; transform: translate(150rpx, -180rpx) scale(0.3); }
 }
+
 @keyframes particleFly4 {
   0% { opacity: 1; transform: translate(0, 0) scale(1); }
   100% { opacity: 0; transform: translate(200rpx, -40rpx) scale(0.3); }
 }
+
 @keyframes particleFly5 {
   0% { opacity: 1; transform: translate(0, 0) scale(1); }
   100% { opacity: 0; transform: translate(180rpx, 100rpx) scale(0.3); }
 }
+
 @keyframes particleFly6 {
   0% { opacity: 1; transform: translate(0, 0) scale(1); }
   100% { opacity: 0; transform: translate(80rpx, 190rpx) scale(0.3); }
 }
+
 @keyframes particleFly7 {
   0% { opacity: 1; transform: translate(0, 0) scale(1); }
   100% { opacity: 0; transform: translate(-30rpx, 210rpx) scale(0.3); }
 }
+
 @keyframes particleFly8 {
   0% { opacity: 1; transform: translate(0, 0) scale(1); }
   100% { opacity: 0; transform: translate(-130rpx, 150rpx) scale(0.3); }
 }
+
 @keyframes particleFly9 {
   0% { opacity: 1; transform: translate(0, 0) scale(1); }
   100% { opacity: 0; transform: translate(-200rpx, 30rpx) scale(0.3); }
 }
+
 @keyframes particleFly10 {
   0% { opacity: 1; transform: translate(0, 0) scale(1); }
   100% { opacity: 0; transform: translate(-190rpx, -80rpx) scale(0.3); }
 }
+
 @keyframes particleFly11 {
   0% { opacity: 1; transform: translate(0, 0) scale(1); }
   100% { opacity: 0; transform: translate(20rpx, -240rpx) scale(0.3); }
@@ -667,7 +640,6 @@
   font-weight: bold;
   color: #FFD700;
   text-shadow: 0 0 10rpx rgba(255, 215, 0, 0.8), 0 0 20rpx rgba(255, 215, 0, 0.4);
-  font-family: monospace;
   letter-spacing: 4rpx;
   animation: textPopIn 0.5s ease both;
 }
@@ -720,6 +692,11 @@
   animation: crownDrop 0.4s ease 0.5s forwards;
 }
 
+.golden-death-scene > .duck-crown {
+  position: absolute;
+  top: -40rpx;
+}
+
 @keyframes crownDrop {
   0% {
     transform: translateY(0) rotate(0deg);
@@ -735,56 +712,39 @@
   animation: shatterOut 0.6s ease 0.9s forwards;
 }
 
-.golden-frag {
-  background: #FFD700;
-  filter: drop-shadow(0 0 4rpx gold);
+.golden-death-scene .bp-1 { animation: goldenBpFly1 1s ease-out 0.9s forwards; }
+.golden-death-scene .bp-2 { animation: goldenBpFly2 1s ease-out 0.95s forwards; }
+.golden-death-scene .bp-3 { animation: goldenBpFly3 1s ease-out 0.9s forwards; }
+.golden-death-scene .bp-4 { animation: goldenBpFly4 1s ease-out 0.95s forwards; }
+.golden-death-scene .bp-5 { animation: goldenBpFly5 1s ease-out 0.9s forwards; }
+.golden-death-scene .bp-6 { animation: goldenBpFly6 1s ease-out 0.95s forwards; }
+
+@keyframes goldenBpFly1 {
+  0% { transform: translate(0, 0) scale(1); opacity: 1; }
+  100% { transform: translate(-160rpx, -200rpx) scale(0.3); opacity: 0; }
 }
 
-.golden-shatter .frag-1 { animation: goldenFragFly1 1s ease-out 0.9s forwards; background: #FFD700; filter: drop-shadow(0 0 4rpx gold); }
-.golden-shatter .frag-2 { animation: goldenFragFly2 1s ease-out 0.9s forwards; background: #FFD700; filter: drop-shadow(0 0 4rpx gold); }
-.golden-shatter .frag-3 { animation: goldenFragFly3 1s ease-out 0.9s forwards; background: #FFD700; filter: drop-shadow(0 0 4rpx gold); }
-.golden-shatter .frag-4 { animation: goldenFragFly4 1s ease-out 0.9s forwards; background: #FFD700; filter: drop-shadow(0 0 4rpx gold); }
-.golden-shatter .frag-5 { animation: goldenFragFly5 1s ease-out 0.9s forwards; background: #FFD700; filter: drop-shadow(0 0 4rpx gold); }
-.golden-shatter .frag-6 { animation: goldenFragFly6 1s ease-out 0.9s forwards; background: #FFD700; filter: drop-shadow(0 0 4rpx gold); }
-.golden-shatter .frag-7 { animation: goldenFragFly7 1s ease-out 0.9s forwards; background: #FFD700; filter: drop-shadow(0 0 4rpx gold); }
-.golden-shatter .frag-8 { animation: goldenFragFly8 1s ease-out 0.9s forwards; background: #FFD700; filter: drop-shadow(0 0 4rpx gold); }
-
-@keyframes goldenFragFly1 {
-  0% { transform: translate(0, 0) rotate(0deg); opacity: 1; }
-  100% { transform: translate(-160rpx, -200rpx) rotate(240deg); opacity: 0; }
+@keyframes goldenBpFly2 {
+  0% { transform: translate(0, 0) scale(1); opacity: 1; }
+  100% { transform: translate(140rpx, -180rpx) scale(0.3); opacity: 0; }
 }
 
-@keyframes goldenFragFly2 {
-  0% { transform: translate(0, 0) rotate(0deg); opacity: 1; }
-  100% { transform: translate(140rpx, -180rpx) rotate(-200deg); opacity: 0; }
+@keyframes goldenBpFly3 {
+  0% { transform: translate(0, 0) scale(1); opacity: 1; }
+  100% { transform: translate(-200rpx, 60rpx) scale(0.3); opacity: 0; }
 }
 
-@keyframes goldenFragFly3 {
-  0% { transform: translate(0, 0) rotate(0deg); opacity: 1; }
-  100% { transform: translate(-200rpx, 60rpx) rotate(300deg); opacity: 0; }
+@keyframes goldenBpFly4 {
+  0% { transform: translate(0, 0) scale(1); opacity: 1; }
+  100% { transform: translate(180rpx, 80rpx) scale(0.3); opacity: 0; }
 }
 
-@keyframes goldenFragFly4 {
-  0% { transform: translate(0, 0) rotate(0deg); opacity: 1; }
-  100% { transform: translate(180rpx, 80rpx) rotate(-260deg); opacity: 0; }
+@keyframes goldenBpFly5 {
+  0% { transform: translate(0, 0) scale(1); opacity: 1; }
+  100% { transform: translate(-100rpx, 200rpx) scale(0.3); opacity: 0; }
 }
 
-@keyframes goldenFragFly5 {
-  0% { transform: translate(0, 0) rotate(0deg); opacity: 1; }
-  100% { transform: translate(-100rpx, 200rpx) rotate(330deg); opacity: 0; }
-}
-
-@keyframes goldenFragFly6 {
-  0% { transform: translate(0, 0) rotate(0deg); opacity: 1; }
-  100% { transform: translate(100rpx, 180rpx) rotate(-290deg); opacity: 0; }
-}
-
-@keyframes goldenFragFly7 {
-  0% { transform: translate(0, 0) rotate(0deg); opacity: 1; }
-  100% { transform: translate(-180rpx, -100rpx) rotate(360deg); opacity: 0; }
-}
-
-@keyframes goldenFragFly8 {
-  0% { transform: translate(0, 0) rotate(0deg); opacity: 1; }
-  100% { transform: translate(200rpx, -60rpx) rotate(-400deg); opacity: 0; }
+@keyframes goldenBpFly6 {
+  0% { transform: translate(0, 0) scale(1); opacity: 1; }
+  100% { transform: translate(100rpx, 180rpx) scale(0.3); opacity: 0; }
 }
