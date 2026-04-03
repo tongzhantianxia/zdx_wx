@@ -13,7 +13,7 @@
 |------|------|
 | 年级范围 | 小学1-6年级，未来扩展小学奥数 |
 | 公式渲染 | 分数、幂次、根号、混合运算等 LaTeX 公式 |
-| 几何复杂度 | 高：基本形状、辅助线、阴影区域、组合图形、立体展开图、对称/旋转变换、坐标系图形 |
+| 几何复杂度 | 高：2D 平面几何（基本形状、辅助线、阴影区域、组合图形）+ 3D 立体几何（长方体、正方体、圆柱、圆锥、球、组合体、面高亮、展开图）+ 对称/旋转变换、坐标系图形 |
 | 题目来源 | AI 生成 + 题库预置，均使用统一富内容格式 |
 | 答案输入 | 增强型输入面板（数字、分数、文本） |
 | 旧数据 | 不兼容，全部清除重建 |
@@ -116,7 +116,7 @@ diagram: {
 }
 ```
 
-**Shape 类型**：
+#### 2D 平面 Shape 类型
 
 | type | 字段 | 说明 |
 |------|------|------|
@@ -126,11 +126,64 @@ diagram: {
 | `arc` | `center: [x,y]`, `radius`, `startAngle`, `endAngle`, `stroke` | 弧 |
 | `dashed` | `from: [x,y]`, `to: [x,y]`, `stroke` | 虚线 |
 
+#### 3D 立体 Shape 类型（等轴测投影）
+
+所有 3D shapes 用等轴测投影（isometric projection）在 Canvas 2D 上绘制。前端绘图引擎内置投影公式，AI 只需提供逻辑尺寸和位置，不需要计算投影坐标。
+
+| type | 字段 | 说明 |
+|------|------|------|
+| `cuboid` | `origin: [x,y]`, `length`, `width`, `height`, `stroke`, `fill` | 长方体。origin 为前下左顶点在画布上的位置，length/width/height 为逻辑尺寸（像素），绘图引擎自动计算等轴测投影的 8 个顶点，前面 visible 棱用实线，后面 hidden 棱用虚线 |
+| `cube` | `origin: [x,y]`, `size`, `stroke`, `fill` | 正方体，cuboid 的特例（length=width=height=size） |
+| `cylinder` | `origin: [x,y]`, `radius`, `height`, `stroke`, `fill` | 圆柱。origin 为底面椭圆中心，上下面画椭圆，侧面画两条竖线，底面后半部分用虚线 |
+| `cone` | `origin: [x,y]`, `radius`, `height`, `stroke`, `fill` | 圆锥。origin 为底面椭圆中心，顶点在正上方，底面后半部分用虚线 |
+| `sphere` | `center: [x,y]`, `radius`, `stroke`, `fill` | 球体。画圆 + 中间虚线椭圆表示立体感 |
+
+**3D 附加属性**（可选，用于任何 3D shape）：
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| `hiddenEdges` | boolean | 是否显示隐藏棱（虚线），默认 true |
+| `faceFills` | `Array<{ face: string, fill: string }>` | 为特定面涂色。face 取值：`front`/`back`/`top`/`bottom`/`left`/`right` |
+| `rotation` | `[rx, ry]` | 可选的视角微调（角度），默认 [30, 45] 即标准等轴测 |
+
+**3D 立体图形示例 — 长方体带面高亮**：
+
+```json
+{
+  "type": "cuboid",
+  "origin": [60, 160],
+  "length": 100,
+  "width": 60,
+  "height": 80,
+  "stroke": "#333",
+  "fill": "transparent",
+  "hiddenEdges": true,
+  "faceFills": [
+    { "face": "front", "fill": "rgba(66, 133, 244, 0.2)" }
+  ]
+}
+```
+
+**3D 组合体**：通过在 `shapes` 数组中放入多个 3D shape 实现拼接。绘图引擎按数组顺序绘制，后绘制的覆盖先绘制的。AI 通过调整 `origin` 坐标让多个立体图形相邻。
+
+**3D 展开图**：展开图本质是 2D 平面图形（多个矩形拼接），直接用 `polygon` shapes 绘制即可，不需要 3D shape。
+
+**等轴测投影公式**（绘图引擎内置）：
+
+```
+屏幕X = origin.x + (lx - ly) * cos(30°)
+屏幕Y = origin.y - lz + (lx + ly) * sin(30°) * 0.5
+```
+
+其中 `lx/ly/lz` 为 3D 逻辑坐标。AI 不需要关心此公式，只需提供 origin 和尺寸。
+
 **Label 结构**：
 
 ```
 { text: string, position: [x, y], fontSize: number }
 ```
+
+对于 3D shapes 的标注（如长方体的长宽高），labels 的 position 使用画布坐标。AI 需要合理放置标注位置（通常在对应棱的中点旁边）。绘图引擎未来可增加自动标注能力。
 
 **Annotation 类型**：
 
@@ -141,6 +194,7 @@ diagram: {
 | `arrow` | `from: [x,y]`, `to: [x,y]` | 箭头 |
 | `parallel` | `from: [x,y]`, `to: [x,y]` | 平行标记 |
 | `equal` | `from: [x,y]`, `to: [x,y]`, `count` | 等长标记（count 为短横线数量） |
+| `dimensionLine` | `from: [x,y]`, `to: [x,y]`, `text: string`, `offset: number` | 尺寸标注线（两端带短横线的标注，常用于标注长方体边长） |
 
 ---
 
@@ -174,7 +228,7 @@ diagram: {
 - 自动适配屏幕宽度，根据 `diagram.width/height` 和容器宽度计算缩放比
 - 使用 `dpr` 倍率绘制适配高清屏
 
-**绘图引擎**：
+**绘图引擎 — 2D 平面图形**：
 
 | Shape 类型 | Canvas 操作 |
 |-----------|------------|
@@ -184,6 +238,18 @@ diagram: {
 | `arc` | `arc(cx, cy, r, startAngle, endAngle)` |
 | `dashed` | `setLineDash` + `lineTo` |
 
+**绘图引擎 — 3D 立体图形**：
+
+| Shape 类型 | Canvas 操作 |
+|-----------|------------|
+| `cuboid` | 等轴测投影计算 8 个顶点 → 前面 visible 棱 `lineTo` 实线 + 后面 hidden 棱 `setLineDash` 虚线 + 可选 `faceFills` 填色 |
+| `cube` | 同 cuboid，length=width=height=size |
+| `cylinder` | 上下椭圆（`ellipse` 或贝塞尔曲线模拟）+ 侧面两条竖线 + 底面后半虚线 |
+| `cone` | 底面椭圆 + 顶点到椭圆两侧切线 + 底面后半虚线 |
+| `sphere` | 外圆 `arc` + 中间虚线椭圆 |
+
+**绘图引擎 — Annotations**：
+
 | Annotation 类型 | 绘制方式 |
 |----------------|---------|
 | `rightAngle` | 从顶点画小正方形 |
@@ -191,6 +257,7 @@ diagram: {
 | `arrow` | 线段末端加三角形箭头 |
 | `parallel` | 线段中点加平行标记符号 |
 | `equal` | 线段中点加等长标记短横线 |
+| `dimensionLine` | 两端短横线 + 中间线段 + 文字标注 |
 
 **Properties**：
 - `diagram`: Object — 几何图描述 JSON
@@ -251,14 +318,18 @@ diagram: {
 
 **Prompt 策略**：
 - **计算题/填空题**：`contentBlocks` 中用 `latex` block 表达公式，不需要 `diagram`
-- **几何题**：`contentBlocks` + `diagram` JSON（shapes/labels/annotations），prompt 提供 JSON Schema 和标准模板坐标
+- **2D 几何题**（三角形、四边形、圆等平面几何）：`contentBlocks` + `diagram` 使用 2D shapes（polygon/circle/line 等）
+- **3D 几何题**（长方体、正方体、圆柱等立体几何）：`contentBlocks` + `diagram` 使用 3D shapes（cuboid/cube/cylinder 等），AI 只需提供 origin 和逻辑尺寸，绘图引擎自动投影
+- **展开图题**：diagram 使用 2D polygon shapes 拼接矩形，不使用 3D shapes
 - **应用题**：根据内容决定是否需要 `diagram`
 
 **Prompt 关键约束**：
-1. 坐标限定在 `[0, width] x [0, height]` 范围内
-2. Labels 相邻间隔至少 20px
-3. Shapes 的 points 必须构成合法几何图形
-4. 常见图形提供标准模板坐标，AI 调整数值和标注即可
+1. 2D shapes 坐标限定在 `[0, width] x [0, height]` 范围内
+2. 3D shapes 的 origin + 投影后的图形必须在画布范围内（prompt 给出安全的 origin 范围参考）
+3. Labels 相邻间隔至少 20px
+4. Shapes 的 points 必须构成合法几何图形
+5. 常见 2D/3D 图形在 prompt 中提供标准模板，AI 调整数值和标注即可
+6. 3D 组合体通过多个 shapes + 调整 origin 坐标实现，prompt 给出常见组合方式示例
 
 **输出校验层**（AI 返回后）：
 - 检查 `contentBlocks` 每个 block 的 `type` 是否在 `['text', 'latex']` 内
