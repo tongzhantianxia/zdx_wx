@@ -84,122 +84,128 @@
 }
 
 /* ==============================
-   Mini pixel duck (8rpx grid, half of duck-animation)
+   Mini cartoon duck (rounded, ~65rpx tall)
    ============================== */
 
-.pixel-duck-mini {
-  width: 8rpx;
-  height: 8rpx;
-  overflow: visible;
+.cartoon-duck-mini {
   position: relative;
+  width: 50rpx;
+  height: 65rpx;
+  flex-shrink: 0;
 }
 
-/*
-  Normal duck 8x7 grid (same layout as .pixel-duck.normal)
-*/
-.pixel-duck-mini.normal {
+.mini-body {
+  width: 44rpx;
+  height: 36rpx;
   background: #ffd600;
-  box-shadow:
-    16rpx 0 0 #ffd600,
-    24rpx 0 0 #ffd600,
-    32rpx 0 0 #ffd600,
-    8rpx 8rpx 0 #ffd600,
-    16rpx 8rpx 0 #ffd600,
-    24rpx 8rpx 0 #ffd600,
-    32rpx 8rpx 0 #ffd600,
-    40rpx 8rpx 0 #ffd600,
-    8rpx 16rpx 0 #ffd600,
-    16rpx 16rpx 0 #333333,
-    24rpx 16rpx 0 #ffd600,
-    32rpx 16rpx 0 #ffd600,
-    40rpx 16rpx 0 #ffd600,
-    48rpx 16rpx 0 #ff8f00,
-    16rpx 24rpx 0 #ffd600,
-    24rpx 24rpx 0 #ffd600,
-    32rpx 24rpx 0 #ffd600,
-    40rpx 24rpx 0 #ffd600,
-    48rpx 24rpx 0 #ff8f00,
-    0rpx 32rpx 0 #ffd600,
-    8rpx 32rpx 0 #ffd600,
-    16rpx 32rpx 0 #ffd600,
-    24rpx 32rpx 0 #ffd600,
-    32rpx 32rpx 0 #ffd600,
-    40rpx 32rpx 0 #ffd600,
-    8rpx 40rpx 0 #ffd600,
-    16rpx 40rpx 0 #ffd600,
-    32rpx 40rpx 0 #ffd600,
-    40rpx 40rpx 0 #ffd600,
-    8rpx 48rpx 0 #ff8f00,
-    16rpx 48rpx 0 #ff8f00,
-    32rpx 48rpx 0 #ff8f00,
-    40rpx 48rpx 0 #ff8f00;
-}
-
-.pixel-duck-mini.golden {
-  background: #ffd700;
-  filter: drop-shadow(0 0 4rpx rgba(255, 215, 0, 0.8));
-  box-shadow:
-    16rpx 0 0 #ffd700,
-    24rpx 0 0 #ffd700,
-    32rpx 0 0 #ffd700,
-    8rpx 8rpx 0 #ffd700,
-    16rpx 8rpx 0 #ffd700,
-    24rpx 8rpx 0 #ffa000,
-    32rpx 8rpx 0 #ffd700,
-    40rpx 8rpx 0 #ffd700,
-    8rpx 16rpx 0 #ffd700,
-    16rpx 16rpx 0 #5d4037,
-    24rpx 16rpx 0 #ffd700,
-    32rpx 16rpx 0 #ffd700,
-    40rpx 16rpx 0 #ffd700,
-    48rpx 16rpx 0 #ffa000,
-    16rpx 24rpx 0 #ffd700,
-    24rpx 24rpx 0 #ffd700,
-    32rpx 24rpx 0 #ffd700,
-    40rpx 24rpx 0 #ffd700,
-    48rpx 24rpx 0 #ffa000,
-    0rpx 32rpx 0 #ffd700,
-    8rpx 32rpx 0 #ffa000,
-    16rpx 32rpx 0 #ffd700,
-    24rpx 32rpx 0 #ffd700,
-    32rpx 32rpx 0 #ffa000,
-    40rpx 32rpx 0 #ffd700,
-    8rpx 40rpx 0 #ffd700,
-    16rpx 40rpx 0 #ffd700,
-    32rpx 40rpx 0 #ffd700,
-    40rpx 40rpx 0 #ffd700,
-    8rpx 48rpx 0 #ffa000,
-    16rpx 48rpx 0 #ffa000,
-    32rpx 48rpx 0 #ffa000,
-    40rpx 48rpx 0 #ffa000;
-}
-
-/*
-  Mini crown (5x3), same pattern as .pixel-crown
-*/
-.pixel-crown-mini {
-  width: 8rpx;
-  height: 8rpx;
-  background: #ffd700;
+  border-radius: 50%;
   position: absolute;
-  top: -12rpx;
-  left: 50%;
-  margin-left: -12rpx;
-  box-shadow:
-    0rpx 0 0 #ffd700,
-    16rpx 0 0 #ffd700,
-    32rpx 0 0 #ffd700,
-    0rpx 8rpx 0 #ffd700,
-    8rpx 8rpx 0 #ffd700,
-    16rpx 8rpx 0 #ffd700,
-    24rpx 8rpx 0 #ffd700,
-    32rpx 8rpx 0 #ffd700,
-    0rpx 16rpx 0 #ffd700,
-    8rpx 16rpx 0 #ffd700,
-    16rpx 16rpx 0 #ff0000,
-    24rpx 16rpx 0 #ffd700,
-    32rpx 16rpx 0 #ffd700;
+  bottom: 0;
+  left: 3rpx;
+  z-index: 1;
 }
+
+.mini-head {
+  width: 32rpx;
+  height: 28rpx;
+  background: #ffd600;
+  border-radius: 50%;
+  position: absolute;
+  top: 0;
+  left: 9rpx;
+  z-index: 2;
+  overflow: visible;
+}
+
+.mini-head::before,
+.mini-head::after {
+  content: '';
+  position: absolute;
+  width: 7rpx;
+  height: 5rpx;
+  background: rgba(255, 138, 128, 0.55);
+  border-radius: 50%;
+  top: 14rpx;
+}
+
+.mini-head::before {
+  left: 2rpx;
+}
+
+.mini-head::after {
+  right: 14rpx;
+}
+
+.mini-eye {
+  width: 6rpx;
+  height: 7rpx;
+  background: #333;
+  border-radius: 50%;
+  position: absolute;
+  top: 9rpx;
+  right: 6rpx;
+  z-index: 1;
+}
+
+.mini-eye::after {
+  content: '';
+  position: absolute;
+  width: 2rpx;
+  height: 2rpx;
+  background: #fff;
+  border-radius: 50%;
+  top: 1rpx;
+  right: 1rpx;
+}
+
+.mini-beak {
+  width: 10rpx;
+  height: 6rpx;
+  background: #ff8f00;
+  border-radius: 0 50% 50% 0;
+  position: absolute;
+  top: 12rpx;
+  right: -4rpx;
+  z-index: 1;
+}
+
+.cartoon-duck-mini.golden .mini-body,
+.cartoon-duck-mini.golden .mini-head {
+  background: #ffd700;
+}
+
+.cartoon-duck-mini.golden {
+  filter: drop-shadow(0 0 6rpx rgba(255, 215, 0, 0.6));
+}
+
+.cartoon-duck-mini.golden .mini-head::before,
+.cartoon-duck-mini.golden .mini-head::after {
+  background: rgba(255, 183, 77, 0.5);
+}
+
+/* Gold band + three small peaks (triangle/rectangle feel) */
+.mini-crown {
+  position: absolute;
+  top: -10rpx;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 26rpx;
+  height: 11rpx;
+  background: #ffd700;
+  z-index: 3;
+  clip-path: polygon(
+    0% 100%,
+    10% 40%,
+    22% 100%,
+    36% 45%,
+    50% 12%,
+    64% 45%,
+    78% 100%,
+    90% 40%,
+    100% 100%
+  );
+}
+
 
 @keyframes idle-wobble {
   0%,

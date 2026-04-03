@@ -10,8 +10,13 @@
         wx:key="id"
         style="margin-left: {{item.offsetX}}rpx; animation-delay: {{item.delay}}s;"
       >
-        <view class="pixel-duck-mini {{item.type}}">
-          <view class="pixel-crown-mini" wx:if="{{item.type === 'golden'}}"></view>
+        <view class="cartoon-duck-mini {{item.type}}">
+          <view class="mini-crown" wx:if="{{item.type === 'golden'}}"></view>
+          <view class="mini-body"></view>
+          <view class="mini-head">
+            <view class="mini-eye"></view>
+            <view class="mini-beak"></view>
+          </view>
         </view>
       </view>
     </view>
