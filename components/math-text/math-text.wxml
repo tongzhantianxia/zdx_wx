@@ -1,0 +1,6 @@
+<view class="math-text-wrap">
+  <block wx:for="{{parsedBlocks}}" wx:key="index">
+    <text wx:if="{{item.type === 'text'}}" class="mt-text">{{item.value}}</text>
+    <rich-text wx:elif="{{item.type === 'latex'}}" class="mt-latex" nodes="{{item.nodes}}"></rich-text>
+  </block>
+</view>

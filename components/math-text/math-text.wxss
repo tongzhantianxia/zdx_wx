@@ -1,0 +1,17 @@
+.math-text-wrap {
+  display: inline;
+  line-height: 1.8;
+  word-break: break-word;
+}
+
+.mt-text {
+  display: inline;
+  font-size: inherit;
+  color: inherit;
+  vertical-align: baseline;
+}
+
+.mt-latex {
+  display: inline;
+  vertical-align: middle;
+}
