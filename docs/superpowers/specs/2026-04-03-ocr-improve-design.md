@@ -52,7 +52,7 @@
 ### 2.3 处理流程
 
 1. 校验 OPENID（从云函数 context 获取）
-2. 频率限制检查（复用 `security.js`，每用户每分钟最多 5 次）
+2. 频率限制检查（独立实现，内存 Map 模式，同一用户 15 秒内不可重复调用）
 3. `cloud.downloadFile(fileID)` 下载图片
 4. 图片转 Base64
 5. 构造 `qwen3-vl-flash` 多模态请求，Prompt 要求：
