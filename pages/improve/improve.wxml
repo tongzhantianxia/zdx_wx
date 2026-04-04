@@ -11,32 +11,11 @@
     </view>
   </view>
 
-  <!-- idle 状态：引导 + 拍照 -->
+  <!-- idle 状态 -->
   <block wx:if="{{pageState === 'idle'}}">
-    <view class="guide-section">
-      <view class="guide-icon-wrap">
-        <image class="guide-icon" src="/images/tab-improve-active.png" mode="aspectFit"></image>
-      </view>
-      <text class="guide-title">拍照分析错题</text>
-      <text class="guide-desc">拍照或选择试卷图片，AI 识别每道题目，生成针对性加强训练</text>
-    </view>
-
-    <!-- 年级学期选择 -->
-    <view class="grade-semester-section">
-      <view class="grade-scroll">
-        <view
-          wx:for="{{gradeList}}"
-          wx:key="value"
-          class="grade-chip {{selectedGrade === item.value ? 'chip-active' : ''}}"
-          bindtap="handleGradeChange"
-          data-grade="{{item.value}}">
-          {{item.label}}
-        </view>
-      </view>
-      <view class="semester-row">
-        <view class="semester-chip {{selectedSemester === 'upper' ? 'chip-active' : ''}}" bindtap="handleSemesterChange" data-semester="upper">上册</view>
-        <view class="semester-chip {{selectedSemester === 'lower' ? 'chip-active' : ''}}" bindtap="handleSemesterChange" data-semester="lower">下册</view>
-      </view>
+    <view class="page-header">
+      <text class="page-title">拍照分析错题</text>
+      <text class="page-desc">拍照后自动识别错题和未做的题，针对性练习</text>
     </view>
 
     <view class="upload-section">
@@ -49,15 +28,15 @@
     <view class="tips-section">
       <view class="tip-card">
         <text class="tip-icon">1</text>
-        <text class="tip-text">拍下孩子的错题或试卷</text>
+        <text class="tip-text">拍下孩子的试卷或作业</text>
       </view>
       <view class="tip-card">
         <text class="tip-icon">2</text>
-        <text class="tip-text">AI 识别每道题并标注位置</text>
+        <text class="tip-text">自动识别错题和未做的题</text>
       </view>
       <view class="tip-card">
         <text class="tip-icon">3</text>
-        <text class="tip-text">选择题目，生成同类加强训练</text>
+        <text class="tip-text">一键生成针对性错题练习</text>
       </view>
     </view>
   </block>
@@ -72,111 +51,95 @@
     </view>
   </block>
 
-  <!-- analyzing 状态 -->
+  <!-- analyzing 状态：扫描动画 -->
   <block wx:if="{{pageState === 'analyzing'}}">
-    <view class="loading-section">
-      <view class="analyzing-spinner"></view>
-      <text class="loading-text">AI 正在识别题目...</text>
-      <text class="loading-sub">这可能需要几秒钟</text>
+    <view class="scan-section">
+      <view class="scan-wrap">
+        <image class="scan-img" src="{{imagePath}}" mode="widthFix"></image>
+        <view class="scan-overlay">
+          <view class="scan-line"></view>
+        </view>
+      </view>
+      <text class="scan-text">正在识别题目...</text>
     </view>
   </block>
 
   <!-- result 状态 -->
   <block wx:if="{{pageState === 'result'}}">
-    <!-- 图片标注区 -->
-    <view class="annotation-section">
-      <view class="annotation-wrap">
-        <image class="annotation-img" src="{{imagePath}}" mode="widthFix"></image>
-        <view
-          wx:for="{{questions}}"
-          wx:key="index"
-          class="annotation-overlay {{selectedMap[index] ? 'overlay-selected' : 'overlay-default'}}"
-          style="top: {{item.position.top * 100}}%; height: {{(item.position.bottom - item.position.top) * 100}}%;"
-          bindtap="toggleFromImage"
-          data-index="{{index}}">
-          <text class="overlay-label">{{item.index}}</text>
-        </view>
-      </view>
+
+    <!-- 顶部提示 -->
+    <view class="result-banner">
+      <text class="banner-text">批改完成，共 {{totalCount}} 题，{{improveCount}} 题需要练习。</text>
     </view>
 
-    <!-- 题目列表区 -->
-    <view class="question-list-section">
-      <view class="list-header">
-        <text class="list-title">识别到 {{questions.length}} 道题目</text>
-        <text class="list-hint">点击选择需要加强训练的题目</text>
-      </view>
-
-      <view class="question-list">
-        <view
-          wx:for="{{questions}}"
-          wx:key="index"
-          class="question-card {{selectedMap[index] ? 'card-selected' : ''}}">
-
-          <view class="card-main" bindtap="toggleQuestion" data-index="{{index}}">
-            <view class="card-checkbox {{selectedMap[index] ? 'checkbox-checked' : ''}}">
-              <text wx:if="{{selectedMap[index]}}">✓</text>
-            </view>
-
-            <view class="card-body">
-              <view class="card-top-row">
-                <text class="card-number">第{{item.index}}题</text>
-                <view class="card-tags">
-                  <text class="tag-difficulty tag-{{item.difficulty}}">
-                    {{item.difficulty === 'easy' ? '简单' : item.difficulty === 'medium' ? '中等' : '困难'}}
-                  </text>
-                  <text wx:if="{{item.hasGraphic}}" class="tag-graphic">含图</text>
-                </view>
-              </view>
-
-              <text class="card-content">{{item.content}}</text>
-
-              <view class="card-knowledge-row">
-                <text class="tag-knowledge">{{item.knowledgeName || item.knowledgePoint}}</text>
-                <text wx:if="{{!item.knowledgeId}}" class="tag-unmatched">未匹配</text>
-              </view>
-            </view>
-
-            <view class="card-expand" catchtap="expandQuestion" data-index="{{index}}">
-              <text class="expand-icon">{{expandedIndex === index ? '▲' : '▼'}}</text>
-            </view>
-          </view>
-
-          <view wx:if="{{expandedIndex === index}}" class="card-detail">
-            <text class="detail-label">完整题目：</text>
-            <text class="detail-content">{{item.content}}</text>
-            <block wx:if="{{item.hasGraphic && item.graphicDesc}}">
-              <text class="detail-label">图形描述：</text>
-              <text class="detail-content">{{item.graphicDesc}}</text>
-            </block>
+    <!-- 错题 Tab 栏 -->
+    <view class="tab-bar-wrap">
+      <scroll-view class="tab-scroll" scroll-x enhanced show-scrollbar="{{false}}" scroll-into-view="tab-{{activeTab}}">
+        <view class="tab-inner">
+          <view
+            wx:for="{{questions}}"
+            wx:key="index"
+            id="tab-{{index}}"
+            class="tab-item {{activeTab === index ? 'tab-active' : ''}}"
+            bindtap="switchTab"
+            data-tab="{{index}}">
+            <text class="tab-label">题目{{item.index}}</text>
+            <text class="tab-tag tab-tag-{{item.status}}">{{item.status === 'wrong' ? '错题' : '未答'}}</text>
           </view>
         </view>
-      </view>
+      </scroll-view>
     </view>
 
-    <!-- 底部固定栏 -->
+    <!-- 当前题详情 -->
+    <block wx:if="{{currentDetail}}">
+      <view class="detail-content">
+
+        <view class="detail-card">
+          <text class="detail-label">题目</text>
+          <view class="detail-img-wrap">
+            <image class="detail-img" src="{{imagePath}}" mode="widthFix"></image>
+          </view>
+        </view>
+
+        <view class="detail-card">
+          <text class="detail-label">题目内容</text>
+          <text class="detail-text">{{currentDetail.content}}</text>
+        </view>
+
+        <view class="detail-row">
+          <view class="detail-card detail-half">
+            <text class="detail-label">知识点</text>
+            <text class="detail-tag tag-knowledge">{{currentDetail.knowledgeName || currentDetail.knowledgePoint}}</text>
+          </view>
+          <view class="detail-card detail-half">
+            <text class="detail-label">难度</text>
+            <text class="detail-tag tag-diff-{{currentDetail.difficulty}}">
+              {{currentDetail.difficulty === 'easy' ? '简单' : currentDetail.difficulty === 'medium' ? '中等' : '困难'}}
+            </text>
+          </view>
+        </view>
+
+        <block wx:if="{{currentDetail.hasGraphic && currentDetail.graphicDesc}}">
+          <view class="detail-card">
+            <text class="detail-label">图形描述</text>
+            <text class="detail-text">{{currentDetail.graphicDesc}}</text>
+          </view>
+        </block>
+
+      </view>
+    </block>
+
+    <!-- 底部操作栏 -->
     <view class="bottom-bar">
       <view class="bottom-left">
-        <text class="bottom-count">已选 {{selectedCount}} 题</text>
-        <text class="bottom-training" wx:if="{{totalTrainingCount > 0}}">将生成 {{totalTrainingCount}} 道训练题</text>
+        <text class="bottom-count">{{improveCount}} 道错题，每题生成4道练习</text>
       </view>
       <view class="bottom-actions">
-        <text class="btn-retake" bindtap="retakePhoto">重新拍照</text>
-        <view
-          class="btn-start {{selectedCount > 0 ? '' : 'btn-disabled'}}"
-          bindtap="startTraining">
-          开始加强训练
-        </view>
+        <text class="btn-retake" bindtap="retakePhoto">重拍</text>
+        <view class="btn-start" bindtap="startTraining">错题练习</view>
       </view>
     </view>
-  </block>
 
-  <!-- generating 状态 -->
-  <block wx:if="{{pageState === 'generating'}}">
-    <view class="loading-section">
-      <view class="analyzing-spinner"></view>
-      <text class="loading-text">正在生成 {{totalTrainingCount}} 道加强训练题...</text>
-      <text class="loading-sub">AI 正在根据题目分析出题</text>
-    </view>
   </block>
 
 </view>

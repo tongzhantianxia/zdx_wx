@@ -1,7 +1,7 @@
 .improve-page {
   min-height: 100vh;
   background: #FFFEF5;
-  padding-bottom: calc(200rpx + env(safe-area-inset-bottom));
+  padding-bottom: calc(320rpx + env(safe-area-inset-bottom));
 }
 
 /* ==================== 导航栏 ==================== */
@@ -45,73 +45,22 @@
   opacity: 0;
 }
 
-/* ==================== 引导区 ==================== */
-.guide-section {
-  text-align: center;
-  padding: 40rpx 30rpx 30rpx;
+/* ==================== 页面标题 ==================== */
+.page-header {
+  padding: 30rpx 30rpx 20rpx;
 }
-.guide-icon-wrap {
-  width: 100rpx;
-  height: 100rpx;
-  margin: 0 auto 20rpx;
-}
-.guide-icon {
-  width: 100%;
-  height: 100%;
-}
-.guide-title {
+.page-title {
   display: block;
-  font-size: 38rpx;
+  font-size: 36rpx;
   font-weight: 700;
-  color: #333;
-  margin-bottom: 12rpx;
+  color: #2D2D2D;
+  letter-spacing: 1rpx;
 }
-.guide-desc {
+.page-desc {
   display: block;
   font-size: 26rpx;
-  color: #888;
-  line-height: 1.6;
-  padding: 0 40rpx;
-}
-
-/* ==================== 年级学期选择 ==================== */
-.grade-semester-section {
-  margin: 0 30rpx 20rpx;
-}
-.grade-scroll {
-  display: flex;
-  gap: 12rpx;
-  overflow-x: auto;
-  padding-bottom: 16rpx;
-  -webkit-overflow-scrolling: touch;
-}
-.grade-chip {
-  flex-shrink: 0;
-  padding: 12rpx 24rpx;
-  border-radius: 12rpx;
-  font-size: 26rpx;
-  background: #fff;
-  border: 3rpx solid #E8E0D0;
-  color: #666;
-}
-.chip-active {
-  background: #FFB300;
-  border-color: #FFB300;
-  color: #fff;
-  font-weight: 600;
-}
-.semester-row {
-  display: flex;
-  gap: 12rpx;
-  margin-top: 4rpx;
-}
-.semester-chip {
-  padding: 10rpx 24rpx;
-  border-radius: 12rpx;
-  font-size: 24rpx;
-  background: #fff;
-  border: 3rpx solid #E8E0D0;
-  color: #666;
+  color: #999;
+  margin-top: 8rpx;
 }
 
 /* ==================== 上传区 ==================== */
@@ -169,7 +118,7 @@
   color: #555;
 }
 
-/* ==================== 加载状态 ==================== */
+/* ==================== 上传进度 ==================== */
 .loading-section {
   text-align: center;
   padding: 120rpx 40rpx;
@@ -188,251 +137,195 @@
   border-radius: 6rpx;
   transition: width 0.3s;
 }
-.analyzing-spinner {
-  width: 60rpx;
-  height: 60rpx;
-  border: 6rpx solid #F0ECE0;
-  border-top-color: #FFB300;
-  border-radius: 50%;
-  margin: 0 auto 24rpx;
-  animation: spin 0.8s linear infinite;
-}
-@keyframes spin {
-  to { transform: rotate(360deg); }
-}
 .loading-text {
   display: block;
   font-size: 30rpx;
   color: #555;
   margin-bottom: 8rpx;
 }
-.loading-sub {
-  display: block;
-  font-size: 24rpx;
-  color: #999;
-}
 
-/* ==================== 图片标注区 ==================== */
-.annotation-section {
-  margin: 20rpx 30rpx;
+/* ==================== 扫描识别动画 ==================== */
+.scan-section {
+  padding: 24rpx 20rpx;
+  text-align: center;
 }
-.annotation-wrap {
+.scan-wrap {
   position: relative;
-  border-radius: 20rpx;
+  border-radius: 16rpx;
   overflow: hidden;
   background: #fff;
-  border: 3rpx solid #E8E0D0;
+  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.08);
 }
-.annotation-img {
+.scan-img {
   width: 100%;
   display: block;
+  filter: brightness(0.92);
 }
-.annotation-overlay {
+.scan-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+.scan-line {
   position: absolute;
   left: 0;
   right: 0;
-  display: flex;
-  align-items: flex-start;
-  justify-content: flex-end;
-  padding: 8rpx 12rpx;
-  transition: background 0.3s;
+  height: 0;
+  border-top: 4rpx dashed rgba(220, 30, 20, 0.75);
+  animation: scanDown 3s ease-in-out infinite;
 }
-.overlay-default {
-  background: rgba(200, 200, 200, 0.25);
-  border-bottom: 2rpx dashed rgba(150, 150, 150, 0.4);
+@keyframes scanDown {
+  0% { top: -2%; }
+  50% { top: 98%; }
+  100% { top: -2%; }
 }
-.overlay-selected {
-  background: rgba(255, 179, 0, 0.25);
-  border-bottom: 2rpx solid rgba(255, 179, 0, 0.6);
-}
-.overlay-label {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 40rpx;
-  height: 40rpx;
-  border-radius: 20rpx;
-  font-size: 22rpx;
-  font-weight: 700;
-  color: #fff;
-  padding: 0 12rpx;
-}
-.overlay-default .overlay-label {
-  background: rgba(100, 100, 100, 0.6);
-}
-.overlay-selected .overlay-label {
-  background: #FFB300;
+.scan-text {
+  display: block;
+  font-size: 28rpx;
+  color: #CC1A10;
+  font-weight: 600;
+  margin-top: 20rpx;
 }
 
-/* ==================== 题目列表 ==================== */
-.question-list-section {
-  margin: 20rpx 30rpx 0;
+/* ==================== 结果顶部提示 ==================== */
+.result-banner {
+  padding: 20rpx 30rpx;
+  background: #FFF8E1;
+  border-bottom: 2rpx solid #FFE082;
 }
-.list-header {
-  margin-bottom: 20rpx;
-}
-.list-title {
-  display: block;
-  font-size: 30rpx;
-  font-weight: 600;
-  color: #333;
-  margin-bottom: 4rpx;
-}
-.list-hint {
-  display: block;
-  font-size: 24rpx;
-  color: #999;
-}
-.question-list {
-  padding-bottom: 200rpx;
-}
-.question-card {
-  background: #fff;
-  border: 3rpx solid #E8E0D0;
-  border-radius: 20rpx;
-  margin-bottom: 16rpx;
-  overflow: hidden;
-  transition: border-color 0.3s;
-}
-.card-selected {
-  border-color: #FFB300;
-  background: #FFFCF0;
-}
-.card-main {
-  display: flex;
-  align-items: flex-start;
-  padding: 24rpx;
-}
-.card-checkbox {
-  width: 44rpx;
-  height: 44rpx;
-  border: 3rpx solid #D0C8B8;
-  border-radius: 10rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-right: 16rpx;
-  margin-top: 4rpx;
-  flex-shrink: 0;
+.banner-text {
   font-size: 26rpx;
-  color: #fff;
-}
-.checkbox-checked {
-  background: #FFB300;
-  border-color: #FFB300;
-}
-.card-body {
-  flex: 1;
-  min-width: 0;
-}
-.card-top-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 8rpx;
-}
-.card-number {
-  font-size: 28rpx;
+  color: #E65100;
   font-weight: 600;
-  color: #333;
 }
-.card-tags {
-  display: flex;
+
+/* ==================== Tab 栏 ==================== */
+.tab-bar-wrap {
+  background: #fff;
+  border-bottom: 2rpx solid #E8E0D0;
+}
+.tab-scroll {
+  white-space: nowrap;
+}
+.tab-inner {
+  display: inline-flex;
+  padding: 0 20rpx;
+}
+.tab-item {
+  display: inline-flex;
+  align-items: center;
   gap: 8rpx;
+  padding: 20rpx 24rpx;
+  font-size: 26rpx;
+  color: #999;
+  border-bottom: 4rpx solid transparent;
+  flex-shrink: 0;
 }
-.tag-difficulty {
-  font-size: 22rpx;
-  padding: 4rpx 12rpx;
-  border-radius: 8rpx;
+.tab-active {
+  color: #333;
+  font-weight: 600;
+  border-bottom-color: #FFB300;
+}
+.tab-label {
+  font-size: 26rpx;
+}
+.tab-tag {
+  font-size: 20rpx;
+  padding: 2rpx 8rpx;
+  border-radius: 6rpx;
   font-weight: 500;
 }
-.tag-easy {
-  background: #E8F5E9;
-  color: #2E7D32;
-}
-.tag-medium {
-  background: #FFF3E0;
-  color: #E65100;
-}
-.tag-hard {
+.tab-tag-wrong {
   background: #FFEBEE;
   color: #C62828;
 }
-.tag-graphic {
-  font-size: 22rpx;
-  padding: 4rpx 12rpx;
-  border-radius: 8rpx;
-  background: #E3F2FD;
-  color: #1565C0;
+.tab-tag-unanswered {
+  background: #FFF3E0;
+  color: #E65100;
 }
-.card-content {
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
-  overflow: hidden;
-  font-size: 26rpx;
-  color: #555;
-  line-height: 1.6;
-  margin-bottom: 8rpx;
+
+/* ==================== 题目详情 ==================== */
+.detail-content {
+  padding: 20rpx 30rpx;
 }
-.card-knowledge-row {
-  display: flex;
-  align-items: center;
-  gap: 8rpx;
-}
-.tag-knowledge {
-  font-size: 22rpx;
-  color: #FFB300;
-  background: #FFF8E1;
-  padding: 4rpx 12rpx;
-  border-radius: 8rpx;
-}
-.tag-unmatched {
-  font-size: 20rpx;
-  color: #999;
-  background: #F5F5F5;
-  padding: 2rpx 8rpx;
-  border-radius: 6rpx;
-}
-.card-expand {
-  padding: 8rpx 12rpx;
-  margin-top: 4rpx;
-}
-.expand-icon {
-  font-size: 22rpx;
-  color: #999;
-}
-.card-detail {
-  padding: 0 24rpx 24rpx;
-  border-top: 2rpx solid #F0ECE0;
+.detail-card {
+  background: #fff;
+  border: 3rpx solid #E8E0D0;
+  border-radius: 20rpx;
+  padding: 24rpx;
+  margin-bottom: 16rpx;
 }
 .detail-label {
   display: block;
   font-size: 24rpx;
   color: #999;
-  margin-top: 16rpx;
-  margin-bottom: 4rpx;
+  font-weight: 600;
+  margin-bottom: 12rpx;
 }
-.detail-content {
+.detail-img-wrap {
+  border-radius: 12rpx;
+  overflow: hidden;
+  background: #F9F6EE;
+}
+.detail-img {
+  width: 100%;
   display: block;
-  font-size: 26rpx;
+}
+.detail-text {
+  display: block;
+  font-size: 28rpx;
   color: #333;
-  line-height: 1.6;
+  line-height: 1.7;
+}
+.detail-row {
+  display: flex;
+  gap: 16rpx;
+}
+.detail-half {
+  flex: 1;
+}
+.detail-tag {
+  display: inline-block;
+  font-size: 24rpx;
+  padding: 6rpx 16rpx;
+  border-radius: 10rpx;
+  font-weight: 500;
+}
+.tag-knowledge {
+  color: #FFB300;
+  background: #FFF8E1;
+}
+.tag-diff-easy {
+  background: #E8F5E9;
+  color: #2E7D32;
+}
+.tag-diff-medium {
+  background: #FFF3E0;
+  color: #E65100;
+}
+.tag-diff-hard {
+  background: #FFEBEE;
+  color: #C62828;
 }
 
-/* ==================== 底部固定栏 ==================== */
+/* ==================== 底部操作栏 ==================== */
 .bottom-bar {
   position: fixed;
-  bottom: 0;
+  bottom: calc(128rpx + env(safe-area-inset-bottom));
   left: 0;
   right: 0;
   background: #fff;
   border-top: 2rpx solid #E8E0D0;
-  padding: 20rpx 30rpx calc(20rpx + env(safe-area-inset-bottom));
+  padding: 20rpx 30rpx;
   display: flex;
   align-items: center;
   justify-content: space-between;
   z-index: 99;
+  box-shadow: 0 -4rpx 12rpx rgba(0, 0, 0, 0.05);
 }
 .bottom-left {
   display: flex;
@@ -442,11 +335,6 @@
   font-size: 28rpx;
   font-weight: 600;
   color: #333;
-}
-.bottom-training {
-  font-size: 22rpx;
-  color: #999;
-  margin-top: 4rpx;
 }
 .bottom-actions {
   display: flex;
@@ -463,9 +351,6 @@
   color: #fff;
   font-size: 28rpx;
   font-weight: 600;
-  padding: 16rpx 36rpx;
+  padding: 16rpx 40rpx;
   border-radius: 16rpx;
-}
-.btn-disabled {
-  opacity: 0.4;
 }

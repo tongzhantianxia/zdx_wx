@@ -25,28 +25,29 @@ function checkRateLimit(openid) {
   return { allowed: true };
 }
 
-const SYSTEM_PROMPT = `你是一个小学数学试卷识别助手。请分析图片中的数学题目，返回 JSON 格式结果。
+const SYSTEM_PROMPT = `你是小学数学试卷批改助手。请识别图片中每道题目，判断作答状态，并分析知识点。
+只输出纯JSON，不加任何其他内容。格式：
+{"questions":[{"index":1,"content":"完整题目文本","status":"unanswered|wrong|correct","brief":"题目开头10个字","position":{"top":0.0,"bottom":0.0},"grade":"X年级","semester":"upper或lower","knowledgePoint":"知识点名称","difficulty":"easy|medium|hard","hasGraphic":false,"graphicDesc":null}]}
 
-要求：
-1. 识别每道独立的题目，按顺序编号
-2. 提取完整题目文本，包含所有条件和问题
-3. 如果题目包含图形/图表，用文字详细描述图形内容
-4. 标注每道题在图片中的位置（top 和 bottom，0-1 之间的比例值）
-5. 分析每道题对应的数学知识点（参考人教版小学数学）
-6. 评估难度：easy（基础计算/概念）、medium（需要多步推理）、hard（综合应用/拓展）
+status判断规则：
+- unanswered: 题目没有写答案，空白未作答
+- wrong: 有答案但明显错误（如计算错误、答案不合理），或者有老师批改的叉号/红色标记
+- correct: 答案正确，或有老师批改的勾号
 
-只输出纯JSON，不加其他内容。格式：
-{"questions":[{"index":1,"content":"完整题目文本","position":{"top":0.0,"bottom":0.0},"knowledgePoint":"知识点名称","difficulty":"easy|medium|hard","hasGraphic":false,"graphicDesc":null}]}`;
+position: top/bottom是题目区域在图片高度中的比例(0-1)
+grade: 根据题目内容判断属于几年级(一年级~六年级)
+semester: 根据知识点判断属于上册(upper)还是下册(lower)
+difficulty: easy=基础计算, medium=多步推理, hard=综合应用`;
 
-function buildUserPrompt(grade) {
-  return `请识别这张${grade}数学试卷/作业中的所有题目。`;
-}
+const VALID_GRADES = ['一年级', '二年级', '三年级', '四年级', '五年级', '六年级'];
 
-function parseOcrResponse(content) {
+function parseResponse(content) {
   if (!content) throw new Error('API响应为空');
-  console.log('[OCR原始响应]', content.slice(0, 300));
+  console.log('[OCR响应]', content.slice(0, 500));
 
   let jsonStr = content.trim().replace(/```json?|```/g, '').trim();
+  const thinkEnd = jsonStr.lastIndexOf('</think>');
+  if (thinkEnd !== -1) jsonStr = jsonStr.slice(thinkEnd + 8).trim();
   const match = jsonStr.match(/\{[\s\S]*\}/);
   if (!match) throw new Error('未找到JSON内容');
 
@@ -54,18 +55,31 @@ function parseOcrResponse(content) {
   if (!parsed.questions || !Array.isArray(parsed.questions)) {
     throw new Error('题目列表格式错误');
   }
-  return parsed.questions.map((q, i) => ({
-    index: q.index || i + 1,
-    content: String(q.content || '').trim(),
-    position: {
-      top: Math.max(0, Math.min(1, Number(q.position?.top) || 0)),
-      bottom: Math.max(0, Math.min(1, Number(q.position?.bottom) || 1))
-    },
-    knowledgePoint: String(q.knowledgePoint || '').trim(),
-    difficulty: ['easy', 'medium', 'hard'].includes(q.difficulty) ? q.difficulty : 'medium',
-    hasGraphic: !!q.hasGraphic,
-    graphicDesc: q.hasGraphic ? String(q.graphicDesc || '').trim() || null : null
-  }));
+  return parsed.questions.map((q, i) => {
+    let grade = String(q.grade || '').trim();
+    if (!VALID_GRADES.includes(grade)) grade = '五年级';
+    let semester = String(q.semester || '').trim();
+    if (!['upper', 'lower'].includes(semester)) semester = 'upper';
+    let status = String(q.status || '').trim();
+    if (!['unanswered', 'wrong', 'correct'].includes(status)) status = 'unanswered';
+
+    return {
+      index: q.index || i + 1,
+      content: String(q.content || '').trim(),
+      brief: String(q.brief || '').trim().slice(0, 20),
+      status,
+      position: {
+        top: Math.max(0, Math.min(1, Number(q.position?.top) || 0)),
+        bottom: Math.max(0, Math.min(1, Number(q.position?.bottom) || 1))
+      },
+      grade,
+      semester,
+      knowledgePoint: String(q.knowledgePoint || '').trim(),
+      difficulty: ['easy', 'medium', 'hard'].includes(q.difficulty) ? q.difficulty : 'medium',
+      hasGraphic: !!q.hasGraphic,
+      graphicDesc: q.hasGraphic ? String(q.graphicDesc || '').trim() || null : null
+    };
+  });
 }
 
 exports.main = async (event, context) => {
@@ -73,7 +87,7 @@ exports.main = async (event, context) => {
   const openid = wxContext.OPENID;
   const requestId = `ocr_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
 
-  console.log('[ocrRecognize] 开始:', JSON.stringify({ requestId, fileID: event.fileID, grade: event.grade }));
+  console.log('[ocrRecognize]', JSON.stringify({ requestId, fileID: event.fileID }));
 
   if (!openid) {
     return { success: false, error: '请先登录后再使用', code: 'UNAUTHORIZED' };
@@ -89,19 +103,9 @@ exports.main = async (event, context) => {
     };
   }
 
-  const { fileID, grade, semester } = event;
-  if (!fileID || !grade) {
+  const { fileID } = event;
+  if (!fileID) {
     return { success: false, error: '缺少必要参数', code: 'INVALID_PARAMS' };
-  }
-
-  const validGrades = ['一年级', '二年级', '三年级', '四年级', '五年级', '六年级'];
-  if (!validGrades.includes(grade)) {
-    return { success: false, error: '年级参数无效', code: 'INVALID_PARAMS' };
-  }
-
-  const validSemesters = ['upper', 'lower'];
-  if (semester && !validSemesters.includes(semester)) {
-    return { success: false, error: '学期参数无效', code: 'INVALID_PARAMS' };
   }
 
   const apiKey = process.env.QWEN_API_KEY || process.env.AI_API_KEY;
@@ -109,7 +113,6 @@ exports.main = async (event, context) => {
     return { success: false, error: '服务配置错误', code: 'CONFIG_ERROR' };
   }
 
-  // Track upload for cleanup
   try {
     const db = cloud.database();
     await db.collection('ocr_uploads').add({
@@ -125,7 +128,7 @@ exports.main = async (event, context) => {
     const base64 = buffer.toString('base64');
     const dataUrl = `data:image/jpeg;base64,${base64}`;
 
-    console.log('[ocrRecognize] 图片下载完成, size:', buffer.length);
+    console.log('[ocrRecognize] 图片大小:', buffer.length);
 
     const client = new OpenAI({
       apiKey,
@@ -133,8 +136,6 @@ exports.main = async (event, context) => {
       timeout: 50000,
       maxRetries: 1
     });
-
-    const userPrompt = buildUserPrompt(grade);
 
     let questions;
     for (let attempt = 0; attempt < 2; attempt++) {
@@ -147,7 +148,7 @@ exports.main = async (event, context) => {
               role: 'user',
               content: [
                 { type: 'image_url', image_url: { url: dataUrl } },
-                { type: 'text', text: userPrompt }
+                { type: 'text', text: '请识别这张小学数学试卷中的所有题目，判断每道题的作答状态（未答/错误/正确），并分析知识点。' }
               ]
             }
           ],
@@ -156,7 +157,7 @@ exports.main = async (event, context) => {
         });
 
         const content = completion.choices?.[0]?.message?.content;
-        questions = parseOcrResponse(content);
+        questions = parseResponse(content);
         break;
       } catch (parseErr) {
         console.warn(`[ocrRecognize] attempt ${attempt + 1} failed:`, parseErr.message);
@@ -172,28 +173,26 @@ exports.main = async (event, context) => {
       };
     }
 
-    const effectiveSemester = semester || 'upper';
     const enriched = questions.map(q => {
-      const match = matchKnowledge(q.knowledgePoint, grade, effectiveSemester);
-      return { ...q, knowledgeId: match.knowledgeId, knowledgeName: match.knowledgeName };
+      const km = matchKnowledge(q.knowledgePoint, q.grade, q.semester);
+      return { ...q, knowledgeId: km.knowledgeId, knowledgeName: km.knowledgeName };
     });
 
+    const needImprove = enriched.filter(q => q.status !== 'correct');
+
     console.log('[ocrRecognize] 完成:', JSON.stringify({
-      requestId, questionCount: enriched.length,
-      matchedCount: enriched.filter(q => q.knowledgeId).length
+      requestId,
+      total: enriched.length,
+      needImprove: needImprove.length
     }));
 
-    return { success: true, questions: enriched };
+    return { success: true, questions: enriched, needImprove };
 
   } catch (error) {
-    console.error('[ocrRecognize] 失败:', JSON.stringify({
-      requestId, message: error.message, status: error.status || null
-    }));
-
+    console.error('[ocrRecognize] 失败:', error.message);
     let userMessage = '识别失败，请重新拍照';
     if (error.status === 429) userMessage = '请求过于频繁，请稍后再试';
     else if (error.code === 'ETIMEDOUT' || error.code === 'ECONNRESET') userMessage = '网络超时，请重试';
-
     return { success: false, error: userMessage, code: 'OCR_ERROR' };
   }
 };

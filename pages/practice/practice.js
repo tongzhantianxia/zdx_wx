@@ -110,7 +110,7 @@ Page({
   },
 
   runOcrGenerate: async function (analyzed) {
-    const DIFFICULTY_COUNT = { easy: 2, medium: 3, hard: 5 };
+    const FIXED_COUNT = 4;
     const questionMode = wx.getStorageSync('questionMode') || 'bank';
 
     if (!analyzed.length) {
@@ -121,7 +121,6 @@ Page({
 
     try {
       const genCalls = analyzed.map(q => {
-        const count = DIFFICULTY_COUNT[q.difficulty] || 3;
         const gradeLabel = q.grade || '五年级';
 
         if (q.knowledgeId) {
@@ -132,7 +131,7 @@ Page({
               knowledgeId: q.knowledgeId,
               knowledgeName: q.knowledgeName,
               grade: gradeLabel,
-              count,
+              count: FIXED_COUNT,
               difficulty: q.difficulty || 'medium',
               questionType: 'calculation',
               existingQuestions: []
@@ -148,7 +147,7 @@ Page({
           data: {
             knowledgeName: (q.knowledgePoint || '数学题').slice(0, 50),
             grade: gradeLabel,
-            count,
+            count: FIXED_COUNT,
             difficulty: q.difficulty || 'medium',
             questionType: 'calculation',
             existingQuestions: [],

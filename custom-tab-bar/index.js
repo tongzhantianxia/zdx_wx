@@ -4,12 +4,12 @@ Component({
     list: [
       {
         pagePath: '/pages/improve/improve',
-        text: '提高',
+        text: '错题',
         icon: 'improve'
       },
       {
         pagePath: '/pages/practice-select/practice-select',
-        text: '练习',
+        text: '针对练习',
         icon: 'practice'
       },
       {
