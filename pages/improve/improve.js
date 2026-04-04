@@ -1,19 +1,21 @@
 const app = getApp();
 
 const QUESTIONS_PER_ERROR = 4;
+const RESET_STATE = {
+  imagePath: '',
+  questions: [],
+  cloudFileID: '',
+  totalCount: 0,
+  improveCount: 0,
+  activeTab: 0,
+  currentDetail: null
+};
 
 Page({
   data: {
     statusBarHeight: getApp().globalData.statusBarHeight || wx.getSystemInfoSync().statusBarHeight,
     pageState: 'idle',
-    imagePath: '',
-    uploadProgress: 0,
-    questions: [],
-    cloudFileID: '',
-    totalCount: 0,
-    improveCount: 0,
-    activeTab: 0,
-    currentDetail: null
+    ...RESET_STATE
   },
 
   onShow() {
@@ -23,23 +25,14 @@ Page({
   },
 
   chooseImage() {
-    const self = this;
     wx.chooseMedia({
       count: 1,
       mediaType: ['image'],
       sourceType: ['album', 'camera'],
-      success(res) {
+      success: (res) => {
         const tempFilePath = res.tempFiles[0].tempFilePath;
-        self.setData({
-          imagePath: tempFilePath,
-          questions: [],
-          cloudFileID: '',
-          totalCount: 0,
-          improveCount: 0,
-          activeTab: 0,
-          currentDetail: null
-        });
-        self.uploadAndRecognize(tempFilePath);
+        this.setData({ ...RESET_STATE, imagePath: tempFilePath });
+        this.uploadAndRecognize(tempFilePath);
       }
     });
   },
@@ -114,10 +107,7 @@ Page({
 
   switchTab(e) {
     const tab = e.currentTarget.dataset.tab;
-    this.setData({
-      activeTab: tab,
-      currentDetail: this.data.questions[tab]
-    });
+    this.setData({ activeTab: tab, currentDetail: this.data.questions[tab] });
   },
 
   startTraining() {
@@ -141,16 +131,8 @@ Page({
   },
 
   retakePhoto() {
-    this.setData({
-      pageState: 'idle',
-      imagePath: '',
-      questions: [],
-      cloudFileID: '',
-      totalCount: 0,
-      improveCount: 0,
-      activeTab: 0,
-      currentDetail: null
-    });
+    this.setData({ pageState: 'idle', ...RESET_STATE });
     this.chooseImage();
   }
 });
+

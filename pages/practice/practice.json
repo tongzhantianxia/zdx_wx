@@ -7,6 +7,7 @@
     "duck-animation": "/components/duck-animation/duck-animation",
     "math-text": "/components/math-text/math-text",
     "geometry-canvas": "/components/geometry-canvas/geometry-canvas",
-    "math-input": "/components/math-input/math-input"
+    "math-input": "/components/math-input/math-input",
+    "number-line": "/components/number-line/number-line"
   }
 }

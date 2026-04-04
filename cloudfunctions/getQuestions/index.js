@@ -74,7 +74,10 @@ exports.main = async (event, context) => {
 
   try {
     const doneIds = await getDoneIds(openid, knowledgeId);
+    console.log('[getQuestions] doneIds:', doneIds.length);
+
     const bankQuestions = await queryBank({ knowledgeId, questionType, difficulty, doneIds, count: numCount });
+    console.log('[getQuestions] bankQuestions:', bankQuestions.length);
 
     const formatted = bankQuestions.map((q, i) => formatBankQuestion(q, i));
     const sources = [];
@@ -87,6 +90,7 @@ exports.main = async (event, context) => {
       if (formatted.length > 0) sources.push('question_bank');
 
       const aiNeeded = numCount - formatted.length;
+      console.log('[getQuestions] bank不足，需AI生成:', aiNeeded);
       try {
         const aiResult = await cloud.callFunction({
           name: 'generateQuestions',
@@ -106,6 +110,8 @@ exports.main = async (event, context) => {
         });
 
         const aiData = aiResult.result;
+        console.log('[getQuestions] AI返回:', JSON.stringify({ success: aiData && aiData.success, questionCount: aiData && aiData.questions && aiData.questions.length, error: aiData && aiData.error, code: aiData && aiData.code }));
+
         if (aiData && aiData.success && aiData.questions) {
           const aiFormatted = aiData.questions.map((q, i) => ({
             ...q,
@@ -117,10 +123,11 @@ exports.main = async (event, context) => {
 
           backfillAiQuestions(knowledgeId, knowledgeName, grade, difficulty, questionType, aiData.questions);
         } else {
+          console.warn('[getQuestions] AI未返回有效题目');
           allQuestions = formatted;
         }
       } catch (aiErr) {
-        console.error('[getQuestions] AI fallback error:', aiErr.message);
+        console.error('[getQuestions] AI fallback error:', aiErr.message, aiErr.stack);
         allQuestions = formatted;
       }
     }

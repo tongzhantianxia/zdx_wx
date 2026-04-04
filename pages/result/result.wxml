@@ -75,4 +75,4 @@
 </view>
 
 <!-- 金色鸭子动画 -->
-<duck-animation id="duckAnimResult" bind:done="onGoldenDuckAnimDone"></duck-animation>
+<duck-animation id="duckAnimResult"></duck-animation>

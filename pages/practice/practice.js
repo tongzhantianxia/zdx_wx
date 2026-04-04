@@ -1,5 +1,6 @@
 // pages/practice/practice.js
 const app = getApp();
+const duckManager = require('../../utils/duckManager.js');
 
 Page({
   data: {
@@ -24,13 +25,14 @@ Page({
   },
 
   onLoad: function (options) {
+    console.log('[practice] onLoad, source:', options.source, 'hasData:', !!app.globalData.currentQuestions);
     const type = options.type || 'random';
     const source = options.source || 'database';
     this.setData({ practiceType: type });
 
-    // 如果是从生成的题目加载
     if (source === 'generated' && app.globalData.currentQuestions) {
       const data = app.globalData.currentQuestions;
+      console.log('[practice] loadQuestionsFromData, questions:', data.questions && data.questions.length, 'hasParams:', !!data.generateParams);
       this.loadQuestionsFromData(data);
     } else if (options.data) {
       // 如果有通过 URL 参数传递的题目数据,直接使用
@@ -255,23 +257,28 @@ Page({
     this.questionQueue = [];
     this.destroyed = false;
     this.consecutiveFailures = 0;
-    this.allExistingContents = [String(raw.content)];
+    const firstContent = raw.contentBlocks
+      ? raw.contentBlocks.map(b => b.value || '').join('')
+      : String(raw.content || '');
+    this.allExistingContents = [firstContent];
 
     const first = this.formatSingleQuestion(raw);
     this.accumulatedQuestions = [first];
+
+    console.log('[practice] initProgressive, first:', JSON.stringify(first).slice(0, 200));
 
     this.setData({
       questions: this.accumulatedQuestions,
       totalQuestions: this.targetCount,
       currentQuestion: first,
-      practiceType: meta?.questionType || 'calculation',
+      practiceType: meta && meta.questionType || 'calculation',
       knowledgeInfo: knowledge,
       meta: meta,
       progressPercent: (1 / this.targetCount) * 100,
       waitingForNext: false
     });
 
-    console.log('渐进练习，目标题数:', this.targetCount);
+    console.log('[practice] setData done, currentQuestion:', !!this.data.currentQuestion, 'waitingForNext:', this.data.waitingForNext);
 
     setTimeout(() => {
       if (!this.destroyed) {
@@ -563,11 +570,6 @@ Page({
     this.setData({ showHint: true });
   },
 
-  // 收起键盘
-  hideKeyboard: function () {
-    wx.hideKeyboard();
-  },
-
   // 提交答案
   handleSubmit: function () {
     if (this.data.waitingForNext) return;
@@ -592,7 +594,6 @@ Page({
     };
 
     // 鸭子动画逻辑：先算出动画类型，再决定是否延迟显示反馈
-    const duckManager = require('../../utils/duckManager.js');
     let duckResult;
     if (isCorrect) {
       duckResult = duckManager.onCorrectAnswer();
@@ -747,7 +748,6 @@ Page({
     };
 
     // 鸭子连胜判定
-    const duckManager = require('../../utils/duckManager.js');
     const allCorrect = correctCount === totalQuestions;
     const sessionResult = duckManager.onSessionEnd(allCorrect);
     app.globalData.currentPractice.goldenDuckEarned = sessionResult.goldenDuckEarned;

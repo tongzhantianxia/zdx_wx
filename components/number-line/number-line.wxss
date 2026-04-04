@@ -1,0 +1,10 @@
+.number-line-container {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  padding: 10px 0;
+}
+
+.number-line-canvas {
+  display: block;
+}

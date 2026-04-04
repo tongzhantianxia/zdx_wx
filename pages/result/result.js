@@ -64,10 +64,6 @@ Page({
     });
   },
 
-  onGoldenDuckAnimDone: function () {
-    // 金鸭动画播放完毕，无需额外操作
-  },
-
   // 分享
   onShareAppMessage: function () {
     return {

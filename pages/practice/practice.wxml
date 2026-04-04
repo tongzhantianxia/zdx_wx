@@ -47,7 +47,17 @@
     <view class="question-body">
       <math-text blocks="{{currentQuestion.contentBlocks}}" />
     </view>
+    <!-- 几何图形 -->
     <geometry-canvas wx:if="{{currentQuestion.diagram}}" diagram="{{currentQuestion.diagram}}" />
+    <!-- 数轴 -->
+    <number-line 
+      wx:if="{{currentQuestion.numberLine}}" 
+      start="{{currentQuestion.numberLine.start}}"
+      end="{{currentQuestion.numberLine.end}}"
+      step="{{currentQuestion.numberLine.step}}"
+      highlightPoints="{{currentQuestion.numberLine.highlightPoints}}"
+      labels="{{currentQuestion.numberLine.labels}}"
+    />
     <!-- 提示 -->
     <view class="hint-box" wx:if="{{showHint && currentQuestion.hint}}">
       <text class="hint-icon">💡</text>

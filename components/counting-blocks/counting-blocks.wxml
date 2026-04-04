@@ -1,0 +1,1 @@
+<canvas type="2d" id="countingCanvas" style="width: {{width}}px; height: {{height}}px;"></canvas>

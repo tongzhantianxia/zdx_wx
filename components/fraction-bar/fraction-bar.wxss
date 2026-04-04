@@ -1,0 +1,3 @@
+.fraction-bar {
+  display: block;
+}

@@ -138,6 +138,15 @@ dist
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 
+# WeChat miniprogram npm build output
+miniprogram_npm/
+
+# Cloud function lock files (cloud installs deps independently)
+cloudfunctions/*/package-lock.json
+
+# Root lock file
+package-lock.json
+
 # Superpowers brainstorm artifacts
 .superpowers/
 .claude/
