@@ -111,8 +111,7 @@
             class="tab-item {{activeTab === index ? 'tab-active' : ''}}"
             bindtap="switchTab"
             data-tab="{{index}}">
-            <text class="tab-label">题目{{item.index}}</text>
-            <text class="tab-tag tab-tag-{{item.status}}">{{item.status === 'wrong' ? '错题' : '未答'}}</text>
+            <text class="tab-label">错题{{item.errorIndex}}</text>
           </view>
         </view>
       </scroll-view>

@@ -36,71 +36,13 @@ Page({
       sourceType: ['album', 'camera'],
       success: (res) => {
         const tempFilePath = res.tempFiles[0].tempFilePath;
-        this.setData({ ...RESET_STATE, imagePath: tempFilePath, pageState: 'uploading', uploadProgress: 0 });
-        this.uploadAndRecognize(tempFilePath);
+        this.setData({ ...RESET_STATE, imagePath: tempFilePath });
+        this.initCropping(tempFilePath);
       }
     });
   },
 
-  // ==================== Upload & Recognize ====================
-
-  async uploadAndRecognize(filePath) {
-    try {
-      const timestamp = Date.now();
-      const cloudPath = `ocr/${timestamp}_${Math.random().toString(36).slice(2, 8)}.jpg`;
-      const uploadRes = await new Promise((resolve, reject) => {
-        const task = wx.cloud.uploadFile({ cloudPath, filePath, success: resolve, fail: reject });
-        task.onProgressUpdate(res => { this.setData({ uploadProgress: res.progress }); });
-      });
-
-      this.setData({ pageState: 'analyzing', cloudFileID: uploadRes.fileID });
-
-      const ocrRes = await wx.cloud.callFunction({
-        name: 'ocrRecognize',
-        data: { fileID: uploadRes.fileID }
-      });
-
-      const result = ocrRes.result;
-
-      if (result.code === 'RATE_LIMITED') {
-        wx.showToast({ title: `操作太频繁，请${result.waitTime}秒后再试`, icon: 'none' });
-        this.setData({ pageState: 'idle' });
-        return;
-      }
-
-      if (!result.success || !result.questions || result.questions.length === 0) {
-        wx.showToast({ title: result.error || '未识别到题目，建议拍清晰一些', icon: 'none', duration: 3000 });
-        this.setData({ pageState: 'idle' });
-        return;
-      }
-
-      // Check rotation — if image is not upright, ask user to retake
-      const rotation = result.rotation || 0;
-      if (rotation !== 0) {
-        wx.showModal({
-          title: '照片方向不对',
-          content: '请将照片旋转到正确方向后重新拍照',
-          showCancel: false,
-          confirmText: '重新拍照',
-          success: () => {
-            this.setData({ pageState: 'idle' });
-            this.chooseImage();
-          }
-        });
-        return;
-      }
-
-      this._ocrResult = result;
-      this.initCropping(filePath);
-
-    } catch (err) {
-      console.error('[improve] uploadAndRecognize error:', err);
-      wx.showToast({ title: '识别失败，请重试', icon: 'none' });
-      this.setData({ pageState: 'idle' });
-    }
-  },
-
-  // ==================== Cropping ====================
+  // ==================== Cropping (before OCR) ====================
 
   initCropping(filePath) {
     wx.getImageInfo({
@@ -127,7 +69,7 @@ Page({
         });
       },
       fail: () => {
-        this.showResults();
+        this.uploadAndRecognize(filePath);
       }
     });
   },
@@ -217,42 +159,128 @@ Page({
 
   confirmCrop() {
     const box = this.data.cropBox;
+    const disp = this.data.imgDisplay;
+    const isFullImage = box.x === 0 && box.y === 0 && box.w === disp.width && box.h === disp.height;
+
+    if (isFullImage) {
+      // No crop needed, upload original
+      this.uploadAndRecognize(this.data.imagePath);
+      return;
+    }
+
+    // Crop the selected region via canvas
     const scale = 1 / this._dispScale;
+    const sx = Math.round(box.x * scale);
     const sy = Math.round(box.y * scale);
+    const sw = Math.round(box.w * scale);
     const sh = Math.round(box.h * scale);
 
-    const result = this._ocrResult;
-    if (!result || !result.questions || result.questions.length === 0) {
-      wx.showToast({ title: '未识别到题目', icon: 'none' });
-      this.setData({ pageState: 'idle' });
-      return;
-    }
+    const query = this.createSelectorQuery();
+    query.select('#cropCanvas').fields({ node: true }).exec((res) => {
+      if (!res || !res[0] || !res[0].node) {
+        this.uploadAndRecognize(this.data.imagePath);
+        return;
+      }
+      const canvas = res[0].node;
+      const ctx = canvas.getContext('2d');
+      canvas.width = sw;
+      canvas.height = sh;
 
-    const cropTop = sy / (this._imgNaturalH || 1);
-    const cropBottom = (sy + sh) / (this._imgNaturalH || 1);
-    const allQuestions = result.questions;
-    const inCrop = allQuestions.filter(q => {
-      if (!q.position) return true;
-      const qMid = (q.position.top + q.position.bottom) / 2;
-      return qMid >= cropTop - 0.05 && qMid <= cropBottom + 0.05;
+      const img = canvas.createImage();
+      img.onload = () => {
+        ctx.drawImage(img, sx, sy, sw, sh, 0, 0, sw, sh);
+        wx.canvasToTempFilePath({
+          canvas,
+          success: (tmpRes) => {
+            this.uploadAndRecognize(tmpRes.tempFilePath);
+          },
+          fail: () => {
+            this.uploadAndRecognize(this.data.imagePath);
+          }
+        });
+      };
+      img.onerror = () => {
+        this.uploadAndRecognize(this.data.imagePath);
+      };
+      img.src = this.data.imagePath;
     });
+  },
 
-    const needImprove = (inCrop.length > 0 ? inCrop : allQuestions).filter(q => q.status !== 'correct');
+  // ==================== Upload & Recognize ====================
 
-    if (needImprove.length === 0) {
-      wx.showToast({ title: '选区内无错题', icon: 'none', duration: 2000 });
+  async uploadAndRecognize(filePath) {
+    this.setData({ pageState: 'uploading', uploadProgress: 0 });
+
+    try {
+      const timestamp = Date.now();
+      const cloudPath = `ocr/${timestamp}_${Math.random().toString(36).slice(2, 8)}.jpg`;
+      const uploadRes = await new Promise((resolve, reject) => {
+        const task = wx.cloud.uploadFile({ cloudPath, filePath, success: resolve, fail: reject });
+        task.onProgressUpdate(res => { this.setData({ uploadProgress: res.progress }); });
+      });
+
+      this.setData({ pageState: 'analyzing', cloudFileID: uploadRes.fileID });
+
+      const ocrRes = await wx.cloud.callFunction({
+        name: 'ocrRecognize',
+        data: { fileID: uploadRes.fileID }
+      });
+
+      const result = ocrRes.result;
+
+      if (result.code === 'RATE_LIMITED') {
+        wx.showToast({ title: `操作太频繁，请${result.waitTime}秒后再试`, icon: 'none' });
+        this.setData({ pageState: 'idle' });
+        return;
+      }
+
+      if (!result.success || !result.questions || result.questions.length === 0) {
+        wx.showToast({ title: result.error || '未识别到题目，建议拍清晰一些', icon: 'none', duration: 3000 });
+        this.setData({ pageState: 'idle' });
+        return;
+      }
+
+      const rotation = result.rotation || 0;
+      if (rotation !== 0) {
+        wx.showModal({
+          title: '照片方向不对',
+          content: '请将照片旋转到正确方向后重新拍照',
+          showCancel: false,
+          confirmText: '重新拍照',
+          success: () => {
+            this.setData({ pageState: 'idle' });
+            this.chooseImage();
+          }
+        });
+        return;
+      }
+
+      const allQuestions = result.questions;
+      const needImprove = allQuestions.filter(q => q.status !== 'correct');
+
+      if (needImprove.length === 0) {
+        wx.showToast({ title: '全部正确，无需提高', icon: 'none', duration: 2000 });
+        this.setData({ pageState: 'idle' });
+        return;
+      }
+
+      // Renumber: 错题1, 错题2, ...
+      needImprove.forEach((q, i) => { q.errorIndex = i + 1; });
+
+      this.setData({
+        pageState: 'result',
+        questions: needImprove,
+        totalCount: allQuestions.length,
+        improveCount: needImprove.length,
+        activeTab: 0,
+        currentDetail: needImprove[0]
+      });
+
+    } catch (err) {
+      console.error('[improve] uploadAndRecognize error:', err);
+      wx.showToast({ title: '识别失败，请重试', icon: 'none' });
       this.setData({ pageState: 'idle' });
-      return;
     }
-
-    this.setData({
-      pageState: 'result',
-      questions: needImprove,
-      totalCount: inCrop.length || allQuestions.length,
-      improveCount: needImprove.length,
-      activeTab: 0,
-      currentDetail: needImprove[0]
-    });
   },
 
   // ==================== Result interactions ====================
@@ -263,7 +291,7 @@ Page({
   },
 
   async startTraining() {
-    const { currentDetail, cloudFileID, generating } = this.data;
+    const { currentDetail, generating } = this.data;
     if (!currentDetail || generating) return;
 
     this.setData({ generating: true });
