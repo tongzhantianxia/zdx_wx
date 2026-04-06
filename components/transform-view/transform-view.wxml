@@ -1,0 +1,3 @@
+<view class="transform-view-wrap">
+  <canvas type="2d" id="transformCanvas" class="transform-canvas" style="width:{{canvasWidth}}px;height:{{canvasHeight}}px;"></canvas>
+</view>
