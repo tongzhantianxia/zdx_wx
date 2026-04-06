@@ -1,0 +1,10 @@
+.bar-chart-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 16rpx 0;
+}
+
+.bar-canvas {
+  display: block;
+}
