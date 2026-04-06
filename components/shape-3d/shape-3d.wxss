@@ -1,0 +1,10 @@
+.shape-3d-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 16rpx 0;
+}
+
+.shape-3d-canvas {
+  display: block;
+}
