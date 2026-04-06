@@ -1,8 +1,0 @@
-<view class="geo-canvas-wrap" style="width:100%; height:{{canvasHeight}}px;">
-  <canvas
-    type="2d"
-    id="geoCanvas"
-    class="geo-canvas"
-    style="width:{{canvasWidth}}px; height:{{canvasHeight}}px;"
-  ></canvas>
-</view>
