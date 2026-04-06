@@ -503,6 +503,7 @@ Page({
     const answerRecord = {
       questionId: currentQuestion.id,
       contentBlocks: currentQuestion.contentBlocks,
+      chartData: currentQuestion.chartData || null,
       correctAnswer: currentQuestion.answer,
       userAnswer,
       isCorrect,

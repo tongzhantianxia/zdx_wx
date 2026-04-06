@@ -4,6 +4,8 @@
   "navigationBarTextStyle": "black",
   "navigationStyle": "default",
   "usingComponents": {
-    "duck-animation": "/components/duck-animation/duck-animation"
+    "duck-animation": "/components/duck-animation/duck-animation",
+    "math-text": "/components/math-text/math-text",
+    "chart-renderer": "/components/chart-renderer/chart-renderer"
   }
 }

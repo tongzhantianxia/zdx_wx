@@ -36,6 +36,9 @@ Page({
     const app = getApp();
     const practice = app.globalData.currentPractice;
     if (practice) {
+      // 错题列表（用于答题回顾）
+      const wrongAnswers = (practice.answers || []).filter(a => !a.isCorrect);
+
       const duckData = practice.duckData || { total: 0, earned: 0 };
       const totalDucks = duckData.total || 0;
       const earned = practice.duckDelta?.earned || 0;
@@ -44,6 +47,7 @@ Page({
       const remainForTarget = Math.max(0, targetForGolden - totalDucks);
       
       this.setData({
+        wrongAnswers,
         duckDelta: practice.duckDelta || null,
         goldenDuckEarned: practice.goldenDuckEarned || false,
         consecutivePerfect: practice.consecutivePerfect || 0,

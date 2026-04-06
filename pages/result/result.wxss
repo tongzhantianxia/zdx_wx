@@ -226,6 +226,77 @@
   flex: 1;
 }
 
+/* ==================== 错题回顾 ==================== */
+.review-section {
+  margin: 0 24rpx 24rpx;
+}
+
+.review-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16rpx;
+}
+
+.review-title {
+  font-size: 30rpx;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.review-count {
+  font-size: 24rpx;
+  color: var(--text-sub);
+}
+
+.review-card {
+  background: #FFFFFF;
+  border-radius: 20rpx;
+  padding: 24rpx;
+  margin-bottom: 16rpx;
+  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.06);
+}
+
+.review-q-body {
+  font-size: 30rpx;
+  color: var(--text-main);
+  line-height: 1.7;
+  margin-bottom: 12rpx;
+}
+
+.review-answers {
+  margin-top: 16rpx;
+  padding-top: 16rpx;
+  border-top: 1rpx solid #f0f0f0;
+}
+
+.review-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 8rpx;
+}
+
+.review-label {
+  font-size: 26rpx;
+  color: var(--text-sub);
+  flex-shrink: 0;
+}
+
+.review-val {
+  font-size: 26rpx;
+  font-weight: 600;
+  margin-left: 8rpx;
+}
+
+.review-wrong .review-val {
+  color: var(--error);
+  text-decoration: line-through;
+}
+
+.review-correct .review-val {
+  color: var(--success);
+}
+
 /* ==================== 操作按钮 ==================== */
 .action-zone {
   width: 100%;

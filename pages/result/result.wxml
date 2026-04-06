@@ -72,6 +72,30 @@
     <text class="encourage-text">{{encouragement}}</text>
   </view>
 
+  <!-- 错题回顾 -->
+  <view class="review-section" wx:if="{{wrongAnswers && wrongAnswers.length > 0}}">
+    <view class="review-header">
+      <text class="review-title">错题回顾</text>
+      <text class="review-count">{{wrongAnswers.length}}道</text>
+    </view>
+    <view class="review-card" wx:for="{{wrongAnswers}}" wx:key="index">
+      <view class="review-q-body">
+        <math-text blocks="{{item.contentBlocks}}" />
+      </view>
+      <chart-renderer wx:if="{{item.chartData}}" chartData="{{item.chartData}}" />
+      <view class="review-answers">
+        <view class="review-row review-wrong">
+          <text class="review-label">你的答案：</text>
+          <text class="review-val">{{item.userAnswer}}</text>
+        </view>
+        <view class="review-row review-correct">
+          <text class="review-label">正确答案：</text>
+          <text class="review-val">{{item.correctAnswer}}</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
   <!-- 操作按钮区 -->
   <view class="action-zone">
     <button class="btn-continue" bindtap="handleContinue">
