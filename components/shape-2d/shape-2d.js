@@ -29,8 +29,7 @@ function shapeToShapes(data) {
     case 'rectangle': {
       const l = dim.length || 80;
       const w = dim.width || 50;
-      const maxDraw = 160;
-      const sc = Math.min(maxDraw / l, maxDraw / w, 1.5);
+      const sc = Math.min(160 / l, 120 / w);
       const sl = l * sc, sw = w * sc;
       const W = sl + pad.left + pad.right;
       const H = sw + pad.top + pad.bottom;
@@ -44,7 +43,7 @@ function shapeToShapes(data) {
     }
     case 'square': {
       const side = dim.side || 60;
-      const sc = Math.min(160 / side, 1.5);
+      const sc = 120 / side;
       const ss = side * sc;
       const W = ss + pad.left + pad.right;
       const H = ss + pad.top + pad.bottom;
@@ -57,8 +56,8 @@ function shapeToShapes(data) {
     }
     case 'circle': {
       const r = dim.radius || 50;
-      const sc = Math.min(80 / r, 1.5);
-      const sr = r * sc;
+      const sc = Math.min(80 / r, 80);
+      const sr = Math.max(r * sc, 40);
       const W = sr * 2 + pad.left + pad.right + 20;
       const H = sr * 2 + pad.top + pad.bottom;
       const cx = pad.left + sr + 10, cy = pad.top + sr;
@@ -72,7 +71,7 @@ function shapeToShapes(data) {
     case 'triangle': {
       const base = dim.base || 80;
       const height = dim.height || 60;
-      const sc = Math.min(160 / base, 120 / height, 1.5);
+      const sc = Math.min(160 / base, 120 / height);
       const sb = base * sc, sh = height * sc;
       const W = sb + pad.left + pad.right;
       const H = sh + pad.top + pad.bottom;
@@ -90,7 +89,7 @@ function shapeToShapes(data) {
       const base = dim.base || 80;
       const height = dim.height || 50;
       const offset = Math.round(height * 0.4);
-      const sc = Math.min(160 / (base + offset), 120 / height, 1.5);
+      const sc = Math.min(160 / (base + offset), 120 / height);
       const sb = base * sc, sh = height * sc, so = offset * sc;
       const W = sb + so + pad.left + pad.right;
       const H = sh + pad.top + pad.bottom;
@@ -112,7 +111,7 @@ function shapeToShapes(data) {
       const top = dim.top || 40;
       const base = dim.base || 80;
       const height = dim.height || 50;
-      const sc = Math.min(160 / base, 120 / height, 1.5);
+      const sc = Math.min(160 / base, 120 / height);
       const sb = base * sc, st = top * sc, sh = height * sc;
       const W = sb + pad.left + pad.right;
       const H = sh + pad.top + pad.bottom;
@@ -133,8 +132,8 @@ function shapeToShapes(data) {
     case 'sector': {
       const r = dim.radius || 60;
       const angle = dim.angle || 90;
-      const sc = Math.min(80 / r, 1.5);
-      const sr = r * sc;
+      const sc = Math.min(80 / r, 80);
+      const sr = Math.max(r * sc, 40);
       const W = sr * 2 + pad.left + pad.right;
       const H = sr * 2 + pad.top + pad.bottom;
       const cx = pad.left + sr, cy = pad.top + sr;
