@@ -644,6 +644,22 @@ Page({
     const { score, answers, totalQuestions, practiceType } = this.data;
     const correctCount = answers.filter(a => a.isCorrect).length;
 
+    // Save question summaries to local storage for cross-session dedup
+    if (this.generateParams && this.generateParams.knowledgeId) {
+      const historyKey = 'qHistory_' + this.generateParams.knowledgeId;
+      const existing = wx.getStorageSync(historyKey) || [];
+      const newSummaries = (this.accumulatedQuestions || this.data.questions || [])
+        .map(q => {
+          const text = (q.contentBlocks || []).map(b => b.value || '').join('');
+          return text.slice(0, 60);
+        })
+        .filter(Boolean);
+      const merged = existing.concat(newSummaries);
+      // Keep last 30 to avoid storage bloat
+      wx.setStorageSync(historyKey, merged.slice(-30));
+    }
+    const correctCount = answers.filter(a => a.isCorrect).length;
+
     app.globalData.currentPractice = {
       score,
       correctCount,

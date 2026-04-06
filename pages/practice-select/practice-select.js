@@ -188,6 +188,15 @@ Page({
     try {
       const sessionId = buildSessionId();
       const gradeLabel = this._gradeLabel();
+
+      // Load question history for this knowledge point to avoid repeats across sessions
+      const historyKey = 'qHistory_' + selectedKnowledge.id;
+      const history = wx.getStorageSync(historyKey) || [];
+
+      // Random variation hint so LLM doesn't always produce the same first question
+      const variations = ['用不同的数字', '换个情境', '变换题目条件', '用不同的物品', '换个场景'];
+      const randomHint = variations[Math.floor(Math.random() * variations.length)] + '_' + Date.now().toString(36);
+
       const res = await wx.cloud.callFunction({
         name: 'generateQuestions',
         data: {
@@ -198,8 +207,9 @@ Page({
           targetCount: selectedCount,
           difficulty: selectedDifficulty,
           questionType: 'calculation',
-          existingQuestions: [],
-          sessionId
+          existingQuestions: history.slice(-15),
+          sessionId,
+          prefetchHint: randomHint
         }
       });
 
