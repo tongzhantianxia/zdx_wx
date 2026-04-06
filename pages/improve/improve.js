@@ -8,14 +8,14 @@ const RESET_STATE = {
   totalCount: 0,
   improveCount: 0,
   activeTab: 0,
-  currentDetail: null
+  currentDetail: null,
+  generating: false
 };
 
 Page({
   data: {
     statusBarHeight: getApp().globalData.statusBarHeight || wx.getSystemInfoSync().statusBarHeight,
     pageState: 'idle',
-    // Cropping state
     cropBox: { x: 0, y: 0, w: 0, h: 0 },
     imgDisplay: { width: 0, height: 0, top: 0, left: 0 },
     canvasWidth: 0,
@@ -37,15 +37,15 @@ Page({
       success: (res) => {
         const tempFilePath = res.tempFiles[0].tempFilePath;
         this.setData({ ...RESET_STATE, imagePath: tempFilePath, pageState: 'uploading', uploadProgress: 0 });
-        this.autoRotateAndCrop(tempFilePath);
+        this.uploadAndRecognize(tempFilePath);
       }
     });
   },
 
-  // Upload to OCR first to detect rotation, then rotate locally, then show crop UI
-  async autoRotateAndCrop(filePath) {
+  // ==================== Upload & Recognize ====================
+
+  async uploadAndRecognize(filePath) {
     try {
-      // Upload original to get rotation info
       const timestamp = Date.now();
       const cloudPath = `ocr/${timestamp}_${Math.random().toString(36).slice(2, 8)}.jpg`;
       const uploadRes = await new Promise((resolve, reject) => {
@@ -74,56 +74,30 @@ Page({
         return;
       }
 
-      this._ocrResult = result;
+      // Check rotation — if image is not upright, ask user to retake
       const rotation = result.rotation || 0;
-
-      // If rotation needed, rotate image first
       if (rotation !== 0) {
-        const rotatedPath = await this.rotateImage(filePath, rotation);
-        this.setData({ imagePath: rotatedPath });
-        this.initCropping(rotatedPath);
-      } else {
-        this.initCropping(filePath);
+        wx.showModal({
+          title: '照片方向不对',
+          content: '请将照片旋转到正确方向后重新拍照',
+          showCancel: false,
+          confirmText: '重新拍照',
+          success: () => {
+            this.setData({ pageState: 'idle' });
+            this.chooseImage();
+          }
+        });
+        return;
       }
 
+      this._ocrResult = result;
+      this.initCropping(filePath);
+
     } catch (err) {
-      console.error('[improve] autoRotateAndCrop error:', err);
+      console.error('[improve] uploadAndRecognize error:', err);
       wx.showToast({ title: '识别失败，请重试', icon: 'none' });
       this.setData({ pageState: 'idle' });
     }
-  },
-
-  async rotateImage(filePath, rotation) {
-    const info = await new Promise((resolve, reject) => {
-      wx.getImageInfo({ src: filePath, success: resolve, fail: reject });
-    });
-
-    const query = this.createSelectorQuery();
-    const canvasNode = await new Promise((resolve) => {
-      query.select('#cropCanvas').fields({ node: true }).exec((res) => {
-        resolve(res && res[0] && res[0].node ? res[0].node : null);
-      });
-    });
-    if (!canvasNode) return filePath;
-
-    const ctx = canvasNode.getContext('2d');
-    const swap = rotation === 90 || rotation === 270;
-    canvasNode.width = swap ? info.height : info.width;
-    canvasNode.height = swap ? info.width : info.height;
-
-    const img = canvasNode.createImage();
-    await new Promise((resolve, reject) => { img.onload = resolve; img.onerror = reject; img.src = filePath; });
-
-    ctx.save();
-    ctx.translate(canvasNode.width / 2, canvasNode.height / 2);
-    ctx.rotate(rotation * Math.PI / 180);
-    ctx.drawImage(img, -info.width / 2, -info.height / 2, info.width, info.height);
-    ctx.restore();
-
-    const tmpRes = await new Promise((resolve, reject) => {
-      wx.canvasToTempFilePath({ canvas: canvasNode, success: resolve, fail: reject });
-    });
-    return tmpRes.tempFilePath;
   },
 
   // ==================== Cropping ====================
@@ -153,8 +127,7 @@ Page({
         });
       },
       fail: () => {
-        // Fallback: skip cropping, upload directly
-        this.uploadAndRecognize(filePath);
+        this.showResults();
       }
     });
   },
@@ -164,9 +137,8 @@ Page({
     const box = this.data.cropBox;
     const disp = this.data.imgDisplay;
     const tx = touch.clientX - disp.left;
-    const ty = touch.clientY - disp.top - 80; // offset for nav bar
+    const ty = touch.clientY - disp.top - 80;
 
-    // Determine which handle (corner or edge) is being dragged
     const margin = 30;
     const isTop = Math.abs(ty - box.y) < margin;
     const isBottom = Math.abs(ty - (box.y + box.h)) < margin;
@@ -208,8 +180,7 @@ Page({
       case 'tl':
         x = Math.max(0, Math.min(sb.x + dx, sb.x + sb.w - minSize));
         y = Math.max(0, Math.min(sb.y + dy, sb.y + sb.h - minSize));
-        w = sb.w - (x - sb.x);
-        h = sb.h - (y - sb.y);
+        w = sb.w - (x - sb.x); h = sb.h - (y - sb.y);
         break;
       case 'tr':
         w = Math.max(minSize, Math.min(sb.w + dx, disp.width - sb.x));
@@ -227,18 +198,14 @@ Page({
         break;
       case 't':
         y = Math.max(0, Math.min(sb.y + dy, sb.y + sb.h - minSize));
-        h = sb.h - (y - sb.y);
-        break;
+        h = sb.h - (y - sb.y); break;
       case 'b':
-        h = Math.max(minSize, Math.min(sb.h + dy, disp.height - sb.y));
-        break;
+        h = Math.max(minSize, Math.min(sb.h + dy, disp.height - sb.y)); break;
       case 'l':
         x = Math.max(0, Math.min(sb.x + dx, sb.x + sb.w - minSize));
-        w = sb.w - (x - sb.x);
-        break;
+        w = sb.w - (x - sb.x); break;
       case 'r':
-        w = Math.max(minSize, Math.min(sb.w + dx, disp.width - sb.x));
-        break;
+        w = Math.max(minSize, Math.min(sb.w + dx, disp.width - sb.x)); break;
     }
 
     this.setData({ cropBox: { x, y, w, h } });
@@ -251,12 +218,9 @@ Page({
   confirmCrop() {
     const box = this.data.cropBox;
     const scale = 1 / this._dispScale;
-    const sx = Math.round(box.x * scale);
     const sy = Math.round(box.y * scale);
-    const sw = Math.round(box.w * scale);
     const sh = Math.round(box.h * scale);
 
-    // OCR already done during autoRotateAndCrop, use cached result
     const result = this._ocrResult;
     if (!result || !result.questions || result.questions.length === 0) {
       wx.showToast({ title: '未识别到题目', icon: 'none' });
@@ -264,7 +228,6 @@ Page({
       return;
     }
 
-    // Filter questions whose position falls within the crop area
     const cropTop = sy / (this._imgNaturalH || 1);
     const cropBottom = (sy + sh) / (this._imgNaturalH || 1);
     const allQuestions = result.questions;
@@ -282,76 +245,14 @@ Page({
       return;
     }
 
-    // Extract per-question images from the (already rotated) image
-    this.extractQuestionImages(needImprove).then(() => {
-      this.setData({
-        pageState: 'result',
-        questions: needImprove,
-        totalCount: inCrop.length || allQuestions.length,
-        improveCount: needImprove.length,
-        activeTab: 0,
-        currentDetail: needImprove[0]
-      });
+    this.setData({
+      pageState: 'result',
+      questions: needImprove,
+      totalCount: inCrop.length || allQuestions.length,
+      improveCount: needImprove.length,
+      activeTab: 0,
+      currentDetail: needImprove[0]
     });
-  },
-
-  // ==================== Per-question image extraction (image already rotated) ====================
-
-  async extractQuestionImages(questions) {
-    const imgPath = this.data.imagePath;
-
-    try {
-      const info = await new Promise((resolve, reject) => {
-        wx.getImageInfo({ src: imgPath, success: resolve, fail: reject });
-      });
-
-      const query = this.createSelectorQuery();
-      const canvasNode = await new Promise((resolve) => {
-        query.select('#cropCanvas').fields({ node: true }).exec((res) => {
-          resolve(res && res[0] && res[0].node ? res[0].node : null);
-        });
-      });
-
-      if (!canvasNode) return;
-      const ctx = canvasNode.getContext('2d');
-
-      const img = canvasNode.createImage();
-      await new Promise((resolve, reject) => {
-        img.onload = resolve;
-        img.onerror = reject;
-        img.src = imgPath;
-      });
-
-      const natW = info.width;
-      const natH = info.height;
-
-      for (const q of questions) {
-        if (!q.position || q.position.top >= q.position.bottom) continue;
-
-        const top = Math.max(0, q.position.top - 0.01);
-        const bottom = Math.min(1, q.position.bottom + 0.01);
-        const sy = Math.round(top * natH);
-        const sh = Math.round((bottom - top) * natH);
-
-        const maxDim = 800;
-        const scale = Math.min(maxDim / natW, maxDim / sh, 1);
-        canvasNode.width = Math.round(natW * scale);
-        canvasNode.height = Math.round(sh * scale);
-        ctx.clearRect(0, 0, canvasNode.width, canvasNode.height);
-        ctx.drawImage(img, 0, sy, natW, sh, 0, 0, canvasNode.width, canvasNode.height);
-
-        try {
-          const tmpRes = await new Promise((resolve, reject) => {
-            wx.canvasToTempFilePath({ canvas: canvasNode, success: resolve, fail: reject });
-          });
-          q.questionImage = tmpRes.tempFilePath;
-        } catch (e) {
-          console.warn('[improve] extract question image failed:', e);
-        }
-      }
-    } catch (e) {
-      console.warn('[improve] extractQuestionImages error:', e);
-    }
   },
 
   // ==================== Result interactions ====================
@@ -361,34 +262,50 @@ Page({
     this.setData({ activeTab: tab, currentDetail: this.data.questions[tab] });
   },
 
-  previewQuestionImage() {
-    const src = this.data.currentDetail && this.data.currentDetail.questionImage;
-    if (!src) return;
-    wx.previewImage({ urls: [src], current: src });
-  },
+  async startTraining() {
+    const { currentDetail, cloudFileID, generating } = this.data;
+    if (!currentDetail || generating) return;
 
-  startTraining() {
-    const { currentDetail, cloudFileID } = this.data;
-    if (!currentDetail) return;
+    this.setData({ generating: true });
 
-    app.globalData.currentQuestions = {
-      questions: [],
-      knowledge: {
-        id: currentDetail.knowledgeId || 'mixed',
-        name: currentDetail.knowledgeName || currentDetail.knowledgePoint || '错题练习'
-      },
-      meta: {
-        questionType: 'calculation',
-        origin: 'ocr_improve',
-        pending: true,
-        cloudFileID,
-        selectedIndices: [currentDetail.index],
-        analyzedQuestions: [currentDetail],
-        expectedCount: QUESTIONS_PER_ERROR
+    try {
+      const gradeLabel = currentDetail.grade || '五年级';
+      const res = await wx.cloud.callFunction({
+        name: 'generateQuestions',
+        data: {
+          knowledgeId: currentDetail.knowledgeId || '',
+          knowledgeName: currentDetail.knowledgeName || currentDetail.knowledgePoint || '数学题',
+          grade: gradeLabel,
+          count: QUESTIONS_PER_ERROR,
+          difficulty: 'hard',
+          questionType: 'calculation',
+          existingQuestions: [],
+          prefetchHint: (currentDetail.content || '').slice(0, 80)
+        }
+      });
+
+      const result = res.result;
+      if (!result.success || !result.questions || result.questions.length === 0) {
+        throw new Error(result.error || '生成失败');
       }
-    };
 
-    wx.navigateTo({ url: '/pages/practice/practice' });
+      app.globalData.currentQuestions = {
+        questions: result.questions,
+        knowledge: {
+          id: currentDetail.knowledgeId || 'mixed',
+          name: currentDetail.knowledgeName || currentDetail.knowledgePoint || '错题练习'
+        },
+        meta: result.meta
+      };
+
+      wx.navigateTo({ url: '/pages/practice/practice' });
+
+    } catch (err) {
+      console.error('[improve] startTraining error:', err);
+      wx.showToast({ title: err.message || '生成失败，请重试', icon: 'none' });
+    } finally {
+      this.setData({ generating: false });
+    }
   },
 
   retakePhoto() {
