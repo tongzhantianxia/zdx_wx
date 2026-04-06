@@ -12,6 +12,7 @@ Page({
     questions: [],           // 题目列表
     currentQuestion: null,   // 当前题目
     userAnswer: '',          // 用户答案
+    selectedOption: -1,      // 选择题选中项索引（-1=未选）
     showHint: false,         // 显示提示
     showFeedback: false,     // 显示反馈
     isCorrect: false,        // 是否正确
@@ -252,6 +253,7 @@ Page({
       answer: String(q.answer || '').trim(),
       answerFormat: q.answerFormat || 'number',
       answerUnit: q.answerUnit || '',
+      options: Array.isArray(q.options) && q.options.length >= 2 ? q.options : null,
       type: q.type || '计算题',
       typeName: q.type || '计算题',
       difficulty: this.getDifficultyLevel(q.difficulty),
@@ -605,6 +607,15 @@ Page({
     });
   },
 
+  onOptionTap: function (e) {
+    const idx = e.currentTarget.dataset.index;
+    const option = this.data.currentQuestion.options[idx];
+    this.setData({
+      selectedOption: idx,
+      userAnswer: option
+    });
+  },
+
   // 显示提示
   showHintTap: function () {
     this.setData({ showHint: true });
@@ -687,6 +698,9 @@ Page({
   },
 
   checkAnswer: function (userAnswer, correctAnswer, answerFormat) {
+    if (answerFormat === 'text') {
+      return userAnswer === correctAnswer;
+    }
     if (answerFormat === 'fraction') {
       const userVal = this.parseFraction(userAnswer);
       const correctVal = this.parseFraction(correctAnswer);
@@ -722,7 +736,8 @@ Page({
     this.setData({
       showFeedback: false,
       showHint: false,
-      userAnswer: ''
+      userAnswer: '',
+      selectedOption: -1
     });
 
     const mathInput = this.selectComponent('#mathInput');

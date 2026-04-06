@@ -106,6 +106,7 @@ const SYSTEM_PROMPT = `你是小学数学出题专家，专门为小学生生成
 - 只有复杂公式用latex类型（分数 \\frac{a}{b}、根号 \\sqrt{x}）
 - 一二年级禁止使用latex！全部用text类型
 - answerFormat：纯数字用number，分数答案用fraction，文字答案用text
+- 当answerFormat为text时，必须同时生成options数组（4个选项，包含正确答案，随机排列）
 - chartData：不需要图表时设为null，需要图表时按指定格式输出
 
 【禁止出现的内容 - 绝对禁止】
@@ -218,9 +219,15 @@ const buildUserPrompt = (params) => {
   "answer": "答案",
   "answerFormat": "number",
   "answerUnit": "",
+  "options": null,
   "solutionBlocks": [{"type":"text","value":"解题步骤"}],
   "tip": "易错提示"
-}]}`;
+}]}
+
+【选项规则】
+- 当answerFormat为"text"时，必须提供options数组，包含4个选项（含正确答案），随机排列
+- 示例："answerFormat":"text","answer":"东北","options":["东北","西南","东南","西北"]
+- 当answerFormat为"number"或"fraction"时，options设为null`;
 
   if (chartType && CHART_PROMPT_TEMPLATES[chartType]) {
     text += `
@@ -360,6 +367,7 @@ const parseResponse = (content) => {
         answer: String(q.answer || '').trim(),
         answerFormat: q.answerFormat || 'number',
         answerUnit: q.answerUnit || '',
+        options: Array.isArray(q.options) && q.options.length >= 2 ? q.options : null,
         solutionBlocks: solution,
         tip: String(q.tip || '').trim()
       };
