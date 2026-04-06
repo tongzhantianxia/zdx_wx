@@ -108,6 +108,8 @@ const SYSTEM_PROMPT = `你是小学数学出题专家，专门为小学生生成
 - answerFormat：纯数字用number，分数答案用fraction，文字答案用text
 - 当answerFormat为text时，必须同时生成options数组（4个选项，包含正确答案，随机排列）
 - chartData：不需要图表时设为null，需要图表时按指定格式输出
+- chartData中的dimensions字段只传纯数字，不带单位（如8而非"8cm"）
+- chartData中不要传labels字段，图表标注由前端自动生成
 
 【禁止出现的内容 - 绝对禁止】
 
@@ -185,14 +187,14 @@ const findChartType = (knowledgeName) => {
 
 // chartType 对应的 prompt 模板
 const CHART_PROMPT_TEMPLATES = {
-  bar: `"chartData": {"chartType":"bar","data":{"title":"图表标题","xAxis":["标签1","标签2","标签3"],"yAxisLabel":"单位","series":[{"name":"系列名","data":[12,8,10]}]}}
-数据要合理，条数3-6个，数值为正整数。`,
+  bar: `"chartData": {"chartType":"bar","data":{"title":"图表标题","xAxis":["标签1","标签2","标签3"],"yAxisLabel":"人数","series":[{"name":"人数","data":[12,8,10]}]}}
+数据要合理，条数3-6个，数值为正整数。yAxisLabel填写纵轴单位名称。`,
 
-  line: `"chartData": {"chartType":"line","data":{"title":"图表标题","xAxis":["1月","2月","3月","4月"],"yAxisLabel":"单位","series":[{"name":"系列名","data":[20,35,28,40]}]}}
-数据点4-6个，展示变化趋势。`,
+  line: `"chartData": {"chartType":"line","data":{"title":"图表标题","xAxis":["1月","2月","3月","4月"],"yAxisLabel":"温度/℃","series":[{"name":"温度","data":[20,35,28,40]}]}}
+数据点4-6个，展示变化趋势。yAxisLabel填写纵轴单位名称。`,
 
-  pie: `"chartData": {"chartType":"pie","data":{"title":"图表标题","items":[{"label":"类别A","value":30},{"label":"类别B","value":25},{"label":"类别C","value":45}]}}
-项目3-5个，value为正整数，总和不要求为100。`,
+  pie: `"chartData": {"chartType":"pie","data":{"title":"图表标题","items":[{"label":"篮球","value":30},{"label":"足球","value":25},{"label":"跳绳","value":45}]}}
+项目3-5个，value为正整数，总和不要求为100。label为类别名称。`,
 
   clock: `"chartData": {"chartType":"clock","data":{"hour":3,"minute":30}}
 hour为1-12整数，minute为0-59整数。题目围绕认识时间展开。`,
@@ -200,35 +202,51 @@ hour为1-12整数，minute为0-59整数。题目围绕认识时间展开。`,
   table: `"chartData": {"chartType":"table","data":{"title":"统计表标题","headers":["项目","数量"],"rows":[["苹果",12],["香蕉",8]]}}
 表格2-4列，2-5行数据。`,
 
-  shape_2d: `"chartData": {"chartType":"shape_2d","data":{"shape":"rectangle","dimensions":{"length":8,"width":5},"labels":[{"text":"8cm","position":[125,155]},{"text":"5cm","position":[40,90]}]}}
-shape可选：rectangle/square/circle/triangle/parallelogram/trapezoid/sector。dimensions按图形提供对应字段。`,
+  shape_2d: `"chartData": {"chartType":"shape_2d","data":{"shape":"rectangle","dimensions":{"length":8,"width":5}}}
+shape可选：rectangle/square/circle/triangle/parallelogram/trapezoid/sector。
+dimensions只传纯数字（不带单位），对应字段：
+- rectangle: length, width
+- square: side
+- circle: radius
+- triangle: base, height
+- parallelogram: base, height
+- trapezoid: top, base, height
+- sector: radius, angle
+【重要】不要传labels字段，图表标注由系统自动生成。`,
 
   shape_3d: `"chartData": {"chartType":"shape_3d","data":{"shape":"cuboid","dimensions":{"length":8,"width":5,"height":4},"viewType":"3d"}}
-shape可选：cuboid/cube/cylinder/cone/sphere。viewType用"3d"。dimensions按图形类型提供。`,
+shape可选：cuboid/cube/cylinder/cone/sphere。viewType可选"3d"/"net"/"orthographic"。
+dimensions只传纯数字（不带单位），对应字段：
+- cuboid: length, width, height
+- cube: side
+- cylinder: radius, height
+- cone: radius, height
+- sphere: radius
+【重要】不要传labels字段，图表标注由系统自动生成。`,
 
   numberLine: `"chartData": {"chartType":"numberLine","data":{"start":0,"end":10,"step":1,"highlightPoints":[3,7],"labels":[{"position":3,"text":"A","above":true}]}}
-数轴范围合理，step为正数，highlightPoints标记关键点。`,
+数轴范围合理，step为正数，highlightPoints标记关键点。labels中text为标签文字（如字母、分数），position为数轴上的数值位置。`,
 
   fractionBar: `"chartData": {"chartType":"fractionBar","data":{"numerator":3,"denominator":4}}
-用分数条展示分数，numerator < denominator。`,
+用分数条展示分数，numerator和denominator为纯数字，numerator<=denominator。`,
 
   countingBlocks: `"chartData": {"chartType":"countingBlocks","data":{"count":7,"rows":2,"cols":5}}
 用计数块展示数量，count为实心圆点个数，rows/cols定义网格行列。count不超过rows*cols。`,
 
   grid: `"chartData": {"chartType":"grid","data":{"gridSize":[7,7],"points":[{"coordinate":[3,5],"label":"小明"},{"coordinate":[5,6],"label":"新位置"}],"showAxes":true}}
-gridSize为[列数,行数]，coordinate为[列,行]从0开始。showAxes为true显示坐标轴和数字。`,
+gridSize为[列数,行数]，coordinate为[列,行]从0开始。showAxes为true显示坐标轴和数字。points的label为标注文字。`,
 
   direction: `"chartData": {"chartType":"direction","data":{"center":"学校","points":[{"direction":"北","distance":200,"landmark":"医院"},{"direction":"东偏南30°","distance":300,"landmark":"超市"}]}}
-center为中心点名称。direction用"北""东""东偏南30°"等格式。distance单位为米。`,
+center为中心点名称。direction用"北""东""东偏南30°"等格式。distance为纯数字（单位米）。`,
 
   transform: `"chartData": {"chartType":"transform","data":{"type":"reflect","gridSize":[8,6],"original":{"points":[[1,1],[3,1],[2,3]]},"transformed":{"points":[[5,1],[7,1],[6,3]]},"axis":{"type":"custom","points":[[4,0],[4,6]]}}}
-type可选translate/rotate/reflect/scale。original和transformed为变换前后图形顶点坐标。axis为对称轴（reflect时必须提供）。`,
+type可选translate/rotate/reflect/scale。original和transformed为变换前后图形顶点的网格坐标（纯数字）。axis为对称轴（reflect时必须提供）。`,
 
   probability: `"chartData": {"chartType":"probability","data":{"type":"spinner","items":[{"label":"红色","probability":0.5},{"label":"蓝色","probability":0.25},{"label":"黄色","probability":0.25}]}}
-type用"spinner"（转盘）。items的probability之和必须为1。`,
+type用"spinner"（转盘）。items的probability之和必须为1，值为小数。label为区域名称。`,
 
   measure: `"chartData": {"chartType":"measure","data":{"type":"ruler","value":5.5,"unit":"cm","showMarkings":true}}
-type用"ruler"。value为测量数值，unit为单位。showMarkings为true显示刻度。`,
+type用"ruler"。value为纯数字测量值，unit为单位字符串（"cm"/"m"/"mm"/"dm"/"kg"/"g"）。`,
 };
 
 const buildUserPrompt = (params) => {

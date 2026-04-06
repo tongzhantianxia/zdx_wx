@@ -21,7 +21,8 @@ function shapeToShapes(data) {
   const s = data.shape;
   const dim = data.dimensions || {};
   const shapes = [];
-  const labels = data.labels ? data.labels.slice() : [];
+  // High-level mode: always auto-generate labels (LLM doesn't know pixel coords)
+  const labels = [];
   // Padding around shape for labels
   const pad = { top: 20, bottom: 28, left: 30, right: 20 };
 
@@ -35,10 +36,8 @@ function shapeToShapes(data) {
       const H = sw + pad.top + pad.bottom;
       const x0 = pad.left, y0 = pad.top;
       shapes.push({ type: 'polygon', points: [[x0, y0], [x0 + sl, y0], [x0 + sl, y0 + sw], [x0, y0 + sw]], stroke: '#333' });
-      if (!labels.length) {
-        labels.push({ text: l + 'cm', position: [x0 + sl / 2, y0 + sw + 14], fontSize: 12 });
-        labels.push({ text: w + 'cm', position: [x0 - 16, y0 + sw / 2], fontSize: 12 });
-      }
+      labels.push({ text: String(l), position: [x0 + sl / 2, y0 + sw + 14], fontSize: 12 });
+      labels.push({ text: String(w), position: [x0 - 14, y0 + sw / 2], fontSize: 12 });
       return { width: W, height: H, shapes, labels, annotations: [] };
     }
     case 'square': {
@@ -49,9 +48,7 @@ function shapeToShapes(data) {
       const H = ss + pad.top + pad.bottom;
       const x0 = pad.left, y0 = pad.top;
       shapes.push({ type: 'polygon', points: [[x0, y0], [x0 + ss, y0], [x0 + ss, y0 + ss], [x0, y0 + ss]], stroke: '#333' });
-      if (!labels.length) {
-        labels.push({ text: side + 'cm', position: [x0 + ss / 2, y0 + ss + 14], fontSize: 12 });
-      }
+      labels.push({ text: String(side), position: [x0 + ss / 2, y0 + ss + 14], fontSize: 12 });
       return { width: W, height: H, shapes, labels, annotations: [] };
     }
     case 'circle': {
@@ -63,9 +60,7 @@ function shapeToShapes(data) {
       const cx = pad.left + sr + 10, cy = pad.top + sr;
       shapes.push({ type: 'circle', center: [cx, cy], radius: sr, stroke: '#333' });
       shapes.push({ type: 'line', from: [cx, cy], to: [cx + sr, cy], stroke: '#4A90E2' });
-      if (!labels.length) {
-        labels.push({ text: 'r=' + r, position: [cx + sr / 2, cy - 10], fontSize: 11, color: '#4A90E2' });
-      }
+      labels.push({ text: 'r=' + r, position: [cx + sr / 2, cy - 10], fontSize: 11, color: '#4A90E2' });
       return { width: W, height: H, shapes, labels, annotations: [] };
     }
     case 'triangle': {
@@ -79,10 +74,8 @@ function shapeToShapes(data) {
       const apex = [x0 + sb / 2, pad.top];
       shapes.push({ type: 'polygon', points: [[x0, y0], [x0 + sb, y0], apex], stroke: '#333' });
       shapes.push({ type: 'dashed', from: apex, to: [apex[0], y0], stroke: '#999' });
-      if (!labels.length) {
-        labels.push({ text: base + 'cm', position: [x0 + sb / 2, y0 + 14], fontSize: 12 });
-        labels.push({ text: 'h=' + height, position: [apex[0] + 16, pad.top + sh / 2], fontSize: 11, color: '#999' });
-      }
+      labels.push({ text: String(base), position: [x0 + sb / 2, y0 + 14], fontSize: 12 });
+      labels.push({ text: 'h=' + height, position: [apex[0] + 18, pad.top + sh / 2], fontSize: 11, color: '#999' });
       return { width: W, height: H, shapes, labels, annotations: [] };
     }
     case 'parallelogram': {
@@ -101,10 +94,8 @@ function shapeToShapes(data) {
       // Height dashed line (from top-left vertex straight down)
       const footX = tl[0];
       shapes.push({ type: 'dashed', from: tl, to: [footX, y0], stroke: '#999' });
-      if (!labels.length) {
-        labels.push({ text: base + 'cm', position: [x0 + (sb + so) / 2, y0 + 14], fontSize: 12 });
-        labels.push({ text: 'h=' + height, position: [footX - 20, pad.top + sh / 2], fontSize: 11, color: '#999' });
-      }
+      labels.push({ text: String(base), position: [x0 + (sb + so) / 2, y0 + 14], fontSize: 12 });
+      labels.push({ text: 'h=' + height, position: [footX - 22, pad.top + sh / 2], fontSize: 11, color: '#999' });
       return { width: W, height: H, shapes, labels, annotations: [] };
     }
     case 'trapezoid': {
@@ -122,11 +113,9 @@ function shapeToShapes(data) {
       shapes.push({ type: 'polygon', points: [tl, tr, br, bl], stroke: '#333' });
       // Height dashed line
       shapes.push({ type: 'dashed', from: tl, to: [tl[0], y0], stroke: '#999' });
-      if (!labels.length) {
-        labels.push({ text: top + 'cm', position: [tx0 + st / 2, pad.top - 14], fontSize: 12 });
-        labels.push({ text: base + 'cm', position: [x0 + sb / 2, y0 + 14], fontSize: 12 });
-        labels.push({ text: 'h=' + height, position: [tl[0] - 20, pad.top + sh / 2], fontSize: 11, color: '#999' });
-      }
+      labels.push({ text: String(top), position: [tx0 + st / 2, pad.top - 14], fontSize: 12 });
+      labels.push({ text: String(base), position: [x0 + sb / 2, y0 + 14], fontSize: 12 });
+      labels.push({ text: 'h=' + height, position: [tl[0] - 22, pad.top + sh / 2], fontSize: 11, color: '#999' });
       return { width: W, height: H, shapes, labels, annotations: [] };
     }
     case 'sector': {
@@ -141,9 +130,7 @@ function shapeToShapes(data) {
       const endRad = -angle * Math.PI / 180;
       shapes.push({ type: 'line', from: [cx, cy], to: [cx + sr * Math.cos(endRad), cy + sr * Math.sin(endRad)], stroke: '#333' });
       shapes.push({ type: 'arc', center: [cx, cy], radius: sr, startAngle: -angle, endAngle: 0, stroke: '#333' });
-      if (!labels.length) {
-        labels.push({ text: angle + '°', position: [cx + 20, cy - 10], fontSize: 11 });
-      }
+      labels.push({ text: angle + '°', position: [cx + 20, cy - 10], fontSize: 11 });
       return { width: W, height: H, shapes, labels, annotations: [] };
     }
     default:
