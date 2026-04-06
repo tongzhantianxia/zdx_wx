@@ -227,6 +227,7 @@ Page({
       id: q.id || Date.now() + Math.random(),
       contentBlocks: q.contentBlocks || [{ type: 'text', value: String(q.content || q.question || '').trim() }],
       diagram: q.diagram || null,
+      numberLine: q.numberLine || null,
       answer: String(q.answer || '').trim(),
       answerFormat: q.answerFormat || 'number',
       answerUnit: q.answerUnit || '',

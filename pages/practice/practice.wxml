@@ -48,7 +48,11 @@
       <math-text blocks="{{currentQuestion.contentBlocks}}" />
     </view>
     <!-- 几何图形 -->
-    <geometry-canvas wx:if="{{currentQuestion.diagram}}" diagram="{{currentQuestion.diagram}}" />
+    <geometry-canvas wx:if="{{currentQuestion.diagram && currentQuestion.diagram.type === 'geometry'}}" diagram="{{currentQuestion.diagram}}" />
+    <!-- 分数条 -->
+    <fraction-bar wx:if="{{currentQuestion.diagram && currentQuestion.diagram.type === 'fractionBar'}}" numerator="{{currentQuestion.diagram.numerator}}" denominator="{{currentQuestion.diagram.denominator}}" />
+    <!-- 计数块 -->
+    <counting-blocks wx:if="{{currentQuestion.diagram && currentQuestion.diagram.type === 'countingBlocks'}}" count="{{currentQuestion.diagram.count}}" rows="{{currentQuestion.diagram.rows}}" cols="{{currentQuestion.diagram.cols}}" />
     <!-- 数轴 -->
     <number-line 
       wx:if="{{currentQuestion.numberLine}}" 

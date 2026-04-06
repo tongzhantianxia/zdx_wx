@@ -120,20 +120,70 @@ const SYSTEM_PROMPT = `你是小学数学出题专家，专门为小学生生成
 - 应用题禁止出现：价格计��（除非是简单的人民币认识）
 - 全部年级禁止出现：需要单位换算的应用题（除非是简单的人民币）`;
 
+// 需要图形题的知识点关键词（精确匹配）
+const NEED_GEOMETRY_DIAGRAM = [
+  '认识图形', '平面图形', '正方形', '长方形', '三角形', '圆形', '圆',
+  '四边形', '认识四边形', '四边形的认识',
+  '认识角', '直角', '锐角', '钝角', '平行四边形', '梯形', '多边形',
+  '周长', '面积', '表面积', '体积', '长方体', '正方体', '圆柱', '圆锥', '球',
+  '观察物体', '从不同方向看', '搭立体图形', '数形结合',
+  '分数', '分数的意义', '几分之一', '几分之几', '分数比较',
+  '数轴', '认识小数', '小数的意义',
+  '位置', '方向与位置', '东南西北', '坐标'
+];
+
+// 需要数轴的知识点关键词
+const NEED_NUMBER_LINE = [
+  '数轴', '认识小数', '小数的意义', '负数', '分数的比较', '数的大小比较',
+  '正负数', '有理数'
+];
+
+// 需要分数条的知识点（三年级认识分数）
+const NEED_FRACTION_BAR = [
+  '分数', '分数的意义', '几分之一', '几分之几', '分数比较', '分数单位',
+  '分数的初步认识', '认识分数'
+];
+
+const findDiagrams = (knowledgeName) => {
+  const kn = knowledgeName || '';
+  const need = [];
+  
+  if (NEED_GEOMETRY_DIAGRAM.some(k => kn.includes(k))) {
+    need.push('geometry');
+  }
+  if (NEED_NUMBER_LINE.some(k => kn.includes(k))) {
+    need.push('numberLine');
+  }
+  if (NEED_FRACTION_BAR.some(k => kn.includes(k))) {
+    need.push('fractionBar');
+  }
+  
+  return need;
+};
+
 const buildUserPrompt = (params) => {
   const { knowledgeName, grade, count, difficulty, questionType, existingSummaries, prefetchHint } = params;
   const diffMap = { easy: '简单', medium: '中等', hard: '困难' };
   const typeMap = { calculation: '计算题', fillBlank: '填空题', application: '应用题', geometry: '几何题' };
 
+  // 判断需要哪种图形
+  const requiredDiagrams = findDiagrams(knowledgeName);
+  const useNumberLine = requiredDiagrams.includes('numberLine');
+  const useFractionBar = requiredDiagrams.includes('fractionBar');
+  const useGeometry = requiredDiagrams.includes('geometry');
+
   let text = `生成${count}道${grade}「${knowledgeName}」${typeMap[questionType] || '计算题'}，难度${diffMap[difficulty] || '中等'}。
 严格限制在${grade}知识范围内，不得超纲。
+
+【重要】该知识点需要图形：${useNumberLine ? '数轴 ' : ''}${useFractionBar ? '分数条 ' : ''}${useGeometry ? '几何图 ' : ''}
 
 输出JSON格式：
 {"questions":[{
   "id": 1,
   "type": "${typeMap[questionType] || '计算题'}",
   "contentBlocks": [{"type":"text","value":"题目完整文字"}],
-  "diagram": null,
+  "diagram": ${useGeometry ? '{}占位，实际图形在下面定义"' : 'null'},
+  "numberLine": ${useNumberLine ? '{start:0,end:10,step:1,highlightPoints:[],labels:[]}' : 'null'},
   "answer": "答案",
   "answerFormat": "number",
   "answerUnit": "",
@@ -141,7 +191,36 @@ const buildUserPrompt = (params) => {
   "tip": "易错提示"
 }]}`;
 
-  if (questionType === 'geometry') {
+  // 在几何题输出格式后面添加实际diagram定义示例
+  if (useGeometry) {
+    text += `
+
+【警告】必须生成diagram字段！示例：
+{"type":"geometry","width":250,"height":180,"shapes":[{"type":"polygon","points":[[40,140],[140,140],[140,40],[40,40]],"stroke":"#333"}],"labels":[{"text":"长方形","position":[90,25],"fontSize":14}],"annotations":[]}`;
+  }
+
+  // 数轴题输出格式
+  if (useNumberLine) {
+    text += `
+
+【数轴题格式】（必须包含numberLine字段）：
+- start/end/step定义数轴范围
+- highlightPoints标记需要操作的点，如[3,5]
+- labels添加标签：[{position:3,text:"3",above:true}]
+- 题目中必须提到数轴上的点`;
+  }
+
+  // 分数条格式
+  if (useFractionBar) {
+    text += `
+
+【分数条题格式】（使用diagram字段）：
+- diagram: {"type":"fractionBar","numerator":3,"denominator":4}
+- 用于展示分数的几分之几`;
+  }
+
+  // ��何题diagram格式
+  if (useGeometry) {
     text += `
 
 几何题的diagram格式：

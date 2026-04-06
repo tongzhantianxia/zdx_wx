@@ -8,6 +8,8 @@
     "math-text": "/components/math-text/math-text",
     "geometry-canvas": "/components/geometry-canvas/geometry-canvas",
     "math-input": "/components/math-input/math-input",
-    "number-line": "/components/number-line/number-line"
+    "number-line": "/components/number-line/number-line",
+    "fraction-bar": "/components/fraction-bar/fraction-bar",
+    "counting-blocks": "/components/counting-blocks/counting-blocks"
   }
 }

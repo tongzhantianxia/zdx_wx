@@ -36,10 +36,22 @@ Page({
     const app = getApp();
     const practice = app.globalData.currentPractice;
     if (practice) {
+      const duckData = practice.duckData || { total: 0, earned: 0 };
+      const totalDucks = duckData.total || 0;
+      const earned = practice.duckDelta?.earned || 0;
+      const targetForGolden = 10;
+      const isGolden = totalDucks >= targetForGolden;
+      const remainForTarget = Math.max(0, targetForGolden - totalDucks);
+      
       this.setData({
         duckDelta: practice.duckDelta || null,
         goldenDuckEarned: practice.goldenDuckEarned || false,
-        consecutivePerfect: practice.consecutivePerfect || 0
+        consecutivePerfect: practice.consecutivePerfect || 0,
+        totalDucks,
+        duckPercent: Math.min(100, (totalDucks / targetForGolden) * 100),
+        targetPercent: 100,
+        isGoldenDuck: isGolden,
+        remainForGolden: remainForTarget > 0 ? remainForTarget : 0
       });
       if (practice.goldenDuckEarned) {
         setTimeout(() => {
