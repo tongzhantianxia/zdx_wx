@@ -17,6 +17,8 @@ const SYSTEM_PROMPT = `你是小学数学出题专家，专门为小学生生成
 2. 只输出纯JSON，不加其他内容
 3. 题目难度必须严格匹配指定年级，绝不超纲
 4. 禁止出现该年级未学过的任何知识点！
+5. 生成后必须验算答案！严禁出现计算错误（如16+18=28这种低级错误）
+6. solutionBlocks中的每一步计算都必须正确，最终结果必须与answer一致
 
 【年级知识范围 - 精确限制】
 
@@ -220,7 +222,10 @@ dimensions只传纯数字（不带单位），对应字段：
 - parallelogram: base, height
 - trapezoid: top, base, height
 - sector: radius, angle
-【重要】不要传labels字段，图表标注由系统自动生成。`,
+【重要】不要传labels字段，图表标注由系统自动生成。
+【组合图形】如果题目是组合图形（多个图形拼接），不要用shape字段，改用低层shapes数组格式：
+"chartData": {"chartType":"shape_2d","data":{"width":200,"height":120,"shapes":[{"type":"polygon","points":[[20,20],[100,20],[100,100],[20,100]],"stroke":"#333"},{"type":"polygon","points":[[100,40],[180,40],[180,100],[100,100]],"stroke":"#333"}],"labels":[{"text":"4","position":[60,110],"fontSize":12},{"text":"6","position":[140,110],"fontSize":12}]}}
+组合图形的shapes中每个polygon代表一个子图形，确保它们相邻拼接。`,
 
   shape_3d: `"chartData": {"chartType":"shape_3d","data":{"shape":"cuboid","dimensions":{"length":8,"width":5,"height":4},"viewType":"3d"}}
 shape可选：cuboid/cube/cylinder/cone/sphere。viewType可选"3d"/"net"/"orthographic"。
@@ -305,6 +310,14 @@ ${CHART_PROMPT_TEMPLATES[chartType]}`;
       text += '\n【viewType要求】本题为观察物体/三视图题，viewType必须用"orthographic"，不要用"3d"。';
     } else if (kn.includes('展开') || kn.includes('表面积')) {
       text += '\n【viewType要求】本题涉及展开图或表面积，viewType建议用"net"（展开图）。';
+    }
+  }
+
+  // shape_2d: composite shapes need low-level format
+  if (chartType === 'shape_2d') {
+    const kn = knowledgeName || '';
+    if (kn.includes('组合图形')) {
+      text += '\n【组合图形要求】本题为组合图形，必须用低层shapes数组格式画多个拼接的子图形，不要用shape高层格式。确保子图形相邻共边。';
     }
   }
 
@@ -459,6 +472,32 @@ const parseResponse = (content) => {
       if (!allLatex.every(b => validateLatexBrackets(b.value))) {
         console.warn('[parseResponse] LaTeX括号不匹配，丢弃:', q.id);
         return false;
+      }
+      // Verify answer: check if solution text contains arithmetic that contradicts the answer
+      if (q.answerFormat === 'number') {
+        const answerNum = parseFloat(q.answer);
+        if (!isNaN(answerNum)) {
+          const solText = (q.solutionBlocks || []).map(b => b.value || '').join('');
+          // Find patterns like "= X + Y = Z" and verify Z = X + Y
+          const calcPatterns = solText.match(/(\d+\.?\d*)\s*[+\-×÷*\/]\s*(\d+\.?\d*)\s*=\s*(\d+\.?\d*)/g);
+          if (calcPatterns) {
+            for (const p of calcPatterns) {
+              const m = p.match(/(\d+\.?\d*)\s*([+\-×÷*\/])\s*(\d+\.?\d*)\s*=\s*(\d+\.?\d*)/);
+              if (m) {
+                const a = parseFloat(m[1]), op = m[2], b = parseFloat(m[3]), c = parseFloat(m[4]);
+                let expected;
+                if (op === '+') expected = a + b;
+                else if (op === '-' || op === '－') expected = a - b;
+                else if (op === '×' || op === '*') expected = a * b;
+                else if (op === '÷' || op === '/') expected = b !== 0 ? a / b : null;
+                if (expected !== null && Math.abs(expected - c) > 0.01) {
+                  console.warn('[parseResponse] 计算错误，丢弃:', q.id, p, '期望', expected, '实际', c);
+                  return false;
+                }
+              }
+            }
+          }
+        }
       }
       return true;
     });
