@@ -154,17 +154,17 @@
           </view>
         </block>
 
+        <view class="detail-action">
+          <button class="btn-practice" bindtap="startTraining">针对这道题生成3道练习</button>
+        </view>
+
       </view>
     </block>
 
     <!-- 底部操作栏 -->
     <view class="bottom-bar">
-      <view class="bottom-left">
-        <text class="bottom-count">{{improveCount}} 道错题，每题生成3道练习</text>
-      </view>
       <view class="bottom-actions">
         <text class="btn-retake" bindtap="retakePhoto">重拍</text>
-        <view class="btn-start" bindtap="startTraining">错题练习</view>
       </view>
     </view>
 

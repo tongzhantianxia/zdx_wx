@@ -381,19 +381,23 @@ Page({
   },
 
   startTraining() {
-    const { questions, cloudFileID } = this.data;
+    const { currentDetail, cloudFileID } = this.data;
+    if (!currentDetail) return;
 
     app.globalData.currentQuestions = {
       questions: [],
-      knowledge: { id: 'mixed', name: '错题练习' },
+      knowledge: {
+        id: currentDetail.knowledgeId || 'mixed',
+        name: currentDetail.knowledgeName || currentDetail.knowledgePoint || '错题练习'
+      },
       meta: {
         questionType: 'calculation',
         origin: 'ocr_improve',
         pending: true,
         cloudFileID,
-        selectedIndices: questions.map(q => q.index),
-        analyzedQuestions: questions,
-        expectedCount: questions.length * QUESTIONS_PER_ERROR
+        selectedIndices: [currentDetail.index],
+        analyzedQuestions: [currentDetail],
+        expectedCount: QUESTIONS_PER_ERROR
       }
     };
 

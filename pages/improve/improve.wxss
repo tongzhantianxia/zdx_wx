@@ -421,6 +421,26 @@
   color: #C62828;
 }
 
+/* ==================== 每题练习按钮 ==================== */
+.detail-action {
+  margin-top: 24rpx;
+  padding: 0 16rpx;
+}
+
+.btn-practice {
+  width: 100%;
+  height: 88rpx;
+  border-radius: 44rpx;
+  background: linear-gradient(135deg, #FFD54F, #FFB300);
+  color: #fff;
+  font-size: 30rpx;
+  font-weight: 700;
+  border: none;
+  box-shadow: 0 4rpx 16rpx rgba(255, 179, 0, 0.4);
+}
+
+.btn-practice::after { border: none; }
+
 /* ==================== 底部操作栏 ==================== */
 .bottom-bar {
   position: fixed;
