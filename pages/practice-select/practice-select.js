@@ -197,12 +197,18 @@ Page({
       const variations = ['用不同的数字', '换个情境', '变换题目条件', '用不同的物品', '换个场景'];
       const randomHint = variations[Math.floor(Math.random() * variations.length)] + '_' + Date.now().toString(36);
 
+      const semesterLabel = this.data.selectedSemester === 'upper' ? '上册' : '下册';
+      const fullSemester = gradeLabel + semesterLabel;
+
       const res = await wx.cloud.callFunction({
         name: 'generateQuestions',
         data: {
           knowledgeId: selectedKnowledge.id,
           knowledgeName: selectedKnowledge.name,
           grade: gradeLabel,
+          semester: fullSemester,
+          unitName: selectedKnowledge.unitName || '',
+          unit: selectedKnowledge.unit || 0,
           count: 1,
           targetCount: selectedCount,
           difficulty: selectedDifficulty,
@@ -239,6 +245,9 @@ Page({
           knowledgeId: selectedKnowledge.id,
           knowledgeName: selectedKnowledge.name,
           grade: gradeLabel,
+          semester: fullSemester,
+          unitName: selectedKnowledge.unitName || '',
+          unit: selectedKnowledge.unit || 0,
           difficulty: selectedDifficulty,
           questionType: 'calculation',
           targetCount: selectedCount,

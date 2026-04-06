@@ -259,14 +259,19 @@ type用"ruler"。value为纯数字测量值，unit为单位字符串（"cm"/"m"/
 };
 
 const buildUserPrompt = (params) => {
-  const { knowledgeName, grade, count, difficulty, questionType, existingSummaries, prefetchHint } = params;
+  const { knowledgeName, grade, count, difficulty, questionType, existingSummaries, prefetchHint, semester, unitName, unit } = params;
   const diffMap = { easy: '简单', medium: '中等', hard: '困难' };
   const typeMap = { calculation: '计算题', fillBlank: '填空题', application: '应用题', geometry: '几何题' };
 
   const chartType = findChartType(knowledgeName);
 
-  let text = `生成${count}道${grade}「${knowledgeName}」${typeMap[questionType] || '计算题'}，难度${diffMap[difficulty] || '中等'}。
-严格限制在${grade}知识范围内，不得超纲。
+  // Build context line: e.g. "一年级下册 第5单元「认识人民币」中的「简单的计算」"
+  let contextLine = grade;
+  if (semester) contextLine = semester;
+  if (unit && unitName) contextLine += ` 第${unit}单元「${unitName}」中的`;
+
+  let text = `生成${count}道${contextLine}「${knowledgeName}」${typeMap[questionType] || '计算题'}，难度${diffMap[difficulty] || '中等'}。
+严格限制在${semester || grade}知识范围内，题目内容必须与「${unitName || knowledgeName}」单元主题相关，不得超纲。
 
 输出JSON格式：
 {"questions":[{
@@ -607,6 +612,9 @@ exports.main = async (event, context) => {
 
   try {
     const { knowledgeId, knowledgeName, grade } = event;
+    const semester = String(event.semester || '').slice(0, 20);
+    const unitName = String(event.unitName || '').slice(0, 30);
+    const unit = parseInt(event.unit, 10) || 0;
     const { count, difficulty, questionType, sanitizedExistingQuestions } = securityData;
     const prefetchHint = String(event.prefetchHint || '').slice(0, 80);
     const maxTokens = count === 1 ? 800 : 2000;
@@ -614,6 +622,9 @@ exports.main = async (event, context) => {
     const userPrompt = buildUserPrompt({
       knowledgeName,
       grade: grade || '五年级',
+      semester,
+      unitName,
+      unit,
       count,
       difficulty,
       questionType,
