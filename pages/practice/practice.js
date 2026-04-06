@@ -220,6 +220,20 @@ Page({
     return String(s || '').replace(/\s/g, '').replace(/\d+\.?\d*/g, 'N');
   },
 
+  // Clean inline $...$ LaTeX from text
+  cleanLatex: function (s) {
+    if (!s || typeof s !== 'string') return s;
+    return s.replace(/\$([^$]+)\$/g, function (_, latex) {
+      return latex
+        .replace(/\\frac\{([^{}]+)\}\{([^{}]+)\}/g, '($1/$2)')
+        .replace(/\\times/g, '×')
+        .replace(/\\div/g, '÷')
+        .replace(/\\%/g, '%')
+        .replace(/\\[a-zA-Z]+/g, '')
+        .replace(/[{}]/g, '');
+    });
+  },
+
   formatSingleQuestion: function (q) {
     // Build unified chartData
     let chartData = q.chartData || null;
@@ -247,10 +261,10 @@ Page({
       id: q.id || Date.now() + Math.random(),
       contentBlocks: q.contentBlocks || [{ type: 'text', value: String(q.content || q.question || '').trim() }],
       chartData: chartData,
-      answer: String(q.answer || '').trim(),
+      answer: this.cleanLatex(String(q.answer || '').trim()),
       answerFormat: q.answerFormat || 'number',
       answerUnit: q.answerUnit || '',
-      options: Array.isArray(q.options) && q.options.length >= 2 ? this.shuffleOptions(q.options) : null,
+      options: Array.isArray(q.options) && q.options.length >= 2 ? this.shuffleOptions(q.options.map(o => this.cleanLatex(o))) : null,
       type: q.type || '计算题',
       typeName: q.type || '计算题',
       difficulty: this.getDifficultyLevel(q.difficulty),

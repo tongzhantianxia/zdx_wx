@@ -53,13 +53,26 @@ Component({
         this.setData({ parsedBlocks: [] });
         return;
       }
-      const parsedBlocks = blocks.map(block => {
+      const result = [];
+      for (const block of blocks) {
         if (block.type === 'latex') {
-          return { type: 'text', value: latexToText(block.value) };
+          result.push({ type: 'text', value: latexToText(block.value) });
+        } else {
+          // Parse inline $...$ LaTeX within text blocks
+          const text = block.value || '';
+          const parts = text.split(/(\$[^$]+\$)/g);
+          let combined = '';
+          for (const part of parts) {
+            if (part.startsWith('$') && part.endsWith('$') && part.length > 2) {
+              combined += latexToText(part.slice(1, -1));
+            } else {
+              combined += part;
+            }
+          }
+          result.push({ type: 'text', value: combined });
         }
-        return { type: 'text', value: block.value || '' };
-      });
-      this.setData({ parsedBlocks });
+      }
+      this.setData({ parsedBlocks: result });
     }
   },
 
