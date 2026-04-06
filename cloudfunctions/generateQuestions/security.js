@@ -60,11 +60,11 @@ const checkSessionCallLimit = (sessionId, targetCountRaw) => {
 
   if (!rec) {
     const tc = parseInt(targetCountRaw, 10);
-    if (isNaN(tc) || tc < 1 || tc > 10) {
+    if (isNaN(tc) || tc < 1 || tc > 8) {
       return {
         allowed: false,
         code: 'INVALID_PARAMS',
-        error: 'targetCount 必须在 1-10'
+        error: 'targetCount 必须在 1-8'
       };
     }
     rec = {
@@ -219,8 +219,8 @@ const validateParams = (params) => {
 
   // 3. 题目数量检查
   const numCount = parseInt(count);
-  if (isNaN(numCount) || numCount < 1 || numCount > 10) {
-    return { valid: false, error: '题目数量必须在 1-10 之间' };
+  if (isNaN(numCount) || numCount < 1 || numCount > 8) {
+    return { valid: false, error: '题目数量必须在 1-8 之间' };
   }
 
   // 4. 难度枚举检查

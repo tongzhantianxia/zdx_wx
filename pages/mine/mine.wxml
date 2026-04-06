@@ -25,30 +25,6 @@
   <!-- 鸭子农场 -->
   <duck-farm normal-ducks="{{normalDucks}}" golden-ducks="{{goldenDucks}}" swans="{{swans}}" bind:merge="onDuckMerge"></duck-farm>
 
-  <!-- 出题模式设置 -->
-  <view class="settings-section">
-    <view class="section-title">出题模式</view>
-    <view class="mode-card {{questionMode === 'bank' ? 'mode-active' : ''}}" bindtap="setMode" data-mode="bank">
-      <view class="mode-header">
-        <view class="mode-radio {{questionMode === 'bank' ? 'radio-checked' : ''}}">
-          <view wx:if="{{questionMode === 'bank'}}" class="radio-dot"></view>
-        </view>
-        <text class="mode-name">真题优先</text>
-        <text class="mode-tag mode-tag-recommend">推荐</text>
-      </view>
-      <text class="mode-desc">优先从题库中匹配真题风格题目，题库用尽后自动切换智能生成</text>
-    </view>
-    <view class="mode-card {{questionMode === 'auto' ? 'mode-active' : ''}}" bindtap="setMode" data-mode="auto">
-      <view class="mode-header">
-        <view class="mode-radio {{questionMode === 'auto' ? 'radio-checked' : ''}}">
-          <view wx:if="{{questionMode === 'auto'}}" class="radio-dot"></view>
-        </view>
-        <text class="mode-name">自动生成</text>
-      </view>
-      <text class="mode-desc">全程智能实时生成题目，题目更多样但质量可能波动</text>
-    </view>
-  </view>
-
   <!-- 关于 -->
   <view class="about-section">
     <view class="about-row">

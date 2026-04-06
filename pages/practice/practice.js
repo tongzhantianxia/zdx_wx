@@ -28,25 +28,24 @@ Page({
   onLoad: function (options) {
     console.log('[practice] onLoad, source:', options.source, 'hasData:', !!app.globalData.currentQuestions);
     const type = options.type || 'random';
-    const source = options.source || 'database';
     this.setData({ practiceType: type });
 
-    if (source === 'generated' && app.globalData.currentQuestions) {
+    if (app.globalData.currentQuestions) {
       const data = app.globalData.currentQuestions;
       console.log('[practice] loadQuestionsFromData, questions:', data.questions && data.questions.length, 'hasParams:', !!data.generateParams);
       this.loadQuestionsFromData(data);
     } else if (options.data) {
-      // 如果有通过 URL 参数传递的题目数据,直接使用
       try {
         const data = JSON.parse(decodeURIComponent(options.data));
         this.loadQuestionsFromData(data);
       } catch (err) {
         console.error('解析题目数据失败:', err);
-        this.loadQuestions();
+        wx.showToast({ title: '暂无题目', icon: 'none' });
+        setTimeout(() => wx.navigateBack(), 1500);
       }
     } else {
-      // 否则从数据库加载题目
-      this.loadQuestions();
+      wx.showToast({ title: '暂无题目', icon: 'none' });
+      setTimeout(() => wx.navigateBack(), 1500);
     }
 
     this.setData({ sessionDuckDelta: { hatched: 0, died: 0 } });
@@ -114,7 +113,6 @@ Page({
 
   runOcrGenerate: async function (analyzed) {
     const FIXED_COUNT = 4;
-    const questionMode = wx.getStorageSync('questionMode') || 'bank';
 
     if (!analyzed.length) {
       wx.showToast({ title: '无题目可生成', icon: 'none' });
@@ -127,9 +125,8 @@ Page({
         const gradeLabel = q.grade || '五年级';
 
         if (q.knowledgeId) {
-          const fnName = questionMode === 'auto' ? 'generateQuestions' : 'getQuestions';
           return wx.cloud.callFunction({
-            name: fnName,
+            name: 'generateQuestions',
             data: {
               knowledgeId: q.knowledgeId,
               knowledgeName: q.knowledgeName,
@@ -470,137 +467,6 @@ Page({
     return map[difficultyText] || 2;
   },
 
-  // 加载题目
-  loadQuestions: function () {
-    wx.showLoading({ title: '加载中...' });
-
-    const { practiceType } = this.data;
-    const db = wx.cloud.database();
-
-    let query = db.collection('questions');
-
-    // 根据练习类型筛选题目
-    switch (practiceType) {
-      case 'wrong':
-        // 错题练习：从错题库获取
-        this.loadWrongQuestions();
-        return;
-      case 'special':
-        // 专项训练：根据用户薄弱项筛选
-        query = query.where({
-          type: this.getWeakType()
-        });
-        break;
-      case 'exam':
-        // 模拟测试：按难度递增
-        query = query.orderBy('difficulty', 'asc');
-        break;
-      default:
-        // 随机练习
-        query = query.orderBy('createTime', 'desc');
-    }
-
-    query
-      .limit(this.data.totalQuestions)
-      .get()
-      .then(res => {
-        wx.hideLoading();
-
-        if (res.data.length === 0) {
-          wx.showToast({ title: '暂无题目', icon: 'none' });
-          setTimeout(() => wx.navigateBack(), 1500);
-          return;
-        }
-
-        const questions = this.processQuestions(res.data);
-        this.setData({
-          questions,
-          totalQuestions: questions.length,
-          currentQuestion: questions[0]
-        });
-      })
-      .catch(err => {
-        wx.hideLoading();
-        console.error('加载题目失败：', err);
-        wx.showToast({ title: '加载失败', icon: 'error' });
-      });
-  },
-
-  // 加载错题
-  loadWrongQuestions: function () {
-    const db = wx.cloud.database();
-
-    db.collection('wrong_questions')
-      .where({
-        _openid: '{openid}',
-        mastered: false
-      })
-      .orderBy('wrongCount', 'desc')
-      .limit(this.data.totalQuestions)
-      .get()
-      .then(res => {
-        wx.hideLoading();
-
-        if (res.data.length === 0) {
-          wx.showModal({
-            title: '提示',
-            content: '恭喜你，暂无错题！',
-            showCancel: false,
-            success: () => wx.navigateBack()
-          });
-          return;
-        }
-
-        const questions = this.processQuestions(res.data);
-        this.setData({
-          questions,
-          totalQuestions: questions.length,
-          currentQuestion: questions[0]
-        });
-      })
-      .catch(err => {
-        wx.hideLoading();
-        console.error('加载错题失败：', err);
-        wx.showToast({ title: '加载失败', icon: 'error' });
-      });
-  },
-
-  // 处理题目数据
-  processQuestions: function (data) {
-    return data.map(q => {
-      let chartData = q.chartData || null;
-      if (!chartData && q.diagram) {
-        const d = q.diagram;
-        if (d.type === 'geometry') {
-          const has3d = (d.shapes || []).some(s => ['cuboid', 'cube', 'cylinder', 'cone', 'sphere'].includes(s.type));
-          chartData = { chartType: has3d ? 'shape_3d' : 'shape_2d', data: d };
-        } else if (d.type === 'fractionBar') {
-          chartData = { chartType: 'fractionBar', data: { numerator: d.numerator, denominator: d.denominator } };
-        } else if (d.type === 'countingBlocks') {
-          chartData = { chartType: 'countingBlocks', data: { count: d.count, rows: d.rows, cols: d.cols } };
-        }
-      }
-      if (!chartData && q.numberLine) {
-        chartData = { chartType: 'numberLine', data: q.numberLine };
-      }
-
-      return {
-        id: q._id,
-        contentBlocks: q.contentBlocks || [{ type: 'text', value: String(q.question || '').trim() }],
-        chartData: chartData,
-        answer: String(q.answer || '').trim(),
-        answerFormat: q.answerFormat || 'number',
-        answerUnit: q.answerUnit || '',
-        type: q.type,
-        typeName: this.getTypeName(q.type),
-        difficulty: q.difficulty || 1,
-        difficultyText: this.getDifficultyText(q.difficulty),
-        hint: q.hint || '',
-        solutionBlocks: q.solutionBlocks || (q.explanation ? [{ type: 'text', value: q.explanation }] : null),
-      };
-    });
-  },
-
   onAnswerInput: function (e) {
     this.setData({
       userAnswer: e.detail.value
@@ -864,22 +730,6 @@ Page({
         }
       })
       .catch(err => { console.error('添加错题失败：', err); });
-  },
-
-  // 获取薄弱题型
-  getWeakType: function () {
-    const stats = app.globalData.wrongTypeStats || {};
-    let maxCount = 0;
-    let weakType = 'addition';
-
-    Object.keys(stats).forEach(type => {
-      if (stats[type] > maxCount) {
-        maxCount = stats[type];
-        weakType = type;
-      }
-    });
-
-    return weakType;
   },
 
   // 获取题型名称

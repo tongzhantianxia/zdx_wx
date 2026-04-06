@@ -32,7 +32,7 @@ Page({
     knowledgeList: [],
     expandedChapter: null,
     selectedKnowledge: null,
-    countList: [3, 5, 8, 10],
+    countList: [3, 5, 8],
     selectedCount: 3,
     selectedDifficulty: 'medium',
     generating: false,
@@ -188,10 +188,8 @@ Page({
     try {
       const sessionId = buildSessionId();
       const gradeLabel = this._gradeLabel();
-      const questionMode = wx.getStorageSync('questionMode') || 'bank';
-      const cloudFnName = questionMode === 'auto' ? 'generateQuestions' : 'getQuestions';
       const res = await wx.cloud.callFunction({
-        name: cloudFnName,
+        name: 'generateQuestions',
         data: {
           knowledgeId: selectedKnowledge.id,
           knowledgeName: selectedKnowledge.name,
