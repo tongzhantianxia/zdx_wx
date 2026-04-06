@@ -269,11 +269,17 @@ const buildUserPrompt = (params) => {
   const chartType = findChartType(knowledgeName);
 
   // Determine if chartData is required or optional for this knowledge point
-  // Conceptual/recognition topics: chart is optional (LLM can use pure text)
-  const conceptKeywords = ['认识', '拼组', '辨认', '分类', '观察', '位置', '方向', '左右', '上下', '前后'];
+  // Only pure recognition/identification topics can skip chartData
   const kn = knowledgeName || '';
   const un = (params.unitName || '') + kn;
-  const isConceptTopic = conceptKeywords.some(k => un.includes(k));
+  // These specific topics are pure concept/text questions, chart optional
+  const conceptPatterns = [
+    '认识平面图形', '认识立体图形', '图形的拼组',
+    '位置', '左右', '上下', '前后',
+    '分类', '简单分类',
+    '比多少', '比大小', '第几'
+  ];
+  const isConceptTopic = conceptPatterns.some(p => un.includes(p));
   const chartRequired = chartType && !isConceptTopic;
   const chartOptional = chartType && isConceptTopic;
 
@@ -338,9 +344,28 @@ ${CHART_PROMPT_TEMPLATES[chartType]}`;
   if (chartType === 'shape_2d') {
     if (kn.includes('组合图形')) {
       text += '\n【组合图形要求】本题为组合图形，必须用低层shapes数组格式画多个拼接的子图形，不要用shape高层格式。确保子图形相邻共边。';
-    } else if (kn.includes('规律') || kn.includes('找规律')) {
-      text += `\n【找规律要求】本题为找规律题，必须用低层shapes数组格式画图形序列。
-图形规律示例（横向排列一组重复图案，最后一个用虚线表示待填）：
+    } else if (kn.includes('数字规律')) {
+      text += `\n【数字规律要求】本题为数字找规律题。
+题目必须是纯数字序列，让学生找出规律填下一个数。
+用低层shapes数组格式画数字序列（圆形背景+数字标签，最后一个标"?"）：
+"chartData":{"chartType":"shape_2d","data":{"width":280,"height":60,"shapes":[
+  {"type":"circle","center":[25,25],"radius":20,"stroke":"#333","fill":"#E3F2FD"},
+  {"type":"circle","center":[75,25],"radius":20,"stroke":"#333","fill":"#E3F2FD"},
+  {"type":"circle","center":[125,25],"radius":20,"stroke":"#333","fill":"#E3F2FD"},
+  {"type":"circle","center":[175,25],"radius":20,"stroke":"#333","fill":"#E3F2FD"},
+  {"type":"circle","center":[225,25],"radius":20,"stroke":"#999"}
+],"labels":[
+  {"text":"2","position":[25,25],"fontSize":14},
+  {"text":"4","position":[75,25],"fontSize":14},
+  {"text":"6","position":[125,25],"fontSize":14},
+  {"text":"8","position":[175,25],"fontSize":14},
+  {"text":"?","position":[225,25],"fontSize":14,"color":"#E74C3C"}
+]}}
+数字规律类型举例：等差（2,4,6,8）、加倍（1,2,4,8）、递增差（1,2,4,7,11）等。
+labels中的text必须是数字（最后一个是"?"），不能是图形名称。`;
+    } else if (kn.includes('图形规律') || kn.includes('找规律')) {
+      text += `\n【图形规律要求】本题为图形找规律题。
+用低层shapes数组格式画图形序列（横向排列重复图案，最后一个用虚线表示待填）：
 "chartData":{"chartType":"shape_2d","data":{"width":280,"height":60,"shapes":[
   {"type":"polygon","points":[[10,10],[30,10],[30,40],[10,40]],"stroke":"#333","fill":"#5B9BD5"},
   {"type":"circle","center":[50,25],"radius":15,"stroke":"#333","fill":"#ED7D31"},
@@ -349,7 +374,6 @@ ${CHART_PROMPT_TEMPLATES[chartType]}`;
   {"type":"polygon","points":[[130,10],[150,10],[150,40],[130,40]],"stroke":"#333","fill":"#5B9BD5"},
   {"type":"circle","center":[170,25],"radius":15,"stroke":"#999"}
 ],"labels":[{"text":"?","position":[170,25],"fontSize":14,"color":"#E74C3C"}]}}
-数字规律可以用数字标签配圆形背景横向排列，最后一个标"?"。
 必须用shapes数组格式，不要用shape高层格式。`;
     } else if (isConceptTopic) {
       text += `\n【概念认识题要求】本题为图形概念/认识题，适合低年级学生。
