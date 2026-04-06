@@ -286,6 +286,16 @@ const buildUserPrompt = (params) => {
 ${CHART_PROMPT_TEMPLATES[chartType]}`;
   }
 
+  // shape_3d: auto-select viewType based on knowledge point
+  if (chartType === 'shape_3d') {
+    const kn = knowledgeName || '';
+    if (kn.includes('观察物体') || kn.includes('从不同方向') || kn.includes('视图') || kn.includes('根据视图')) {
+      text += '\n【viewType要求】本题为观察物体/三视图题，viewType必须用"orthographic"，不要用"3d"。';
+    } else if (kn.includes('展开') || kn.includes('表面积')) {
+      text += '\n【viewType要求】本题涉及展开图或表面积，viewType建议用"net"（展开图）。';
+    }
+  }
+
   if (Array.isArray(existingSummaries) && existingSummaries.length > 0) {
     text += `\n已出过的题（不要重复）：${existingSummaries.join('、')}`;
   }

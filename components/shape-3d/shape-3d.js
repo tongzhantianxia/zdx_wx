@@ -31,60 +31,68 @@ function shapeToShapes3d(data) {
   const shape = data.shape;
   const shapes = [];
   const labels = [];
-  const pad = { top: 20, bottom: 20, left: 20, right: 20 };
+  const pad = { top: 15, bottom: 15, left: 15, right: 15 };
 
-  // Estimate bounding box based on shape type, then set canvas size
   let drawW = 160, drawH = 120;
   switch (shape) {
     case 'cuboid': {
       const l = dim.length || 80, w = dim.width || 50, h = dim.height || 60;
-      const sc = Math.min(120 / l, 100 / w, 100 / h);
+      const sc = Math.min(100 / l, 80 / w, 80 / h);
       const sl = l * sc, sw = w * sc, sh = h * sc;
-      drawW = (sl + sw) * COS30 + 20;
-      drawH = sh + (sl + sw) * SIN30 * 0.5 + 20;
-      const origin = [pad.left + sw * COS30, pad.top + drawH - 10];
+      const isoYBottom = (sl + sw) * SIN30 * 0.5; // y offset below origin from isometric
+      drawW = (sl + sw) * COS30 + 10;
+      drawH = sh + isoYBottom + 10;
+      // Place origin so: top vertex at pad.top+5, bottom vertex at pad.top+drawH-5
+      const originY = pad.top + sh + 5;
+      const originX = pad.left + sw * COS30 + 5;
       shapes.push({
-        type: 'cuboid', origin, length: sl, width: sw, height: sh,
+        type: 'cuboid', origin: [originX, originY], length: sl, width: sw, height: sh,
         stroke: '#333', hiddenEdges: data.hiddenEdges !== false, faceFills: data.faceFills || []
       });
       break;
     }
     case 'cube': {
       const s = dim.length || dim.side || 60;
-      const sc = Math.min(120 / s, 100 / s);
+      const sc = Math.min(90 / s);
       const ss = s * sc;
-      drawW = ss * 2 * COS30 + 20;
-      drawH = ss + ss * SIN30 + 20;
-      const origin = [pad.left + ss * COS30, pad.top + drawH - 10];
-      shapes.push({ type: 'cube', origin, size: ss, stroke: '#333', hiddenEdges: data.hiddenEdges !== false, faceFills: data.faceFills || [] });
+      const isoYBottom = ss * SIN30;
+      drawW = ss * 2 * COS30 + 10;
+      drawH = ss + isoYBottom + 10;
+      const originY = pad.top + ss + 5;
+      const originX = pad.left + ss * COS30 + 5;
+      shapes.push({ type: 'cube', origin: [originX, originY], size: ss, stroke: '#333', hiddenEdges: data.hiddenEdges !== false, faceFills: data.faceFills || [] });
       break;
     }
     case 'cylinder': {
       const r = dim.radius || 40, h = dim.height || 80;
-      const sc = Math.min(70 / r, 120 / h);
+      const sc = Math.min(60 / r, 100 / h);
       const sr = r * sc, sh = h * sc;
-      drawW = sr * 2 + 20;
-      drawH = sh + sr * 0.35 + 20;
-      const origin = [pad.left + drawW / 2, pad.top + drawH - 10];
-      shapes.push({ type: 'cylinder', origin, radius: sr, height: sh, stroke: '#333' });
+      const ry = sr * 0.35;
+      drawW = sr * 2 + 10;
+      drawH = sh + ry * 2 + 10;
+      const originX = pad.left + drawW / 2;
+      const originY = pad.top + sh + ry + 5;
+      shapes.push({ type: 'cylinder', origin: [originX, originY], radius: sr, height: sh, stroke: '#333' });
       break;
     }
     case 'cone': {
       const r = dim.radius || 40, h = dim.height || 80;
-      const sc = Math.min(70 / r, 120 / h);
+      const sc = Math.min(60 / r, 100 / h);
       const sr = r * sc, sh = h * sc;
-      drawW = sr * 2 + 20;
-      drawH = sh + sr * 0.35 + 20;
-      const origin = [pad.left + drawW / 2, pad.top + drawH - 10];
-      shapes.push({ type: 'cone', origin, radius: sr, height: sh, stroke: '#333' });
+      const ry = sr * 0.35;
+      drawW = sr * 2 + 10;
+      drawH = sh + ry + 10;
+      const originX = pad.left + drawW / 2;
+      const originY = pad.top + sh + ry + 5;
+      shapes.push({ type: 'cone', origin: [originX, originY], radius: sr, height: sh, stroke: '#333' });
       break;
     }
     case 'sphere': {
       const r = dim.radius || 50;
-      const sc = Math.min(70 / r);
+      const sc = Math.min(60 / r);
       const sr = r * sc;
-      drawW = sr * 2 + 20;
-      drawH = sr * 2 + 20;
+      drawW = sr * 2 + 10;
+      drawH = sr * 2 + 10;
       shapes.push({ type: 'sphere', center: [pad.left + drawW / 2, pad.top + drawH / 2], radius: sr, stroke: '#333' });
       break;
     }
@@ -139,7 +147,7 @@ Component({
       const containerWidth = getContainerWidth();
       const scale = Math.min(containerWidth / d.width, 2.0);
       const canvasWidth = Math.floor(d.width * scale);
-      const canvasHeight = Math.min(Math.floor(d.height * scale), 280);
+      const canvasHeight = Math.floor(d.height * scale);
       this.setData({ canvasWidth, canvasHeight });
 
       setTimeout(() => {
