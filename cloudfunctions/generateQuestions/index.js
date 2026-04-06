@@ -10,7 +10,7 @@ const MAX_RETRIES = 2;
 const TIMEOUT_MS = 25000;
 
 // ========== Prompt ==========
-const SYSTEM_PROMPT = `你是小学数学出题专家，专门为小学生生成数学练习题。
+const SYSTEM_PROMPT_BASE = `你是小学数学出题专家，专门为小学生生成数学练习题。
 
 【核心原则 - 严格遵守】
 1. 答案必须正确且唯一
@@ -20,51 +20,45 @@ const SYSTEM_PROMPT = `你是小学数学出题专家，专门为小学生生成
 5. 生成后必须验算答案！严禁出现计算错误（如16+18=28这种低级错误）
 6. solutionBlocks中的每一步计算都必须正确，最终结果必须与answer一致
 7. 题目、选项、答案、解析全部使用中文，禁止出现任何英文字母或英文单词
-8. 每道题必须与其他题有明显区别，禁止仅换数字的重复题
+8. 每道题必须与其他题有明显区别，禁止仅换数字的重复题`;
 
-【年级知识范围 - 精确限制】
-
-一年级上册：
-- 1-20认识数字、0的认识
+const GRADE_SCOPES = {
+  '一年级上册': `- 1-20认识数字、0的认识
 - 20以内加减法（不进位、不退位）
 - 连加连减、加减混合
 - 比较：大小、长短、高矮
 - 认识立体图形：长方体、正方体、圆柱、球
 - 简单图形认识：正方形、圆形、三角形
-- 认识整时（钟表）
+- 认识整时（钟表）`,
 
-一年级下册：
-- 20以内进位加法、退位减法
+  '一年级下册': `- 20以内进位加法、退位减法
 - 100以内数的认识：数数、数的组成、读数写数、比较大小
 - 认识人民币：1角、5角、1元、简单的计算
 - 认识钟表：整时、半时
 - 认识平面图形：长方形、正方形、三角形、圆形
 - 图形的拼组
 - 分类与整理：简单分类
-- 找规律：图形规律、数字规律
+- 找规律：图形规律、数字规律`,
 
-二年级上册：
-- 100以内加减法：两位数加减两位数、连加连减、加减混合
+  '二年级上册': `- 100以内加减法：两位数加减两位数、连加连减、加减混合
 - 长度单位：厘米、米、认识线段
 - 角的初步认识：认识角、直角
 - 乘法意义：初步认识（用加法表示乘法）
 - 表内乘法：2-9的乘法口诀
 - 认识时间：整时、半时、几点几分
 - 观察物体
-- 数学广角：简单的排列组合
+- 数学广角：简单的排列组合`,
 
-二年级下册：
-- 数据收集整理：简单的统计
+  '二年级下册': `- 数据收集整理：简单的统计
 - 表内除法
 - 混合运算：没有括号的混合运算、有括号的混合运算
 - 有余数的除法
 - 万以内数的认识：1000以内、10000以内、整百整千数加减法
 - 克和千克
 - 图形的运动：轴对称、平移
-- 数学广角：简单的推理
+- 数学广角：简单的推理`,
 
-三年级上册：
-- 时、分、秒
+  '三年级上册': `- 时、分、秒
 - 万以内加减法：口算、笔算
 - 测量：毫米、分米、千米、吨
 - 有余数的除法
@@ -72,30 +66,27 @@ const SYSTEM_PROMPT = `你是小学数学出题专家，专门为小学生生成
 - 乘法：两三位数乘一位数（口算、笔算、估算）
 - 长方形和正方形：四边形的认识、周长
 - 认识分数：初步认识几分之一、分数的简单计算
-- 数学广角：集合的思想方法（韦恩图、重叠问题）
+- 数学广角：集合的思想方法（韦恩图、重叠问题）`,
 
-三年级下册：
-- 位置与方向：东南西北、东北东南西北西南
+  '三年级下册': `- 位置与方向：东南西北、东北东南西北西南
 - 除法：两位数除一位数（口算、笔算、估算）
 - 复式统计表
 - 乘法：两位数乘两位数
 - 面积：面积单位、正方形和长方形面积、面积单位间的进率
 - 年、月、日：24时计时法
 - 认识小数：简单小数、小数大小比较、简单小数加减法
-- 数学广角：搭配问题
+- 数学广角：搭配问题`,
 
-四年级上册：
-- 大数认识：亿以内数、数的产生和十进制计数法、亿以上数
+  '四年级上册': `- 大数认识：亿以内数、数的产生和十进制计数法、亿以上数
 - 公顷和平方千米
 - 角的度量：线段、直线、射线、角的度量、角的分类、画角
 - 三位数乘两位数、积的变化规律
 - 平行四边形和梯形：平行与垂直、平行四边形和梯形的认识
 - 除数是两位数的除法：口算、笔算、商的变化规律
 - 条形统计图
-- 数学广角：优化问题（沏茶、烙饼）
+- 数学广角：优化问题（沏茶、烙饼）`,
 
-四年级下册：
-- 四则运算：加减法的意义和关系、乘除法的意义和关系、有括号的四则运算
+  '四年级下册': `- 四则运算：加减法的意义和关系、乘除法的意义和关系、有括号的四则运算
 - 观察物体（二）：从不同方向观察物体
 - 运算定律：加法运算定律、乘法运算定律、简便计算
 - 小数：小数意义、性质、读法写法、大小比较、小数点移动、近似数
@@ -103,45 +94,51 @@ const SYSTEM_PROMPT = `你是小学数学出题专家，专门为小学生生成
 - 小数加减法、小数加减混合运算
 - 平均数与复式条形统计图
 - 图形的运动：轴对称、平移
-- 数学广角：鸡兔同笼问题
+- 数学广角：鸡兔同笼问题`,
 
-五年级上册：
-- 小数乘法：小数乘整数、小数乘小数、积的近似值
+  '五年级上册': `- 小数乘法：小数乘整数、小数乘小数、积的近似值
 - 用数对表示位置
 - 小数除法：除数是整数、除数是小数、商的近似值、循环小数
 - 可能性：可能性的大小、可能性的计算
 - 方程：用字母表示数、方程的意义、解方程、列方程解决问题
 - 多边形面积：平行四边形、三角形、梯形、组合图形的面积
-- 数学广角：植树问题
+- 数学广角：植树问题`,
 
-五年级下册：
-- 观察物体（三）：根据视图还原立体图形
+  '五年级下册': `- 观察物体（三）：根据视图还原立体图形
 - 因数与倍数：2、3、5的倍数特征、质数和合数、最大公因数、最小公倍数
 - 长方体和正方体：认识、表面积、体积、容积
 - 分数：分数的意义、分数与除法的关系、真分数和假分数、分数的基本性质、约分、通分
 - 图形的运动：旋转
 - 分数的加法和减法：同分母、异分母、分数加减混合运算
 - 统计：折线统计图、复式折线统计图
-- 数学广角：找次品问题
+- 数学广角：找次品问题`,
 
-六年级上册：
-- 分数乘法、分数除法、分数混合运算
+  '六年级上册': `- 分数乘法、分数除法、分数混合运算
 - 位置与方向（二）：用方向和距离确定位置
 - 比：比的意义、基本性质、比的应用
 - 圆：圆的认识、周长、面积、扇形
 - 百分数：百分数的认识、百分数和分数小数互化、百分数的简单应用
 - 扇形统计图
-- 数学广角：数与形
+- 数学广角：数与形`,
 
-六年级下册：
-- 负数：负数的认识、在数轴上表示正数0和负数
+  '六年级下册': `- 负数：负数的认识、在数轴上表示正数0和负数
 - 百分数（二）：折扣、成数、税率、利率
 - 圆柱与圆锥：圆柱的认识、表面积、体积、圆锥的认识、体积
 - 比例：比例的意义和基本性质、解比例、正比例、反比例
 - 比例尺、图形的放大与缩小、用比例解决问题
 - 统计：扇形统计图
 - 数学广角：鸽巢问题
-- 整理和复习：数与代数、图形与几何、统计与概率
+- 整理和复习：数与代数、图形与几何、统计与概率`
+};
+
+// Build SYSTEM_PROMPT dynamically based on semester
+function buildSystemPrompt(semester) {
+  const scope = GRADE_SCOPES[semester];
+  const scopeSection = scope
+    ? `\n【本次出题范围 - ${semester}】\n${scope}`
+    : '';
+
+  return SYSTEM_PROMPT_BASE + scopeSection + `
 
 【题目要求 - 必须遵守】
 
@@ -627,13 +624,13 @@ const isDuplicate = (question, existingList) => {
 };
 
 // ========== 调用大模型 ==========
-const callModel = async (client, modelName, userPrompt, maxTokens, requestId) => {
-  console.log('[callModel]', JSON.stringify({ requestId, model: modelName, promptLen: userPrompt.length, maxTokens }));
+const callModel = async (client, modelName, userPrompt, maxTokens, requestId, systemPrompt) => {
+  console.log('[callModel]', JSON.stringify({ requestId, model: modelName, promptLen: userPrompt.length, sysLen: systemPrompt.length, maxTokens }));
 
   const completion = await client.chat.completions.create({
     model: modelName,
     messages: [
-      { role: 'system', content: SYSTEM_PROMPT },
+      { role: 'system', content: systemPrompt },
       { role: 'user', content: userPrompt }
     ],
     temperature: 0.3,
@@ -714,6 +711,7 @@ exports.main = async (event, context) => {
     const { count, difficulty, questionType, sanitizedExistingQuestions } = securityData;
     const prefetchHint = String(event.prefetchHint || '').slice(0, 80);
     const maxTokens = count === 1 ? 800 : 2000;
+    const systemPrompt = buildSystemPrompt(semester || grade || '');
 
     const userPrompt = buildUserPrompt({
       knowledgeName,
@@ -728,14 +726,14 @@ exports.main = async (event, context) => {
       prefetchHint: prefetchHint || undefined
     });
 
-    let completion = await callModel(client, modelName, userPrompt, maxTokens, requestId);
+    let completion = await callModel(client, modelName, userPrompt, maxTokens, requestId, systemPrompt);
     let content = completion.choices?.[0]?.message?.content;
     let questions = parseResponse(content);
     let duplicateWarning = false;
 
     if (questions.length > 0 && isDuplicate(questions[0], sanitizedExistingQuestions)) {
       const retryPrompt = `${userPrompt}\n必须与已列题目完全不同，不得重复。`;
-      completion = await callModel(client, modelName, retryPrompt, maxTokens, `${requestId}_dedup`);
+      completion = await callModel(client, modelName, retryPrompt, maxTokens, `${requestId}_dedup`, systemPrompt);
       content = completion.choices?.[0]?.message?.content;
       questions = parseResponse(content);
       if (questions.length > 0 && isDuplicate(questions[0], sanitizedExistingQuestions)) {
