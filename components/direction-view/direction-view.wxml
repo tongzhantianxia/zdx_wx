@@ -1,0 +1,3 @@
+<view class="direction-view-wrap">
+  <canvas type="2d" id="directionCanvas" class="direction-canvas" style="width:{{canvasWidth}}px;height:{{canvasHeight}}px;"></canvas>
+</view>
