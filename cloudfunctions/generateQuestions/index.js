@@ -166,6 +166,8 @@ const KNOWLEDGE_CHART_MAP = {
   // 分数条
   '分数的初步认识': 'fractionBar', '分数的简单计算': 'fractionBar',
   '分数的意义': 'fractionBar',
+  // 找规律（图形/数字序列）
+  '图形规律': 'shape_2d', '数字规律': 'shape_2d', '找规律': 'shape_2d',
   // 网格坐标
   '用数对表示位置': 'grid', '比例尺': 'grid',
   // 方位图
@@ -306,11 +308,25 @@ ${CHART_PROMPT_TEMPLATES[chartType]}`;
     }
   }
 
-  // shape_2d: composite shapes need low-level format
+  // shape_2d: composite shapes or pattern sequences need low-level format
   if (chartType === 'shape_2d') {
     const kn = knowledgeName || '';
     if (kn.includes('组合图形')) {
       text += '\n【组合图形要求】本题为组合图形，必须用低层shapes数组格式画多个拼接的子图形，不要用shape高层格式。确保子图形相邻共边。';
+    }
+    if (kn.includes('规律') || kn.includes('找规律')) {
+      text += `\n【找规律要求】本题为找规律题，必须用低层shapes数组格式画图形序列。
+图形规律示例（横向排列一组重复图案，最后一个用虚线表示待填）：
+"chartData":{"chartType":"shape_2d","data":{"width":280,"height":60,"shapes":[
+  {"type":"polygon","points":[[10,10],[30,10],[30,40],[10,40]],"stroke":"#333","fill":"#5B9BD5"},
+  {"type":"circle","center":[50,25],"radius":15,"stroke":"#333","fill":"#ED7D31"},
+  {"type":"polygon","points":[[70,10],[90,10],[90,40],[70,40]],"stroke":"#333","fill":"#5B9BD5"},
+  {"type":"circle","center":[110,25],"radius":15,"stroke":"#333","fill":"#ED7D31"},
+  {"type":"polygon","points":[[130,10],[150,10],[150,40],[130,40]],"stroke":"#333","fill":"#5B9BD5"},
+  {"type":"circle","center":[170,25],"radius":15,"stroke":"#999"}
+],"labels":[{"text":"?","position":[170,25],"fontSize":14,"color":"#E74C3C"}]}}
+数字规律可以用数字标签配圆形背景横向排列，最后一个标"?"。
+必须用shapes数组格式，不要用shape高层格式。`;
     }
   }
 
