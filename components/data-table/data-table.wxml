@@ -1,0 +1,17 @@
+<view class="data-table-wrap" wx:if="{{tableData}}">
+  <text class="table-title" wx:if="{{tableData.title}}">{{tableData.title}}</text>
+  <scroll-view scroll-x class="table-scroll">
+    <view class="table">
+      <view class="table-row table-header">
+        <view class="table-cell header-cell" wx:for="{{tableData.headers}}" wx:key="index">
+          <text>{{item}}</text>
+        </view>
+      </view>
+      <view class="table-row" wx:for="{{tableData.rows}}" wx:key="index" wx:for-item="row">
+        <view class="table-cell" wx:for="{{row}}" wx:key="index" wx:for-item="cell">
+          <text>{{cell}}</text>
+        </view>
+      </view>
+    </view>
+  </scroll-view>
+</view>
