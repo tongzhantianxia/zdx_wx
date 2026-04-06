@@ -250,7 +250,7 @@ Page({
       answer: String(q.answer || '').trim(),
       answerFormat: q.answerFormat || 'number',
       answerUnit: q.answerUnit || '',
-      options: Array.isArray(q.options) && q.options.length >= 2 ? q.options : null,
+      options: Array.isArray(q.options) && q.options.length >= 2 ? this.shuffleOptions(q.options) : null,
       type: q.type || '计算题',
       typeName: q.type || '计算题',
       difficulty: this.getDifficultyLevel(q.difficulty),
@@ -547,6 +547,17 @@ Page({
 
   checkAnswer: function (userAnswer, correctAnswer) {
     return userAnswer === correctAnswer;
+  },
+
+  shuffleOptions: function (options) {
+    const arr = options.slice();
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      const tmp = arr[i];
+      arr[i] = arr[j];
+      arr[j] = tmp;
+    }
+    return arr;
   },
 
   handleNext: function () {
