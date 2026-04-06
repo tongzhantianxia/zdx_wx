@@ -171,6 +171,7 @@ function buildSystemPrompt(semester) {
 - 全部年级禁止出现：幂运算、指数
 - 应用题禁止出现：价格计��（除非是简单的人民币认识）
 - 全部年级禁止出现：需要单位换算的应用题（除非是简单的人民币）`;
+}
 
 // 知识点 → chartType 映射
 const KNOWLEDGE_CHART_MAP = {
