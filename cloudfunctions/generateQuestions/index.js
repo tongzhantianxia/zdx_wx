@@ -268,6 +268,15 @@ const buildUserPrompt = (params) => {
 
   const chartType = findChartType(knowledgeName);
 
+  // Determine if chartData is required or optional for this knowledge point
+  // Conceptual/recognition topics: chart is optional (LLM can use pure text)
+  const conceptKeywords = ['认识', '拼组', '辨认', '分类', '观察', '位置', '方向', '左右', '上下', '前后'];
+  const kn = knowledgeName || '';
+  const un = (params.unitName || '') + kn;
+  const isConceptTopic = conceptKeywords.some(k => un.includes(k));
+  const chartRequired = chartType && !isConceptTopic;
+  const chartOptional = chartType && isConceptTopic;
+
   // Build context line: e.g. "一年级下册 第5单元「认识人民币」中的「简单的计算」"
   let contextLine = grade;
   if (semester) contextLine = semester;
@@ -281,7 +290,7 @@ const buildUserPrompt = (params) => {
   "id": 1,
   "type": "${typeMap[questionType] || '计算题'}",
   "contentBlocks": [{"type":"text","value":"题目完整文字"}],
-  "chartData": ${chartType ? '{}（按下面格式）' : 'null'},
+  "chartData": ${chartRequired ? '{}（按下面格式）' : 'null（如需图表可按下面格式提供，也可以为null用纯文字出题）'},
   "answer": "答案",
   "answerFormat": "number",
   "answerUnit": "",
@@ -299,11 +308,20 @@ const buildUserPrompt = (params) => {
 - 干扰选项要合理，常见错误类型：计算错误、单位混淆、公式用错`;
 
   if (chartType && CHART_PROMPT_TEMPLATES[chartType]) {
-    text += `
+    if (chartRequired) {
+      text += `
 
 【图表要求】本题需要chartData，chartType为"${chartType}"。
 输出格式示例：
 ${CHART_PROMPT_TEMPLATES[chartType]}`;
+    } else if (chartOptional) {
+      text += `
+
+【图表可选】如果题目需要展示图形，可以提供chartData，chartType为"${chartType}"。
+如果纯文字就能表达清楚，chartData设为null即可。
+图表格式示例：
+${CHART_PROMPT_TEMPLATES[chartType]}`;
+    }
   }
 
   // shape_3d: auto-select viewType based on knowledge point
@@ -316,10 +334,8 @@ ${CHART_PROMPT_TEMPLATES[chartType]}`;
     }
   }
 
-  // shape_2d: composite shapes or pattern sequences need low-level format
+  // shape_2d: special prompts for specific knowledge types
   if (chartType === 'shape_2d') {
-    const kn = knowledgeName || '';
-    const un = (params.unitName || '') + kn;
     if (kn.includes('组合图形')) {
       text += '\n【组合图形要求】本题为组合图形，必须用低层shapes数组格式画多个拼接的子图形，不要用shape高层格式。确保子图形相邻共边。';
     } else if (kn.includes('规律') || kn.includes('找规律')) {
@@ -335,14 +351,12 @@ ${CHART_PROMPT_TEMPLATES[chartType]}`;
 ],"labels":[{"text":"?","position":[170,25],"fontSize":14,"color":"#E74C3C"}]}}
 数字规律可以用数字标签配圆形背景横向排列，最后一个标"?"。
 必须用shapes数组格式，不要用shape高层格式。`;
-    } else if (un.includes('认识') && (un.includes('图形') || un.includes('平面') || un.includes('拼组'))) {
-      text += `\n【认识图形要求】本题为图形认识题，适合低年级。
-题目类型举例：辨认图形名称、数图形个数、找出不同类的图形。
-chartData用shape高层格式即可，展示一个简单图形供辨认：
-- shape用 rectangle/square/circle/triangle 之一
-- dimensions用简单数值如 {"side":4} 或 {"radius":3}
-如果不需要图形也可以设chartData为null，用纯文字出题。
-选项用中文图形名称如"三角形""正方形""圆形""长方形"。`;
+    } else if (isConceptTopic) {
+      text += `\n【概念认识题要求】本题为图形概念/认识题，适合低年级学生。
+可以不提供chartData（设为null），用纯文字出选择题即可。
+题目类型举例：辨认图形名称、数图形个数、判断图形特征、找出不同类的图形、图形拼组方式。
+选项必须用中文，如"三角形""正方形""圆形""长方形"等。
+不要出需要计算的题，专注于图形的认识和辨别。`;
     }
   }
 
