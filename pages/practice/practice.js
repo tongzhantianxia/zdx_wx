@@ -223,11 +223,32 @@ Page({
   },
 
   formatSingleQuestion: function (q) {
+    // Build unified chartData
+    let chartData = q.chartData || null;
+
+    // Legacy: convert diagram to chartData
+    if (!chartData && q.diagram) {
+      const d = q.diagram;
+      if (d.type === 'geometry') {
+        // Determine 2d vs 3d by checking shapes
+        const has3d = (d.shapes || []).some(s => ['cuboid', 'cube', 'cylinder', 'cone', 'sphere'].includes(s.type));
+        chartData = { chartType: has3d ? 'shape_3d' : 'shape_2d', data: d };
+      } else if (d.type === 'fractionBar') {
+        chartData = { chartType: 'fractionBar', data: { numerator: d.numerator, denominator: d.denominator } };
+      } else if (d.type === 'countingBlocks') {
+        chartData = { chartType: 'countingBlocks', data: { count: d.count, rows: d.rows, cols: d.cols } };
+      }
+    }
+
+    // Legacy: convert numberLine to chartData
+    if (!chartData && q.numberLine) {
+      chartData = { chartType: 'numberLine', data: q.numberLine };
+    }
+
     return {
       id: q.id || Date.now() + Math.random(),
       contentBlocks: q.contentBlocks || [{ type: 'text', value: String(q.content || q.question || '').trim() }],
-      diagram: q.diagram || null,
-      numberLine: q.numberLine || null,
+      chartData: chartData,
       answer: String(q.answer || '').trim(),
       answerFormat: q.answerFormat || 'number',
       answerUnit: q.answerUnit || '',
@@ -544,20 +565,38 @@ Page({
 
   // 处理题目数据
   processQuestions: function (data) {
-    return data.map(q => ({
-      id: q._id,
-      contentBlocks: q.contentBlocks || [{ type: 'text', value: String(q.question || '').trim() }],
-      diagram: q.diagram || null,
-      answer: String(q.answer || '').trim(),
-      answerFormat: q.answerFormat || 'number',
-      answerUnit: q.answerUnit || '',
-      type: q.type,
-      typeName: this.getTypeName(q.type),
-      difficulty: q.difficulty || 1,
-      difficultyText: this.getDifficultyText(q.difficulty),
-      hint: q.hint || '',
-      solutionBlocks: q.solutionBlocks || (q.explanation ? [{ type: 'text', value: q.explanation }] : null),
-    }));
+    return data.map(q => {
+      let chartData = q.chartData || null;
+      if (!chartData && q.diagram) {
+        const d = q.diagram;
+        if (d.type === 'geometry') {
+          const has3d = (d.shapes || []).some(s => ['cuboid', 'cube', 'cylinder', 'cone', 'sphere'].includes(s.type));
+          chartData = { chartType: has3d ? 'shape_3d' : 'shape_2d', data: d };
+        } else if (d.type === 'fractionBar') {
+          chartData = { chartType: 'fractionBar', data: { numerator: d.numerator, denominator: d.denominator } };
+        } else if (d.type === 'countingBlocks') {
+          chartData = { chartType: 'countingBlocks', data: { count: d.count, rows: d.rows, cols: d.cols } };
+        }
+      }
+      if (!chartData && q.numberLine) {
+        chartData = { chartType: 'numberLine', data: q.numberLine };
+      }
+
+      return {
+        id: q._id,
+        contentBlocks: q.contentBlocks || [{ type: 'text', value: String(q.question || '').trim() }],
+        chartData: chartData,
+        answer: String(q.answer || '').trim(),
+        answerFormat: q.answerFormat || 'number',
+        answerUnit: q.answerUnit || '',
+        type: q.type,
+        typeName: this.getTypeName(q.type),
+        difficulty: q.difficulty || 1,
+        difficultyText: this.getDifficultyText(q.difficulty),
+        hint: q.hint || '',
+        solutionBlocks: q.solutionBlocks || (q.explanation ? [{ type: 'text', value: q.explanation }] : null),
+      };
+    });
   },
 
   onAnswerInput: function (e) {
@@ -794,7 +833,7 @@ Page({
             data: {
               questionId: question.id,
               contentBlocks: question.contentBlocks,
-              diagram: question.diagram,
+              chartData: question.chartData,
               answer: question.answer,
               answerFormat: question.answerFormat,
               answerUnit: question.answerUnit,
