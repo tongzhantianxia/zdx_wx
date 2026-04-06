@@ -106,8 +106,7 @@ const SYSTEM_PROMPT = `你是小学数学出题专家，专门为小学生生成
 - 只有复杂公式用latex类型（分数 \\frac{a}{b}、根号 \\sqrt{x}）
 - 一二年级禁止使用latex！全部用text类型
 - answerFormat：纯数字用number，分数答案用fraction，文字答案用text
-- diagram设为null
-- 数轴题用numberLine字段：{start,end,step,highlightPoints:[],labels:[]}
+- chartData：不需要图表时设为null，需要图表时按指定格式输出
 
 【禁止出现的内容 - 绝对禁止】
 
@@ -120,45 +119,84 @@ const SYSTEM_PROMPT = `你是小学数学出题专家，专门为小学生生成
 - 应用题禁止出现：价格计��（除非是简单的人民币认识）
 - 全部年级禁止出现：需要单位换算的应用题（除非是简单的人民币）`;
 
-// 需要图形题的知识点关键词（精确匹配）
-const NEED_GEOMETRY_DIAGRAM = [
-  '认识图形', '平面图形', '正方形', '长方形', '三角形', '圆形', '圆',
-  '四边形', '认识四边形', '四边形的认识',
-  '认识角', '直角', '锐角', '钝角', '平行四边形', '梯形', '多边形',
-  '周长', '面积', '表面积', '体积', '长方体', '正方体', '圆柱', '圆锥', '球',
-  '观察物体', '从不同方向看', '搭立体图形', '数形结合',
-  '分数', '分数的意义', '几分之一', '几分之几', '分数比较',
-  '数轴', '认识小数', '小数的意义',
-  '位置', '方向与位置', '东南西北', '坐标'
-];
+// 知识点 → chartType 映射
+const KNOWLEDGE_CHART_MAP = {
+  // 统计与概率
+  '条形统计图': 'bar', '复式条形统计图': 'bar',
+  '数据分类': 'bar', '简单分类': 'bar',
+  '数据收集整理': 'bar', '简单的统计': 'bar',
+  '平均数': 'bar',
+  '折线统计图': 'line', '复式折线统计图': 'line',
+  '扇形统计图': 'pie',
+  '复式统计表': 'table',
+  // 钟表
+  '认识钟表': 'clock', '认识整时': 'clock',
+  '认识时间': 'clock', '认识几时几分': 'clock',
+  '秒的认识': 'clock', '24时计时法': 'clock',
+  // 平面几何
+  '认识平面图形': 'shape_2d', '图形的拼组': 'shape_2d',
+  '认识线段': 'shape_2d', '认识角': 'shape_2d', '直角的认识': 'shape_2d',
+  '四边形的认识': 'shape_2d', '长方形和正方形的认识': 'shape_2d',
+  '周长的认识': 'shape_2d', '长方形和正方形的周长': 'shape_2d',
+  '面积和面积单位': 'shape_2d', '长方形和正方形的面积': 'shape_2d',
+  '线段、直线、射线': 'shape_2d', '角的度量': 'shape_2d',
+  '角的分类': 'shape_2d', '画角': 'shape_2d',
+  '平行与垂直': 'shape_2d', '平行四边形和梯形的认识': 'shape_2d',
+  '三角形的特性': 'shape_2d', '三角形的分类': 'shape_2d', '三角形内角和': 'shape_2d',
+  '平行四边形的面积': 'shape_2d', '三角形的面积': 'shape_2d',
+  '梯形的面积': 'shape_2d', '组合图形的面积': 'shape_2d',
+  '圆的认识': 'shape_2d', '圆的周长': 'shape_2d', '圆的面积': 'shape_2d', '扇形': 'shape_2d',
+  // 立体几何
+  '认识立体图形': 'shape_3d', '观察物体': 'shape_3d',
+  '从不同方向观察物体': 'shape_3d', '根据视图还原立体图形': 'shape_3d',
+  '长方体和正方体的认识': 'shape_3d', '长方体和正方体的表面积': 'shape_3d',
+  '长方体和正方体的体积': 'shape_3d',
+  '圆柱的认识': 'shape_3d', '圆柱的表面积': 'shape_3d', '圆柱的体积': 'shape_3d',
+  '圆锥的认识': 'shape_3d', '圆锥的体积': 'shape_3d',
+  // 数轴
+  '认识小数': 'numberLine', '小数的意义': 'numberLine',
+  '负数的认识': 'numberLine', '在直线上表示正数、0和负数': 'numberLine',
+  // 分数条
+  '分数的初步认识': 'fractionBar', '分数的简单计算': 'fractionBar',
+  '分数的意义': 'fractionBar',
+};
 
-// 需要数轴的知识点关键词
-const NEED_NUMBER_LINE = [
-  '数轴', '认识小数', '小数的意义', '负数', '分数的比较', '数的大小比较',
-  '正负数', '有理数'
-];
-
-// 需要分数条的知识点（三年级认识分数）
-const NEED_FRACTION_BAR = [
-  '分数', '分数的意义', '几分之一', '几分之几', '分数比较', '分数单位',
-  '分数的初步认识', '认识分数'
-];
-
-const findDiagrams = (knowledgeName) => {
+const findChartType = (knowledgeName) => {
   const kn = knowledgeName || '';
-  const need = [];
-  
-  if (NEED_GEOMETRY_DIAGRAM.some(k => kn.includes(k))) {
-    need.push('geometry');
+  for (const [keyword, chartType] of Object.entries(KNOWLEDGE_CHART_MAP)) {
+    if (kn.includes(keyword)) return chartType;
   }
-  if (NEED_NUMBER_LINE.some(k => kn.includes(k))) {
-    need.push('numberLine');
-  }
-  if (NEED_FRACTION_BAR.some(k => kn.includes(k))) {
-    need.push('fractionBar');
-  }
-  
-  return need;
+  return null;
+};
+
+// chartType 对应的 prompt 模板
+const CHART_PROMPT_TEMPLATES = {
+  bar: `"chartData": {"chartType":"bar","data":{"title":"图表标题","xAxis":["标签1","标签2","标签3"],"yAxisLabel":"单位","series":[{"name":"系列名","data":[12,8,10]}]}}
+数据要合理，条数3-6个，数值为正整数。`,
+
+  line: `"chartData": {"chartType":"line","data":{"title":"图表标题","xAxis":["1月","2月","3月","4月"],"yAxisLabel":"单位","series":[{"name":"系列名","data":[20,35,28,40]}]}}
+数据点4-6个，展示变化趋势。`,
+
+  pie: `"chartData": {"chartType":"pie","data":{"title":"图表标题","items":[{"label":"类别A","value":30},{"label":"类别B","value":25},{"label":"类别C","value":45}]}}
+项目3-5个，value为正整数，总和不要求为100。`,
+
+  clock: `"chartData": {"chartType":"clock","data":{"hour":3,"minute":30}}
+hour为1-12整数，minute为0-59整数。题目围绕认识时间展开。`,
+
+  table: `"chartData": {"chartType":"table","data":{"title":"统计表标题","headers":["项目","数量"],"rows":[["苹果",12],["香蕉",8]]}}
+表格2-4列，2-5行数据。`,
+
+  shape_2d: `"chartData": {"chartType":"shape_2d","data":{"shape":"rectangle","dimensions":{"length":8,"width":5},"labels":[{"text":"8cm","position":[125,155]},{"text":"5cm","position":[40,90]}]}}
+shape可选：rectangle/square/circle/triangle/parallelogram/trapezoid/sector。dimensions按图形提供对应字段。`,
+
+  shape_3d: `"chartData": {"chartType":"shape_3d","data":{"shape":"cuboid","dimensions":{"length":8,"width":5,"height":4},"viewType":"3d"}}
+shape可选：cuboid/cube/cylinder/cone/sphere。viewType用"3d"。dimensions按图形类型提供。`,
+
+  numberLine: `"chartData": {"chartType":"numberLine","data":{"start":0,"end":10,"step":1,"highlightPoints":[3,7],"labels":[{"position":3,"text":"A","above":true}]}}
+数轴范围合理，step为正数，highlightPoints标记关键点。`,
+
+  fractionBar: `"chartData": {"chartType":"fractionBar","data":{"numerator":3,"denominator":4}}
+用分数条展示分数，numerator < denominator。`,
 };
 
 const buildUserPrompt = (params) => {
@@ -166,24 +204,17 @@ const buildUserPrompt = (params) => {
   const diffMap = { easy: '简单', medium: '中等', hard: '困难' };
   const typeMap = { calculation: '计算题', fillBlank: '填空题', application: '应用题', geometry: '几何题' };
 
-  // 判断需要哪种图形
-  const requiredDiagrams = findDiagrams(knowledgeName);
-  const useNumberLine = requiredDiagrams.includes('numberLine');
-  const useFractionBar = requiredDiagrams.includes('fractionBar');
-  const useGeometry = requiredDiagrams.includes('geometry');
+  const chartType = findChartType(knowledgeName);
 
   let text = `生成${count}道${grade}「${knowledgeName}」${typeMap[questionType] || '计算题'}，难度${diffMap[difficulty] || '中等'}。
 严格限制在${grade}知识范围内，不得超纲。
-
-【重要】该知识点需要图形：${useNumberLine ? '数轴 ' : ''}${useFractionBar ? '分数条 ' : ''}${useGeometry ? '几何图 ' : ''}
 
 输出JSON格式：
 {"questions":[{
   "id": 1,
   "type": "${typeMap[questionType] || '计算题'}",
   "contentBlocks": [{"type":"text","value":"题目完整文字"}],
-  "diagram": ${useGeometry ? '{}占位，实际图形在下面定义"' : 'null'},
-  "numberLine": ${useNumberLine ? '{start:0,end:10,step:1,highlightPoints:[],labels:[]}' : 'null'},
+  "chartData": ${chartType ? '{}（按下面格式）' : 'null'},
   "answer": "答案",
   "answerFormat": "number",
   "answerUnit": "",
@@ -191,54 +222,12 @@ const buildUserPrompt = (params) => {
   "tip": "易错提示"
 }]}`;
 
-  // 在几何题输出格式后面添加实际diagram定义示例
-  if (useGeometry) {
+  if (chartType && CHART_PROMPT_TEMPLATES[chartType]) {
     text += `
 
-【警告】必须生成diagram字段！示例：
-{"type":"geometry","width":250,"height":180,"shapes":[{"type":"polygon","points":[[40,140],[140,140],[140,40],[40,40]],"stroke":"#333"}],"labels":[{"text":"长方形","position":[90,25],"fontSize":14}],"annotations":[]}`;
-  }
-
-  // 数轴题输出格式
-  if (useNumberLine) {
-    text += `
-
-【数轴题格式】（必须包含numberLine字段）：
-- start/end/step定义数轴范围
-- highlightPoints标记需要操作的点，如[3,5]
-- labels添加标签：[{position:3,text:"3",above:true}]
-- 题目中必须提到数轴上的点`;
-  }
-
-  // 分数条格式
-  if (useFractionBar) {
-    text += `
-
-【分数条题格式】（使用diagram字段）：
-- diagram: {"type":"fractionBar","numerator":3,"denominator":4}
-- 用于展示分数的几分之几`;
-  }
-
-  // ��何题diagram格式
-  if (useGeometry) {
-    text += `
-
-几何题的diagram格式：
-{"type":"geometry","width":250,"height":200,"shapes":[...],"labels":[...],"annotations":[...]}
-
-2D shapes: polygon(points数组), circle(center,radius), line(from,to), dashed(from,to)
-3D shapes: cuboid(origin,length,width,height), cube(origin,size), cylinder(origin,radius,height), cone(origin,radius,height)
-3D shape可选: hiddenEdges(默认true), faceFills([{face:"front",fill:"rgba(...)"}])
-annotations: rightAngle(vertex,dir1,dir2,size), shade(points,fill), dimensionLine(from,to,text,offset)
-labels: {text,position:[x,y],fontSize}
-
-坐标规则：
-- 所有坐标在[0,width]x[0,height]范围内
-- 3D图形origin的x建议40-80，y建议height-30到height-50
-- labels之间间隔至少20px
-
-长方体模板（可直接使用，调整数值）：
-{"type":"cuboid","origin":[60,160],"length":100,"width":60,"height":80,"stroke":"#333","fill":"transparent","hiddenEdges":true}`;
+【图表要求】本题需要chartData，chartType为"${chartType}"。
+输出格式示例：
+${CHART_PROMPT_TEMPLATES[chartType]}`;
   }
 
   if (Array.isArray(existingSummaries) && existingSummaries.length > 0) {
@@ -252,26 +241,44 @@ labels: {text,position:[x,y],fontSize}
 
 // ========== 解析与校验 ==========
 const VALID_BLOCK_TYPES = ['text', 'latex'];
-const VALID_SHAPE_TYPES = ['polygon', 'circle', 'line', 'arc', 'dashed', 'cuboid', 'cube', 'cylinder', 'cone', 'sphere'];
+const VALID_CHART_TYPES = [
+  'bar', 'line', 'pie', 'clock', 'table',
+  'shape_2d', 'shape_3d',
+  'numberLine', 'fractionBar', 'countingBlocks'
+];
 
 const validateContentBlocks = (blocks) => {
   if (!Array.isArray(blocks) || blocks.length === 0) return false;
   return blocks.every(b => VALID_BLOCK_TYPES.includes(b.type) && typeof b.value === 'string' && b.value.length > 0);
 };
 
-const validateNumberLine = (nl) => {
-  if (!nl) return true;
-  if (typeof nl.start !== 'number' || typeof nl.end !== 'number' || typeof nl.step !== 'number') return false;
-  if (nl.start >= nl.end || nl.step <= 0) return false;
-  if (!Array.isArray(nl.highlightPoints)) return false;
-  if (!Array.isArray(nl.labels)) return false;
-  return true;
-};
-
-const validateDiagram = (d) => {
-  if (!d) return true;
-  if (!d.width || !d.height || !Array.isArray(d.shapes)) return false;
-  return d.shapes.every(s => VALID_SHAPE_TYPES.includes(s.type));
+const validateChartData = (cd) => {
+  if (!cd) return true; // null is valid (no chart)
+  if (!cd.chartType || !VALID_CHART_TYPES.includes(cd.chartType)) return false;
+  if (!cd.data || typeof cd.data !== 'object') return false;
+  // Type-specific basic validation
+  switch (cd.chartType) {
+    case 'bar':
+      return Array.isArray(cd.data.xAxis) && Array.isArray(cd.data.series);
+    case 'line':
+      return Array.isArray(cd.data.xAxis) && Array.isArray(cd.data.series);
+    case 'pie':
+      return Array.isArray(cd.data.items) && cd.data.items.length > 0;
+    case 'clock':
+      return typeof cd.data.hour === 'number';
+    case 'table':
+      return Array.isArray(cd.data.headers) && Array.isArray(cd.data.rows);
+    case 'shape_2d':
+      return (cd.data.shape || (Array.isArray(cd.data.shapes) && cd.data.shapes.length > 0));
+    case 'shape_3d':
+      return (cd.data.shape || (Array.isArray(cd.data.shapes) && cd.data.shapes.length > 0));
+    case 'numberLine':
+      return typeof cd.data.start === 'number' && typeof cd.data.end === 'number';
+    case 'fractionBar':
+      return typeof cd.data.denominator === 'number' && cd.data.denominator > 0;
+    default:
+      return true;
+  }
 };
 
 const validateLatexBrackets = (str) => {
@@ -286,8 +293,7 @@ const validateLatexBrackets = (str) => {
 
 const validateQuestion = (q) => {
   if (!validateContentBlocks(q.contentBlocks)) return false;
-  if (!validateDiagram(q.diagram)) return false;
-  if (!validateNumberLine(q.numberLine)) return false;
+  if (!validateChartData(q.chartData)) return false;
   const allLatex = (q.contentBlocks || [])
     .concat(q.solutionBlocks || [])
     .filter(b => b.type === 'latex');
@@ -315,11 +321,32 @@ const parseResponse = (content) => {
         const fallbackText = String(q.content || q.question || '').trim();
         blocks = fallbackText ? [{ type: 'text', value: fallbackText }] : null;
       }
-      let diagram = q.diagram;
-      if (diagram && !validateDiagram(diagram)) {
-        console.warn('[parseResponse] diagram无效，已忽略:', typeof diagram === 'string' ? diagram.slice(0, 80) : JSON.stringify(diagram).slice(0, 80));
-        diagram = null;
+
+      // Extract chartData (new unified field)
+      let chartData = q.chartData || null;
+      if (chartData && !validateChartData(chartData)) {
+        console.warn('[parseResponse] chartData无效，已忽略:', JSON.stringify(chartData).slice(0, 80));
+        chartData = null;
       }
+
+      // Legacy fallback: convert old diagram/numberLine fields if present
+      if (!chartData && q.diagram) {
+        const d = q.diagram;
+        if (d.type === 'geometry' && d.shapes) {
+          const has3d = d.shapes.some(s => ['cuboid', 'cube', 'cylinder', 'cone', 'sphere'].includes(s.type));
+          chartData = { chartType: has3d ? 'shape_3d' : 'shape_2d', data: d };
+        } else if (d.type === 'fractionBar') {
+          chartData = { chartType: 'fractionBar', data: { numerator: d.numerator, denominator: d.denominator } };
+        } else if (d.type === 'countingBlocks') {
+          chartData = { chartType: 'countingBlocks', data: { count: d.count, rows: d.rows, cols: d.cols } };
+        }
+      }
+      if (!chartData && q.numberLine) {
+        if (typeof q.numberLine.start === 'number' && typeof q.numberLine.end === 'number') {
+          chartData = { chartType: 'numberLine', data: q.numberLine };
+        }
+      }
+
       let solution = q.solutionBlocks;
       if (!Array.isArray(solution) || solution.length === 0) {
         const solText = String(q.solution || q.explanation || '').trim();
@@ -329,7 +356,7 @@ const parseResponse = (content) => {
         id: i + 1,
         type: q.type || '计算题',
         contentBlocks: blocks,
-        diagram: diagram,
+        chartData: chartData,
         answer: String(q.answer || '').trim(),
         answerFormat: q.answerFormat || 'number',
         answerUnit: q.answerUnit || '',
