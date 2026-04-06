@@ -421,65 +421,61 @@
   color: #C62828;
 }
 
-/* ==================== 每题练习按钮 ==================== */
-.detail-action {
-  margin-top: 24rpx;
-  padding: 0 16rpx;
-}
-
-.btn-practice {
-  width: 100%;
-  height: 88rpx;
-  border-radius: 44rpx;
-  background: linear-gradient(135deg, #FFD54F, #FFB300);
-  color: #fff;
-  font-size: 30rpx;
-  font-weight: 700;
-  border: none;
-  box-shadow: 0 4rpx 16rpx rgba(255, 179, 0, 0.4);
-}
-
-.btn-practice::after { border: none; }
-
 /* ==================== 底部操作栏 ==================== */
 .bottom-bar {
   position: fixed;
   bottom: calc(128rpx + env(safe-area-inset-bottom));
-  left: 0;
-  right: 0;
-  background: #fff;
-  border-top: 2rpx solid #E8E0D0;
-  padding: 20rpx 30rpx;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  z-index: 99;
-  box-shadow: 0 -4rpx 12rpx rgba(0, 0, 0, 0.05);
+  left: 24rpx;
+  right: 24rpx;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-radius: 28rpx;
+  padding: 20rpx 24rpx;
+  box-shadow: 0 4rpx 24rpx rgba(0, 0, 0, 0.08);
+  z-index: 50;
 }
-.bottom-left {
-  display: flex;
-  flex-direction: column;
-}
-.bottom-count {
-  font-size: 28rpx;
-  font-weight: 600;
-  color: #333;
-}
-.bottom-actions {
+
+.bottom-inner {
   display: flex;
   align-items: center;
   gap: 20rpx;
 }
-.btn-retake {
-  font-size: 26rpx;
-  color: #999;
-  padding: 16rpx 0;
-}
-.btn-start {
-  background: #FFB300;
-  color: #fff;
+
+.bottom-inner .btn-retake {
+  flex-shrink: 0;
   font-size: 28rpx;
-  font-weight: 600;
-  padding: 16rpx 40rpx;
-  border-radius: 16rpx;
+  color: #999;
+  padding: 16rpx 24rpx;
+}
+
+.btn-generate {
+  flex: 1;
+  height: 88rpx;
+  border-radius: 44rpx;
+  background: linear-gradient(135deg, #FFD54F, #FFB300);
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4rpx 16rpx rgba(255, 179, 0, 0.4);
+}
+
+.btn-generate::after { border: none; }
+.btn-generate:active { transform: scale(0.97); }
+
+.btn-generate.btn-generate-disabled {
+  background: #E8E8E8;
+  box-shadow: none;
+}
+
+.btn-generate-text {
+  font-size: 32rpx;
+  font-weight: 700;
+  color: #FFFFFF;
+  letter-spacing: 2rpx;
+}
+
+.btn-generate.btn-generate-disabled .btn-generate-text {
+  color: #AAAAAA;
 }

@@ -125,7 +125,7 @@
         <view class="detail-card">
           <text class="detail-label">题目截图</text>
           <view class="detail-img-wrap">
-            <image class="detail-img" src="{{currentDetail.questionImage || imagePath}}" mode="widthFix"></image>
+            <image class="detail-img" src="{{currentDetail.questionImage || imagePath}}" mode="widthFix" bindtap="previewQuestionImage"></image>
           </view>
         </view>
 
@@ -154,17 +154,16 @@
           </view>
         </block>
 
-        <view class="detail-action">
-          <button class="btn-practice" bindtap="startTraining">针对这道题生成3道练习</button>
-        </view>
-
       </view>
     </block>
 
     <!-- 底部操作栏 -->
     <view class="bottom-bar">
-      <view class="bottom-actions">
+      <view class="bottom-inner">
         <text class="btn-retake" bindtap="retakePhoto">重拍</text>
+        <button class="btn-generate {{!currentDetail ? 'btn-generate-disabled' : ''}}" bindtap="startTraining" disabled="{{!currentDetail}}">
+          <text class="btn-generate-text">生成针对练习题</text>
+        </button>
       </view>
     </view>
 
