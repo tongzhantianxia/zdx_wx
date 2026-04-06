@@ -1,0 +1,10 @@
+.probability-view-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 16rpx 0;
+}
+
+.probability-canvas {
+  display: block;
+}
