@@ -20,104 +20,124 @@ function perpendicular(a, b) {
 function shapeToShapes(data) {
   const s = data.shape;
   const dim = data.dimensions || {};
-  const W = 250;
-  const H = 180;
-  const cx = W / 2;
-  const cy = H / 2;
   const shapes = [];
   const labels = data.labels ? data.labels.slice() : [];
+  // Padding around shape for labels
+  const pad = { top: 20, bottom: 28, left: 30, right: 20 };
 
   switch (s) {
     case 'rectangle': {
       const l = dim.length || 80;
       const w = dim.width || 50;
-      const scale = Math.min((W - 40) / l, (H - 40) / w);
-      const sl = l * scale;
-      const sw = w * scale;
-      const x0 = cx - sl / 2, y0 = cy - sw / 2;
+      const maxDraw = 160;
+      const sc = Math.min(maxDraw / l, maxDraw / w, 1.5);
+      const sl = l * sc, sw = w * sc;
+      const W = sl + pad.left + pad.right;
+      const H = sw + pad.top + pad.bottom;
+      const x0 = pad.left, y0 = pad.top;
       shapes.push({ type: 'polygon', points: [[x0, y0], [x0 + sl, y0], [x0 + sl, y0 + sw], [x0, y0 + sw]], stroke: '#333' });
       if (!labels.length) {
-        labels.push({ text: l + '', position: [cx, y0 + sw + 14], fontSize: 12 });
-        labels.push({ text: w + '', position: [x0 - 14, cy], fontSize: 12 });
+        labels.push({ text: l + 'cm', position: [x0 + sl / 2, y0 + sw + 14], fontSize: 12 });
+        labels.push({ text: w + 'cm', position: [x0 - 16, y0 + sw / 2], fontSize: 12 });
       }
-      break;
+      return { width: W, height: H, shapes, labels, annotations: [] };
     }
     case 'square': {
       const side = dim.side || 60;
-      const scale = Math.min((W - 40) / side, (H - 40) / side);
-      const ss = side * scale;
-      const x0 = cx - ss / 2, y0 = cy - ss / 2;
+      const sc = Math.min(160 / side, 1.5);
+      const ss = side * sc;
+      const W = ss + pad.left + pad.right;
+      const H = ss + pad.top + pad.bottom;
+      const x0 = pad.left, y0 = pad.top;
       shapes.push({ type: 'polygon', points: [[x0, y0], [x0 + ss, y0], [x0 + ss, y0 + ss], [x0, y0 + ss]], stroke: '#333' });
       if (!labels.length) {
-        labels.push({ text: side + '', position: [cx, y0 + ss + 14], fontSize: 12 });
+        labels.push({ text: side + 'cm', position: [x0 + ss / 2, y0 + ss + 14], fontSize: 12 });
       }
-      break;
+      return { width: W, height: H, shapes, labels, annotations: [] };
     }
     case 'circle': {
       const r = dim.radius || 50;
-      const scale = Math.min((W - 40) / (r * 2), (H - 40) / (r * 2));
-      const sr = r * scale;
+      const sc = Math.min(80 / r, 1.5);
+      const sr = r * sc;
+      const W = sr * 2 + pad.left + pad.right + 20;
+      const H = sr * 2 + pad.top + pad.bottom;
+      const cx = pad.left + sr + 10, cy = pad.top + sr;
       shapes.push({ type: 'circle', center: [cx, cy], radius: sr, stroke: '#333' });
-      // radius line
       shapes.push({ type: 'line', from: [cx, cy], to: [cx + sr, cy], stroke: '#4A90E2' });
       if (!labels.length) {
         labels.push({ text: 'r=' + r, position: [cx + sr / 2, cy - 10], fontSize: 11, color: '#4A90E2' });
       }
-      break;
+      return { width: W, height: H, shapes, labels, annotations: [] };
     }
     case 'triangle': {
       const base = dim.base || 80;
       const height = dim.height || 60;
-      const scale = Math.min((W - 40) / base, (H - 40) / height);
-      const sb = base * scale;
-      const sh = height * scale;
-      const x0 = cx - sb / 2, y0 = cy + sh / 2;
-      shapes.push({ type: 'polygon', points: [[x0, y0], [x0 + sb, y0], [cx, y0 - sh]], stroke: '#333' });
+      const sc = Math.min(160 / base, 120 / height, 1.5);
+      const sb = base * sc, sh = height * sc;
+      const W = sb + pad.left + pad.right;
+      const H = sh + pad.top + pad.bottom;
+      const x0 = pad.left, y0 = pad.top + sh;
+      const apex = [x0 + sb / 2, pad.top];
+      shapes.push({ type: 'polygon', points: [[x0, y0], [x0 + sb, y0], apex], stroke: '#333' });
+      shapes.push({ type: 'dashed', from: apex, to: [apex[0], y0], stroke: '#999' });
       if (!labels.length) {
-        labels.push({ text: base + '', position: [cx, y0 + 14], fontSize: 12 });
-        labels.push({ text: 'h=' + height, position: [cx + 10, cy], fontSize: 11, color: '#999' });
+        labels.push({ text: base + 'cm', position: [x0 + sb / 2, y0 + 14], fontSize: 12 });
+        labels.push({ text: 'h=' + height, position: [apex[0] + 16, pad.top + sh / 2], fontSize: 11, color: '#999' });
       }
-      // height dashed line
-      shapes.push({ type: 'dashed', from: [cx, y0 - sh], to: [cx, y0], stroke: '#999' });
-      break;
+      return { width: W, height: H, shapes, labels, annotations: [] };
     }
     case 'parallelogram': {
       const base = dim.base || 80;
       const height = dim.height || 50;
-      const offset = 25;
-      const scale = Math.min((W - 40) / (base + offset), (H - 40) / height);
-      const sb = base * scale;
-      const sh = height * scale;
-      const so = offset * scale;
-      const x0 = cx - (sb + so) / 2, y0 = cy + sh / 2;
-      shapes.push({ type: 'polygon', points: [[x0 + so, y0 - sh], [x0 + so + sb, y0 - sh], [x0 + sb, y0], [x0, y0]], stroke: '#333' });
+      const offset = Math.round(height * 0.4);
+      const sc = Math.min(160 / (base + offset), 120 / height, 1.5);
+      const sb = base * sc, sh = height * sc, so = offset * sc;
+      const W = sb + so + pad.left + pad.right;
+      const H = sh + pad.top + pad.bottom;
+      const x0 = pad.left, y0 = pad.top + sh;
+      // Points: top-left, top-right, bottom-right, bottom-left
+      const tl = [x0 + so, pad.top], tr = [x0 + so + sb, pad.top];
+      const br = [x0 + sb, y0], bl = [x0, y0];
+      shapes.push({ type: 'polygon', points: [tl, tr, br, bl], stroke: '#333' });
+      // Height dashed line (from top-left vertex straight down)
+      const footX = tl[0];
+      shapes.push({ type: 'dashed', from: tl, to: [footX, y0], stroke: '#999' });
       if (!labels.length) {
-        labels.push({ text: base + '', position: [cx, y0 + 14], fontSize: 12 });
+        labels.push({ text: base + 'cm', position: [x0 + (sb + so) / 2, y0 + 14], fontSize: 12 });
+        labels.push({ text: 'h=' + height, position: [footX - 20, pad.top + sh / 2], fontSize: 11, color: '#999' });
       }
-      break;
+      return { width: W, height: H, shapes, labels, annotations: [] };
     }
     case 'trapezoid': {
       const top = dim.top || 40;
       const base = dim.base || 80;
       const height = dim.height || 50;
-      const scale = Math.min((W - 40) / base, (H - 40) / height);
-      const sb = base * scale;
-      const st = top * scale;
-      const sh = height * scale;
-      const x0 = cx - sb / 2, y0 = cy + sh / 2;
-      const tx0 = cx - st / 2;
-      shapes.push({ type: 'polygon', points: [[tx0, y0 - sh], [tx0 + st, y0 - sh], [x0 + sb, y0], [x0, y0]], stroke: '#333' });
+      const sc = Math.min(160 / base, 120 / height, 1.5);
+      const sb = base * sc, st = top * sc, sh = height * sc;
+      const W = sb + pad.left + pad.right;
+      const H = sh + pad.top + pad.bottom;
+      const x0 = pad.left, y0 = pad.top + sh;
+      const tx0 = x0 + (sb - st) / 2;
+      const tl = [tx0, pad.top], tr = [tx0 + st, pad.top];
+      const br = [x0 + sb, y0], bl = [x0, y0];
+      shapes.push({ type: 'polygon', points: [tl, tr, br, bl], stroke: '#333' });
+      // Height dashed line
+      shapes.push({ type: 'dashed', from: tl, to: [tl[0], y0], stroke: '#999' });
       if (!labels.length) {
-        labels.push({ text: top + '', position: [cx, y0 - sh - 14], fontSize: 12 });
-        labels.push({ text: base + '', position: [cx, y0 + 14], fontSize: 12 });
+        labels.push({ text: top + 'cm', position: [tx0 + st / 2, pad.top - 14], fontSize: 12 });
+        labels.push({ text: base + 'cm', position: [x0 + sb / 2, y0 + 14], fontSize: 12 });
+        labels.push({ text: 'h=' + height, position: [tl[0] - 20, pad.top + sh / 2], fontSize: 11, color: '#999' });
       }
-      break;
+      return { width: W, height: H, shapes, labels, annotations: [] };
     }
     case 'sector': {
       const r = dim.radius || 60;
       const angle = dim.angle || 90;
-      const scale = Math.min((W - 40) / (r * 2), (H - 40) / (r * 2));
-      const sr = r * scale;
+      const sc = Math.min(80 / r, 1.5);
+      const sr = r * sc;
+      const W = sr * 2 + pad.left + pad.right;
+      const H = sr * 2 + pad.top + pad.bottom;
+      const cx = pad.left + sr, cy = pad.top + sr;
       shapes.push({ type: 'line', from: [cx, cy], to: [cx + sr, cy], stroke: '#333' });
       const endRad = -angle * Math.PI / 180;
       shapes.push({ type: 'line', from: [cx, cy], to: [cx + sr * Math.cos(endRad), cy + sr * Math.sin(endRad)], stroke: '#333' });
@@ -125,12 +145,12 @@ function shapeToShapes(data) {
       if (!labels.length) {
         labels.push({ text: angle + '°', position: [cx + 20, cy - 10], fontSize: 11 });
       }
-      break;
+      return { width: W, height: H, shapes, labels, annotations: [] };
     }
     default:
       break;
   }
-  return { width: W, height: H, shapes, labels, annotations: [] };
+  return { width: 250, height: 150, shapes, labels, annotations: [] };
 }
 
 Component({
@@ -162,9 +182,9 @@ Component({
       if (!d.shapes || !d.shapes.length) return;
 
       const containerWidth = getContainerWidth();
-      const scale = containerWidth / d.width;
+      const scale = Math.min(containerWidth / d.width, 2.0);
       const canvasWidth = Math.floor(d.width * scale);
-      const canvasHeight = Math.floor(d.height * scale);
+      const canvasHeight = Math.min(Math.floor(d.height * scale), 280);
       this.setData({ canvasWidth, canvasHeight });
       this._diagramData = d;
       this._scale = scale;
