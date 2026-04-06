@@ -466,12 +466,6 @@ Page({
     return map[difficultyText] || 2;
   },
 
-  onAnswerInput: function (e) {
-    this.setData({
-      userAnswer: e.detail.value
-    });
-  },
-
   onOptionTap: function (e) {
     const idx = e.currentTarget.dataset.index;
     const option = this.data.currentQuestion.options[idx];
@@ -499,7 +493,7 @@ Page({
       return;
     }
 
-    const isCorrect = this.checkAnswer(userAnswer, currentQuestion.answer, currentQuestion.answerFormat);
+    const isCorrect = this.checkAnswer(userAnswer, currentQuestion.answer);
 
     const answerRecord = {
       questionId: currentQuestion.id,
@@ -551,37 +545,8 @@ Page({
     }
   },
 
-  checkAnswer: function (userAnswer, correctAnswer, answerFormat) {
-    if (answerFormat === 'text') {
-      return userAnswer === correctAnswer;
-    }
-    if (answerFormat === 'fraction') {
-      const userVal = this.parseFraction(userAnswer);
-      const correctVal = this.parseFraction(correctAnswer);
-      if (userVal !== null && correctVal !== null) {
-        return Math.abs(userVal - correctVal) < 0.0001;
-      }
-    }
-    const userNum = parseFloat(userAnswer);
-    const correctNum = parseFloat(correctAnswer);
-    if (!isNaN(userNum) && !isNaN(correctNum)) {
-      return Math.abs(userNum - correctNum) < 0.0001;
-    }
-    return userAnswer.toLowerCase().replace(/\s/g, '') ===
-           correctAnswer.toLowerCase().replace(/\s/g, '');
-  },
-
-  parseFraction: function (str) {
-    if (str.includes('/')) {
-      const parts = str.split('/');
-      const num = parseFloat(parts[0]);
-      const den = parseFloat(parts[1]);
-      if (!isNaN(num) && !isNaN(den) && den !== 0) {
-        return num / den;
-      }
-    }
-    const val = parseFloat(str);
-    return isNaN(val) ? null : val;
+  checkAnswer: function (userAnswer, correctAnswer) {
+    return userAnswer === correctAnswer;
   },
 
   handleNext: function () {

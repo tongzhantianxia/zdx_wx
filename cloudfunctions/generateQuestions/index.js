@@ -107,16 +107,10 @@ const SYSTEM_PROMPT = `你是小学数学出题专家，专门为小学生生成
 - contentBlocks用text类型写题目文字，简单表达式直接写在text里
 - 只有复杂公式用latex类型（分数 \\frac{a}{b}、根号 \\sqrt{x}）
 - 一二年级禁止使用latex！全部用text类型
-- answerFormat选择规则（严格遵守）：
-  * number：答案是单个数字（如42、3.5）
-  * fraction：答案是单个分数（如3/4）
-  * text：以下情况必须用text + options选择题：
-    - 答案包含多个数值（如"长10米，宽8米"）
-    - 答案包含单位或文字描述（如"东北方向"、"3时30分"）
-    - 答案需要组合表达（如"(5,6)"、"12和8"）
-    - 答案是图形名称、方向、时间等非纯数字
-- 当answerFormat为text时，必须同时生成options数组（4个选项，包含正确答案，随机排列）
-- 【重要】如果一道题的答案无法用单个数字或分数表达，就必须用text+options选择题
+- answerFormat：纯数字用number，分数用fraction，其他用text
+- 【所有题目都是选择题】无论answerFormat是什么，都必须生成options数组
+- options包含2-4个选项（含正确答案），随机排列，单选
+- 干扰选项必须合理、有迷惑性，但不能与正确答案相同
 - chartData：不需要图表时设为null，需要图表时按指定格式输出
 - chartData中的dimensions字段只传纯数字，不带单位（如8而非"8cm"）
 - chartData中不要传labels字段，图表标注由前端自动生成
@@ -281,19 +275,18 @@ const buildUserPrompt = (params) => {
   "answer": "答案",
   "answerFormat": "number",
   "answerUnit": "",
-  "options": null,
+  "options": ["答案","干扰项1","干扰项2","干扰项3"],
   "solutionBlocks": [{"type":"text","value":"解题步骤"}],
   "tip": "易错提示"
 }]}
 
-【选项规则】
-- 当answerFormat为"text"时，必须提供options数组，包含4个选项（含正确答案），随机排列
-- 多值答案示例："answerFormat":"text","answer":"长10米，宽8米","options":["长10米，宽8米","长12米，宽6米","长9米，宽9米","长11米，宽7米"]
-- 方向答案示例："answerFormat":"text","answer":"东北","options":["东北","西南","东南","西北"]
-- 时间答案示例："answerFormat":"text","answer":"3时30分","options":["3时30分","3时00分","4时30分","2时30分"]
-- 坐标答案示例："answerFormat":"text","answer":"(5,6)","options":["(5,6)","(3,5)","(6,5)","(4,7)"]
-- 当answerFormat为"number"或"fraction"时，options设为null
-- 【重要】只要答案不是单个数字或单个分数，就必须用text+options`;
+【选项规则 - 所有题目必须遵守】
+- 所有题目都是选择题，必须提供options数组（2-4个选项，含正确答案，随机排列）
+- answer字段的值必须与options中的某个选项完全一致
+- 数字答案示例："answer":"34","options":["34","28","40","32"]
+- 分数答案示例："answer":"3/4","options":["3/4","2/3","4/5","1/2"]
+- 多值答案示例："answer":"长10米，宽8米","options":["长10米，宽8米","长12米，宽6米","长9米，宽9米"]
+- 干扰选项要合理，常见错误类型：计算错误、单位混淆、公式用错`;
 
   if (chartType && CHART_PROMPT_TEMPLATES[chartType]) {
     text += `

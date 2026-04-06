@@ -58,32 +58,19 @@
 
   <!-- 答题区 -->
   <view id="answerArea" class="answer-section" wx:if="{{currentQuestion && !waitingForNext && !showFeedback}}">
-    <!-- 选择题（text 类型且有 options） -->
-    <block wx:if="{{currentQuestion.options && currentQuestion.options.length > 0}}">
-      <text class="answer-label">选择正确答案</text>
-      <view class="options-grid">
-        <view
-          wx:for="{{currentQuestion.options}}"
-          wx:key="index"
-          class="option-item {{selectedOption === index ? 'option-selected' : ''}}"
-          data-index="{{index}}"
-          bindtap="onOptionTap"
-        >
-          <text class="option-letter">{{['A','B','C','D'][index]}}</text>
-          <text class="option-text">{{item}}</text>
-        </view>
+    <text class="answer-label">选择正确答案</text>
+    <view class="options-grid">
+      <view
+        wx:for="{{currentQuestion.options}}"
+        wx:key="index"
+        class="option-item {{selectedOption === index ? 'option-selected' : ''}}"
+        data-index="{{index}}"
+        bindtap="onOptionTap"
+      >
+        <text class="option-letter">{{['A','B','C','D'][index]}}</text>
+        <text class="option-text">{{item}}</text>
       </view>
-    </block>
-    <!-- 输入题（number / fraction） -->
-    <block wx:else>
-      <text class="answer-label">写下你的答案</text>
-      <math-input
-        id="mathInput"
-        format="{{currentQuestion.answerFormat || 'number'}}"
-        unit="{{currentQuestion.answerUnit || ''}}"
-        bind:answer="onAnswerInput"
-      />
-    </block>
+    </view>
 
     <view class="action-row">
       <button

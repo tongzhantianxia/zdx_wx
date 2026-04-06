@@ -6,7 +6,6 @@
   "usingComponents": {
     "duck-animation": "/components/duck-animation/duck-animation",
     "math-text": "/components/math-text/math-text",
-    "math-input": "/components/math-input/math-input",
     "chart-renderer": "/components/chart-renderer/chart-renderer"
   }
 }
