@@ -34,7 +34,7 @@ Page({
     selectedKnowledge: null,
     countList: [3, 5, 8],
     selectedCount: 3,
-    selectedDifficulty: 'medium',
+    selectedDifficulty: 'hard',
     generating: false,
     countdown: 0
   },

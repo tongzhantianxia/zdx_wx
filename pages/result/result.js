@@ -66,20 +66,6 @@ Page({
     }
   },
 
-  // 继续练习这个知识点
-  handleContinue: function () {
-    wx.navigateBack({
-      delta: 1
-    });
-  },
-
-  // 换个知识点练习
-  handleChange: function () {
-    wx.switchTab({
-      url: '/pages/practice-select/practice-select'
-    });
-  },
-
   // 分享
   onShareAppMessage: function () {
     return {
