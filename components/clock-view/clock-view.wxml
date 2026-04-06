@@ -1,0 +1,3 @@
+<view class="clock-wrap">
+  <canvas type="2d" id="clockCanvas" class="clock-canvas" style="width:{{canvasSize}}px;height:{{canvasSize}}px;"></canvas>
+</view>
