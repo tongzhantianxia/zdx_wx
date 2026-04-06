@@ -1,0 +1,15 @@
+{
+  "component": true,
+  "usingComponents": {
+    "bar-chart": "/components/bar-chart/bar-chart",
+    "line-chart": "/components/line-chart/line-chart",
+    "pie-chart": "/components/pie-chart/pie-chart",
+    "clock-view": "/components/clock-view/clock-view",
+    "data-table": "/components/data-table/data-table",
+    "shape-2d": "/components/shape-2d/shape-2d",
+    "shape-3d": "/components/shape-3d/shape-3d",
+    "number-line": "/components/number-line/number-line",
+    "fraction-bar": "/components/fraction-bar/fraction-bar",
+    "counting-blocks": "/components/counting-blocks/counting-blocks"
+  }
+}

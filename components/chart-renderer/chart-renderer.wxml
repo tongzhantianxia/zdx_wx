@@ -1,0 +1,15 @@
+<view class="chart-renderer">
+  <bar-chart wx:if="{{chartType === 'bar'}}" data="{{data}}" />
+  <line-chart wx:if="{{chartType === 'line'}}" data="{{data}}" />
+  <pie-chart wx:if="{{chartType === 'pie'}}" data="{{data}}" />
+  <clock-view wx:if="{{chartType === 'clock'}}" data="{{data}}" />
+  <data-table wx:if="{{chartType === 'table'}}" data="{{data}}" />
+  <shape-2d wx:if="{{chartType === 'shape_2d'}}" data="{{data}}" />
+  <shape-3d wx:if="{{chartType === 'shape_3d'}}" data="{{data}}" />
+  <number-line wx:if="{{chartType === 'numberLine'}}" data="{{data}}" />
+  <fraction-bar wx:if="{{chartType === 'fractionBar'}}" data="{{data}}" />
+  <counting-blocks wx:if="{{chartType === 'countingBlocks'}}" data="{{data}}" />
+  <view wx:if="{{unsupported}}" class="chart-unsupported">
+    <text class="unsupported-text">图表暂不支持</text>
+  </view>
+</view>
