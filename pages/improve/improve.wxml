@@ -32,11 +32,39 @@
       </view>
       <view class="tip-card">
         <text class="tip-icon">2</text>
-        <text class="tip-text">自动识别错题和未做的题</text>
+        <text class="tip-text">调整选区，框选题目区域</text>
       </view>
       <view class="tip-card">
         <text class="tip-icon">3</text>
-        <text class="tip-text">一键生成针对性错题练习</text>
+        <text class="tip-text">自动识别错题，一键生成练习</text>
+      </view>
+    </view>
+  </block>
+
+  <!-- cropping 状态：裁剪选区 -->
+  <block wx:if="{{pageState === 'cropping'}}">
+    <view class="crop-section">
+      <text class="crop-hint">拖动边框调整识别区域</text>
+      <view class="crop-container" style="width:{{imgDisplay.width}}px;height:{{imgDisplay.height}}px;margin-left:{{imgDisplay.left}}px;">
+        <image class="crop-img" src="{{imagePath}}" mode="scaleToFill" style="width:{{imgDisplay.width}}px;height:{{imgDisplay.height}}px;"></image>
+        <!-- Overlay mask (4 dark regions around crop box) -->
+        <view class="crop-mask crop-mask-top" style="height:{{cropBox.y}}px;"></view>
+        <view class="crop-mask crop-mask-bottom" style="top:{{cropBox.y + cropBox.h}}px;height:{{imgDisplay.height - cropBox.y - cropBox.h}}px;"></view>
+        <view class="crop-mask crop-mask-left" style="top:{{cropBox.y}}px;height:{{cropBox.h}}px;width:{{cropBox.x}}px;"></view>
+        <view class="crop-mask crop-mask-right" style="top:{{cropBox.y}}px;height:{{cropBox.h}}px;left:{{cropBox.x + cropBox.w}}px;width:{{imgDisplay.width - cropBox.x - cropBox.w}}px;"></view>
+        <!-- Crop box border -->
+        <view class="crop-box" style="left:{{cropBox.x}}px;top:{{cropBox.y}}px;width:{{cropBox.w}}px;height:{{cropBox.h}}px;">
+          <view class="crop-handle crop-handle-tl"></view>
+          <view class="crop-handle crop-handle-tr"></view>
+          <view class="crop-handle crop-handle-bl"></view>
+          <view class="crop-handle crop-handle-br"></view>
+        </view>
+        <!-- Touch area (covers full image) -->
+        <view class="crop-touch" catchtouchstart="onCropTouchStart" catchtouchmove="onCropTouchMove" catchtouchend="onCropTouchEnd"></view>
+      </view>
+      <view class="crop-actions">
+        <button class="crop-btn-cancel" bindtap="retakePhoto">重选</button>
+        <button class="crop-btn-confirm" bindtap="confirmCrop">确认选区</button>
       </view>
     </view>
   </block>
@@ -95,9 +123,9 @@
       <view class="detail-content">
 
         <view class="detail-card">
-          <text class="detail-label">题目</text>
+          <text class="detail-label">题目截图</text>
           <view class="detail-img-wrap">
-            <image class="detail-img" src="{{imagePath}}" mode="widthFix"></image>
+            <image class="detail-img" src="{{currentDetail.questionImage || imagePath}}" mode="widthFix"></image>
           </view>
         </view>
 
@@ -132,7 +160,7 @@
     <!-- 底部操作栏 -->
     <view class="bottom-bar">
       <view class="bottom-left">
-        <text class="bottom-count">{{improveCount}} 道错题，每题生成4道练习</text>
+        <text class="bottom-count">{{improveCount}} 道错题，每题生成3道练习</text>
       </view>
       <view class="bottom-actions">
         <text class="btn-retake" bindtap="retakePhoto">重拍</text>
@@ -141,5 +169,8 @@
     </view>
 
   </block>
+
+  <!-- Hidden canvas for cropping & extraction -->
+  <canvas type="2d" id="cropCanvas" style="position:fixed;left:-9999px;top:-9999px;width:{{canvasWidth}}px;height:{{canvasHeight}}px;"></canvas>
 
 </view>

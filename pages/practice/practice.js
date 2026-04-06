@@ -112,7 +112,7 @@ Page({
   },
 
   runOcrGenerate: async function (analyzed) {
-    const FIXED_COUNT = 4;
+    const FIXED_COUNT = 3;
 
     if (!analyzed.length) {
       wx.showToast({ title: '无题目可生成', icon: 'none' });

@@ -144,6 +144,115 @@
   margin-bottom: 8rpx;
 }
 
+/* ==================== 裁剪选区 ==================== */
+.crop-section {
+  padding: 20rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.crop-hint {
+  font-size: 28rpx;
+  color: #666;
+  margin-bottom: 20rpx;
+}
+
+.crop-container {
+  position: relative;
+  overflow: hidden;
+}
+
+.crop-img {
+  display: block;
+}
+
+.crop-mask {
+  position: absolute;
+  background: rgba(0, 0, 0, 0.45);
+  pointer-events: none;
+}
+
+.crop-mask-top {
+  top: 0;
+  left: 0;
+  width: 100%;
+}
+
+.crop-mask-bottom {
+  left: 0;
+  width: 100%;
+}
+
+.crop-mask-left {
+  left: 0;
+}
+
+.crop-mask-right {}
+
+.crop-box {
+  position: absolute;
+  border: 4rpx solid #FFB300;
+  box-sizing: border-box;
+  pointer-events: none;
+}
+
+.crop-handle {
+  position: absolute;
+  width: 28rpx;
+  height: 28rpx;
+  background: #FFB300;
+  border-radius: 4rpx;
+}
+
+.crop-handle-tl { top: -6rpx; left: -6rpx; }
+.crop-handle-tr { top: -6rpx; right: -6rpx; }
+.crop-handle-bl { bottom: -6rpx; left: -6rpx; }
+.crop-handle-br { bottom: -6rpx; right: -6rpx; }
+
+.crop-touch {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.crop-actions {
+  display: flex;
+  gap: 24rpx;
+  margin-top: 32rpx;
+  width: 100%;
+  padding: 0 20rpx;
+}
+
+.crop-btn-cancel {
+  flex: 1;
+  height: 88rpx;
+  border-radius: 44rpx;
+  background: #f5f5f5;
+  color: #666;
+  font-size: 30rpx;
+  font-weight: 600;
+  border: none;
+}
+
+.crop-btn-cancel::after { border: none; }
+
+.crop-btn-confirm {
+  flex: 2;
+  height: 88rpx;
+  border-radius: 44rpx;
+  background: linear-gradient(135deg, #FFD54F, #FFB300);
+  color: #fff;
+  font-size: 30rpx;
+  font-weight: 700;
+  border: none;
+  box-shadow: 0 4rpx 16rpx rgba(255, 179, 0, 0.4);
+}
+
+.crop-btn-confirm::after { border: none; }
+
 /* ==================== 扫描识别动画 ==================== */
 .scan-section {
   padding: 24rpx 20rpx;

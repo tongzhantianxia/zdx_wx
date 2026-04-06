@@ -27,14 +27,16 @@ function checkRateLimit(openid) {
 
 const SYSTEM_PROMPT = `你是小学数学试卷批改助手。请识别图片中每道题目，判断作答状态，并分析知识点。
 只输出纯JSON，不加任何其他内容。格式：
-{"questions":[{"index":1,"content":"完整题目文本","status":"unanswered|wrong|correct","brief":"题目开头10个字","position":{"top":0.0,"bottom":0.0},"grade":"X年级","semester":"upper或lower","knowledgePoint":"知识点名称","difficulty":"easy|medium|hard","hasGraphic":false,"graphicDesc":null}]}
+{"rotation":0,"questions":[{"index":1,"content":"完整题目文本","status":"unanswered|wrong|correct","brief":"题目开头10个字","position":{"top":0.0,"bottom":0.0},"grade":"X年级","semester":"upper或lower","knowledgePoint":"知识点名称","difficulty":"easy|medium|hard","hasGraphic":false,"graphicDesc":null}]}
+
+rotation: 图片需要顺时针旋转多少度才是正确方向(0/90/180/270)。如果图片已经是正方向则为0。
 
 status判断规则：
 - unanswered: 题目没有写答案，空白未作答
 - wrong: 有答案但明显错误（如计算错误、答案不合理），或者有老师批改的叉号/红色标记
 - correct: 答案正确，或有老师批改的勾号
 
-position: top/bottom是题目区域在图片高度中的比例(0-1)
+position: top/bottom是题目区域在图片高度中的比例(0-1)，基于旋转到正确方向后的图片
 grade: 根据题目内容判断属于几年级(一年级~六年级)
 semester: 根据知识点判断属于上册(upper)还是下册(lower)
 difficulty: easy=基础计算, medium=多步推理, hard=综合应用`;
@@ -55,7 +57,8 @@ function parseResponse(content) {
   if (!parsed.questions || !Array.isArray(parsed.questions)) {
     throw new Error('题目列表格式错误');
   }
-  return parsed.questions.map((q, i) => {
+  const rotation = [0, 90, 180, 270].includes(parsed.rotation) ? parsed.rotation : 0;
+  const questions = parsed.questions.map((q, i) => {
     let grade = String(q.grade || '').trim();
     if (!VALID_GRADES.includes(grade)) grade = '五年级';
     let semester = String(q.semester || '').trim();
@@ -80,6 +83,7 @@ function parseResponse(content) {
       graphicDesc: q.hasGraphic ? String(q.graphicDesc || '').trim() || null : null
     };
   });
+  return { rotation, questions };
 }
 
 exports.main = async (event, context) => {
@@ -138,6 +142,7 @@ exports.main = async (event, context) => {
     });
 
     let questions;
+    let rotation = 0;
     for (let attempt = 0; attempt < 2; attempt++) {
       try {
         const completion = await client.chat.completions.create({
@@ -157,7 +162,9 @@ exports.main = async (event, context) => {
         });
 
         const content = completion.choices?.[0]?.message?.content;
-        questions = parseResponse(content);
+        const parsed = parseResponse(content);
+        questions = parsed.questions;
+        rotation = parsed.rotation;
         break;
       } catch (parseErr) {
         console.warn(`[ocrRecognize] attempt ${attempt + 1} failed:`, parseErr.message);
@@ -186,7 +193,7 @@ exports.main = async (event, context) => {
       needImprove: needImprove.length
     }));
 
-    return { success: true, questions: enriched, needImprove };
+    return { success: true, questions: enriched, needImprove, rotation };
 
   } catch (error) {
     console.error('[ocrRecognize] 失败:', error.message);
