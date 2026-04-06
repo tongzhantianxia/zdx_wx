@@ -1,4 +1,4 @@
-const { initCanvas } = require('../../utils/canvasHelper');
+const { initCanvas, getContainerWidth } = require('../../utils/canvasHelper');
 
 Component({
   properties: {
@@ -7,7 +7,7 @@ Component({
 
   data: {
     canvasWidth: 280,
-    canvasHeight: 50
+    canvasHeight: 60
   },
 
   lifetimes: {
@@ -19,10 +19,10 @@ Component({
 
     _render() {
       const d = this.data.data;
-      if (!d || !d.denominator) return;
+      if (!d || !d.denominator || d.denominator <= 0) return;
 
-      const width = 280;
-      const height = 50;
+      const width = getContainerWidth();
+      const height = 60;
       this.setData({ canvasWidth: width, canvasHeight: height });
 
       setTimeout(() => {
@@ -33,30 +33,31 @@ Component({
     },
 
     _draw(ctx, d, width, height) {
-      const numerator = d.numerator || 0;
+      const numerator = Math.max(d.numerator || 0, 0);
       const denominator = d.denominator;
       const color = d.color || '#4A90E2';
 
-      const barHeight = 30;
-      const barY = (height - barHeight) / 2;
+      const barHeight = 34;
+      const barY = 4;
       const unitWidth = width / denominator;
 
       for (let i = 0; i < denominator; i++) {
         const x = i * unitWidth;
         if (i < numerator) {
           ctx.fillStyle = color;
-          ctx.fillRect(x + 1, barY + 1, unitWidth - 2, barHeight - 2);
+          ctx.fillRect(x + 1, barY, unitWidth - 2, barHeight);
         } else {
           ctx.strokeStyle = '#ddd';
           ctx.lineWidth = 1.5;
-          ctx.strokeRect(x + 1, barY + 1, unitWidth - 2, barHeight - 2);
+          ctx.strokeRect(x + 1, barY, unitWidth - 2, barHeight);
         }
       }
 
       ctx.font = 'bold 14px sans-serif';
       ctx.fillStyle = '#333';
       ctx.textAlign = 'center';
-      ctx.fillText(numerator + '/' + denominator, width / 2, height - 8);
+      ctx.textBaseline = 'top';
+      ctx.fillText(numerator + '/' + denominator, width / 2, barY + barHeight + 6);
 
       ctx.restore();
     }

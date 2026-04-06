@@ -48,8 +48,8 @@ Component({
       if (total <= 0) return;
 
       const cx = W / 2;
-      const availH = H - titleOffset - 30; // leave room for legend
-      const radius = Math.min(W / 2 - 60, availH / 2 - 10);
+      const availH = H - titleOffset - 10;
+      const radius = Math.max(Math.min(W / 2 - 70, availH / 2 - 10), 30);
       const cy = titleOffset + availH / 2;
 
       let startAngle = -Math.PI / 2;
@@ -90,10 +90,18 @@ Component({
         const labelText = item.label + ' ' + pct + '%';
         ctx.fillStyle = '#333';
         ctx.font = '11px sans-serif';
-        ctx.textAlign = Math.cos(midAngle) >= 0 ? 'left' : 'right';
         ctx.textBaseline = 'middle';
-        const textX = lx + (Math.cos(midAngle) >= 0 ? 4 : -4);
-        ctx.fillText(labelText, textX, ly);
+        // Clamp label position within canvas
+        const clampedLy = Math.max(10, Math.min(ly, H - 10));
+        if (Math.cos(midAngle) >= 0) {
+          ctx.textAlign = 'left';
+          const tx = Math.min(lx + 4, W - 5);
+          ctx.fillText(labelText, tx, clampedLy);
+        } else {
+          ctx.textAlign = 'right';
+          const tx = Math.max(lx - 4, 5);
+          ctx.fillText(labelText, tx, clampedLy);
+        }
 
         startAngle = endAngle;
       });

@@ -29,36 +29,70 @@ function perpendicular(a, b) {
 function shapeToShapes3d(data) {
   const dim = data.dimensions || {};
   const shape = data.shape;
-  const W = 250;
-  const H = 200;
-  const origin = data.origin || [60, H - 30];
   const shapes = [];
   const labels = [];
+  const pad = { top: 20, bottom: 20, left: 20, right: 20 };
 
+  // Estimate bounding box based on shape type, then set canvas size
+  let drawW = 160, drawH = 120;
   switch (shape) {
-    case 'cuboid':
+    case 'cuboid': {
+      const l = dim.length || 80, w = dim.width || 50, h = dim.height || 60;
+      const sc = Math.min(120 / l, 100 / w, 100 / h);
+      const sl = l * sc, sw = w * sc, sh = h * sc;
+      drawW = (sl + sw) * COS30 + 20;
+      drawH = sh + (sl + sw) * SIN30 * 0.5 + 20;
+      const origin = [pad.left + sw * COS30, pad.top + drawH - 10];
       shapes.push({
-        type: 'cuboid', origin, length: dim.length || 80, width: dim.width || 50, height: dim.height || 60,
+        type: 'cuboid', origin, length: sl, width: sw, height: sh,
         stroke: '#333', hiddenEdges: data.hiddenEdges !== false, faceFills: data.faceFills || []
       });
       break;
+    }
     case 'cube': {
       const s = dim.length || dim.side || 60;
-      shapes.push({ type: 'cube', origin, size: s, stroke: '#333', hiddenEdges: data.hiddenEdges !== false, faceFills: data.faceFills || [] });
+      const sc = Math.min(120 / s, 100 / s);
+      const ss = s * sc;
+      drawW = ss * 2 * COS30 + 20;
+      drawH = ss + ss * SIN30 + 20;
+      const origin = [pad.left + ss * COS30, pad.top + drawH - 10];
+      shapes.push({ type: 'cube', origin, size: ss, stroke: '#333', hiddenEdges: data.hiddenEdges !== false, faceFills: data.faceFills || [] });
       break;
     }
-    case 'cylinder':
-      shapes.push({ type: 'cylinder', origin, radius: dim.radius || 40, height: dim.height || 80, stroke: '#333' });
+    case 'cylinder': {
+      const r = dim.radius || 40, h = dim.height || 80;
+      const sc = Math.min(70 / r, 120 / h);
+      const sr = r * sc, sh = h * sc;
+      drawW = sr * 2 + 20;
+      drawH = sh + sr * 0.35 + 20;
+      const origin = [pad.left + drawW / 2, pad.top + drawH - 10];
+      shapes.push({ type: 'cylinder', origin, radius: sr, height: sh, stroke: '#333' });
       break;
-    case 'cone':
-      shapes.push({ type: 'cone', origin, radius: dim.radius || 40, height: dim.height || 80, stroke: '#333' });
+    }
+    case 'cone': {
+      const r = dim.radius || 40, h = dim.height || 80;
+      const sc = Math.min(70 / r, 120 / h);
+      const sr = r * sc, sh = h * sc;
+      drawW = sr * 2 + 20;
+      drawH = sh + sr * 0.35 + 20;
+      const origin = [pad.left + drawW / 2, pad.top + drawH - 10];
+      shapes.push({ type: 'cone', origin, radius: sr, height: sh, stroke: '#333' });
       break;
-    case 'sphere':
-      shapes.push({ type: 'sphere', center: [W / 2, H / 2], radius: dim.radius || 50, stroke: '#333' });
+    }
+    case 'sphere': {
+      const r = dim.radius || 50;
+      const sc = Math.min(70 / r);
+      const sr = r * sc;
+      drawW = sr * 2 + 20;
+      drawH = sr * 2 + 20;
+      shapes.push({ type: 'sphere', center: [pad.left + drawW / 2, pad.top + drawH / 2], radius: sr, stroke: '#333' });
       break;
+    }
     default:
       break;
   }
+  const W = drawW + pad.left + pad.right;
+  const H = drawH + pad.top + pad.bottom;
   return { width: W, height: H, shapes, labels, annotations: [] };
 }
 
@@ -91,9 +125,9 @@ Component({
       if (!d.shapes || !d.shapes.length) return;
 
       const containerWidth = getContainerWidth();
-      const scale = containerWidth / d.width;
+      const scale = Math.min(containerWidth / d.width, 2.0);
       const canvasWidth = Math.floor(d.width * scale);
-      const canvasHeight = Math.floor(d.height * scale);
+      const canvasHeight = Math.min(Math.floor(d.height * scale), 280);
       this.setData({ canvasWidth, canvasHeight });
 
       setTimeout(() => {

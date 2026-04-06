@@ -1,4 +1,4 @@
-const { initCanvas } = require('../../utils/canvasHelper');
+const { initCanvas, getContainerWidth } = require('../../utils/canvasHelper');
 
 Component({
   properties: {
@@ -23,20 +23,21 @@ Component({
 
       const rows = d.rows || 2;
       const cols = d.cols || 5;
-      const itemSize = 24;
-      const gap = 4;
+      const containerW = getContainerWidth();
+      const gap = 6;
+      const itemSize = Math.min(Math.floor((containerW - (cols - 1) * gap) / cols), 36);
       const totalWidth = cols * itemSize + (cols - 1) * gap;
       const totalHeight = rows * itemSize + (rows - 1) * gap;
       this.setData({ canvasWidth: totalWidth, canvasHeight: totalHeight });
 
       setTimeout(() => {
         initCanvas(this, 'countingCanvas', totalWidth, totalHeight, (ctx) => {
-          this._draw(ctx, d, totalWidth, totalHeight, rows, cols, itemSize, gap);
+          this._draw(ctx, d, rows, cols, itemSize, gap);
         });
       }, 20);
     },
 
-    _draw(ctx, d, totalWidth, totalHeight, rows, cols, itemSize, gap) {
+    _draw(ctx, d, rows, cols, itemSize, gap) {
       const count = d.count;
       const color = d.color || '#4A90E2';
       const emptyColor = d.emptyColor || '#e0e0e0';

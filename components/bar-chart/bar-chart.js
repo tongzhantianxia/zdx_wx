@@ -22,7 +22,7 @@ Component({
       if (!d || !d.xAxis || !d.series || !d.series.length) return;
 
       const width = getContainerWidth();
-      const height = Math.round(width * 0.65);
+      const height = Math.round(width * 0.7);
       this.setData({ canvasWidth: width, canvasHeight: height });
 
       setTimeout(() => {
@@ -95,12 +95,12 @@ Component({
           const y = padding.top + chartH - barH;
           ctx.fillRect(x, y, barWidth - 1, barH);
 
-          // Value label on top of bar
+          // Value label on top of bar (clamp to canvas)
           ctx.fillStyle = '#333';
           ctx.font = '10px sans-serif';
           ctx.textAlign = 'center';
           ctx.textBaseline = 'bottom';
-          ctx.fillText(String(val), x + (barWidth - 1) / 2, y - 2);
+          ctx.fillText(String(val), x + (barWidth - 1) / 2, Math.max(y - 2, 12));
           ctx.fillStyle = CHART_COLORS[si % CHART_COLORS.length];
         });
       });

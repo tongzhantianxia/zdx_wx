@@ -8,11 +8,12 @@
  * @param {number} logicalHeight - desired logical height in px
  * @param {function} callback - (ctx, canvas, width, height) => void
  */
-function initCanvas(component, canvasId, logicalWidth, logicalHeight, callback) {
+function initCanvas(component, canvasId, logicalWidth, logicalHeight, callback, _retries) {
+  if ((_retries || 0) > 10) return;
   const query = component.createSelectorQuery();
   query.select('#' + canvasId).fields({ node: true, size: true }).exec((res) => {
     if (!res || !res[0] || !res[0].node) {
-      setTimeout(() => initCanvas(component, canvasId, logicalWidth, logicalHeight, callback), 50);
+      setTimeout(() => initCanvas(component, canvasId, logicalWidth, logicalHeight, callback, (_retries || 0) + 1), 50);
       return;
     }
     const canvas = res[0].node;

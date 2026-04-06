@@ -33,7 +33,7 @@ Component({
     _draw(ctx, d, size) {
       const cx = size / 2;
       const cy = size / 2;
-      const r = size / 2 - 10;
+      const r = size / 2 - 8;
 
       // Clock face
       ctx.beginPath();
@@ -41,15 +41,15 @@ Component({
       ctx.fillStyle = '#FFFDF5';
       ctx.fill();
       ctx.strokeStyle = '#333';
-      ctx.lineWidth = 2.5;
+      ctx.lineWidth = 2;
       ctx.stroke();
 
       // Minute ticks
       for (let i = 0; i < 60; i++) {
         const angle = (i * 6 - 90) * Math.PI / 180;
         const isMajor = i % 5 === 0;
-        const outerR = r - 3;
-        const innerR = isMajor ? r - 14 : r - 8;
+        const outerR = r - 2;
+        const innerR = isMajor ? r - r * 0.12 : r - r * 0.06;
 
         ctx.beginPath();
         ctx.moveTo(cx + Math.cos(angle) * innerR, cy + Math.sin(angle) * innerR);
@@ -60,13 +60,14 @@ Component({
       }
 
       // Hour numbers
-      ctx.font = 'bold 14px sans-serif';
+      const numFontSize = Math.max(Math.round(r * 0.16), 10);
+      ctx.font = 'bold ' + numFontSize + 'px sans-serif';
       ctx.fillStyle = '#333';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
       for (let h = 1; h <= 12; h++) {
         const angle = (h * 30 - 90) * Math.PI / 180;
-        const numR = r - 24;
+        const numR = r - r * 0.22;
         ctx.fillText(String(h), cx + Math.cos(angle) * numR, cy + Math.sin(angle) * numR);
       }
 

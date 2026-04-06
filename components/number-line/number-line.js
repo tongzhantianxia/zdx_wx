@@ -75,6 +75,7 @@ Component({
       const padding = 30;
       const axisWidth = width - padding * 2;
       const range = (end - start) / step;
+      if (range <= 0) return;
       const tickGap = axisWidth / range;
 
       ctx.textAlign = 'center';
