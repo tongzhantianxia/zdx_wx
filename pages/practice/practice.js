@@ -316,94 +316,13 @@ Page({
     const buffer = this.questionQueue.length + this.pendingRequests;
     if (buffer >= 3) return;
 
-    // First prefetch: batch request up to 3 questions at once for faster warm-up
-    // Subsequent prefetches: single question to maintain buffer
-    const isFirstPrefetch = this.generatedCount === 1 && this.pendingRequests === 0 && this.questionQueue.length === 0;
-    if (isFirstPrefetch) {
-      const batchCount = Math.min(3, remaining);
+    const needed = Math.max(0, Math.min(3 - buffer, remaining));
+    if (needed <= 0) return;
+
+    for (let i = 0; i < needed; i++) {
       this.pendingRequests += 1;
-      this.callGenerateBatch(batchCount);
-    } else {
-      const needed = Math.max(0, Math.min(3 - buffer, remaining));
-      if (needed <= 0) return;
-      for (let i = 0; i < needed; i++) {
-        this.pendingRequests += 1;
-        const hint = `变式${Date.now()}_${i}_${Math.random().toString(36).slice(2, 6)}`;
-        this.callGenerateOne(hint);
-      }
-    }
-  },
-
-  callGenerateBatch: function (count) {
-    const gp = this.generateParams;
-    if (!gp || this.destroyed) {
-      this.pendingRequests = Math.max(0, this.pendingRequests - 1);
-      return;
-    }
-
-    wx.cloud.callFunction({
-      name: 'generateQuestions',
-      data: {
-        knowledgeId: gp.knowledgeId,
-        knowledgeName: gp.knowledgeName,
-        grade: gp.grade,
-        count: count,
-        targetCount: gp.targetCount,
-        difficulty: gp.difficulty,
-        questionType: gp.questionType,
-        existingQuestions: [...this.allExistingContents],
-        sessionId: gp.sessionId,
-        prefetchHint: `批量${count}题`
-      },
-      success: (res) => {
-        const r = res && res.result ? res.result : { success: false, error: '无响应' };
-        this.onBatchResult(r);
-      },
-      fail: (err) => {
-        this.onBatchResult({ success: false, error: (err && err.errMsg) || '网络错误' });
-      }
-    });
-  },
-
-  onBatchResult: function (result) {
-    this.pendingRequests = Math.max(0, this.pendingRequests - 1);
-    if (this.destroyed) return;
-
-    if (result && result.success && result.questions && result.questions.length > 0) {
-      this.consecutiveFailures = 0;
-      for (const raw of result.questions) {
-        const rawContent = raw.content || (raw.contentBlocks ? raw.contentBlocks.map(b => b.value).join('') : '');
-        const key = this.normContentKey(rawContent);
-        const dup = this.allExistingContents.some(ex => this.normContentKey(ex) === key);
-        if (dup) continue;
-
-        this.allExistingContents.push(rawContent);
-        this.generatedCount += 1;
-        const formatted = this.formatSingleQuestion(raw);
-        this.accumulatedQuestions.push(formatted);
-        this.questionQueue.push(formatted);
-      }
-
-      this.setData({ questions: this.accumulatedQuestions });
-
-      if (this.data.waitingForNext) {
-        this.showNextFromQueue();
-      }
-
-      this.prefetchQuestions();
-      return;
-    }
-
-    // Failure handling — same as single question
-    this.consecutiveFailures += 1;
-    if (this.consecutiveFailures < 2) {
-      this.prefetchQuestions();
-      return;
-    }
-    this.targetCount = this.generatedCount;
-    this.setData({ totalQuestions: this.generatedCount });
-    if (this.data.waitingForNext && this.pendingRequests === 0 && this.questionQueue.length === 0) {
-      this.goToResult();
+      const hint = `变式${Date.now()}_${i}_${Math.random().toString(36).slice(2, 6)}`;
+      this.callGenerateOne(hint);
     }
   },
 
