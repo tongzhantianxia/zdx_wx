@@ -658,7 +658,6 @@ Page({
       // Keep last 30 to avoid storage bloat
       wx.setStorageSync(historyKey, merged.slice(-30));
     }
-    const correctCount = answers.filter(a => a.isCorrect).length;
 
     app.globalData.currentPractice = {
       score,
