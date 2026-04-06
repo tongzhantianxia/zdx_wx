@@ -10,6 +10,11 @@
     "shape-3d": "/components/shape-3d/shape-3d",
     "number-line": "/components/number-line/number-line",
     "fraction-bar": "/components/fraction-bar/fraction-bar",
-    "counting-blocks": "/components/counting-blocks/counting-blocks"
+    "counting-blocks": "/components/counting-blocks/counting-blocks",
+    "grid-view": "/components/grid-view/grid-view",
+    "direction-view": "/components/direction-view/direction-view",
+    "transform-view": "/components/transform-view/transform-view",
+    "probability-view": "/components/probability-view/probability-view",
+    "measure-view": "/components/measure-view/measure-view"
   }
 }

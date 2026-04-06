@@ -1,7 +1,8 @@
 const SUPPORTED_TYPES = [
   'bar', 'line', 'pie', 'clock', 'table',
   'shape_2d', 'shape_3d',
-  'numberLine', 'fractionBar', 'countingBlocks'
+  'numberLine', 'fractionBar', 'countingBlocks',
+  'grid', 'direction', 'transform', 'probability', 'measure'
 ];
 
 Component({

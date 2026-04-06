@@ -160,6 +160,19 @@ const KNOWLEDGE_CHART_MAP = {
   // 分数条
   '分数的初步认识': 'fractionBar', '分数的简单计算': 'fractionBar',
   '分数的意义': 'fractionBar',
+  // 网格坐标
+  '用数对表示位置': 'grid', '比例尺': 'grid',
+  // 方位图
+  '认识东南西北': 'direction', '认识东北、东南、西北、西南': 'direction',
+  '用方向和距离确定位置': 'direction',
+  // 图形运动
+  '轴对称图形': 'transform', '轴对称': 'transform',
+  '平移': 'transform', '旋转': 'transform', '图形的放大与缩小': 'transform',
+  // 概率
+  '可能性的大小': 'probability', '可能性的计算': 'probability',
+  // 测量
+  '认识厘米和米': 'measure', '毫米、分米的认识': 'measure',
+  '千米的认识': 'measure', '认识克和千克': 'measure',
 };
 
 const findChartType = (knowledgeName) => {
@@ -198,6 +211,21 @@ shape可选：cuboid/cube/cylinder/cone/sphere。viewType用"3d"。dimensions按
 
   fractionBar: `"chartData": {"chartType":"fractionBar","data":{"numerator":3,"denominator":4}}
 用分数条展示分数，numerator < denominator。`,
+
+  grid: `"chartData": {"chartType":"grid","data":{"gridSize":[7,7],"points":[{"coordinate":[3,5],"label":"小明"},{"coordinate":[5,6],"label":"新位置"}],"showAxes":true}}
+gridSize为[列数,行数]，coordinate为[列,行]从0开始。showAxes为true显示坐标轴和数字。`,
+
+  direction: `"chartData": {"chartType":"direction","data":{"center":"学校","points":[{"direction":"北","distance":200,"landmark":"医院"},{"direction":"东偏南30°","distance":300,"landmark":"超市"}]}}
+center为中心点名称。direction用"北""东""东偏南30°"等格式。distance单位为米。`,
+
+  transform: `"chartData": {"chartType":"transform","data":{"type":"reflect","gridSize":[8,6],"original":{"points":[[1,1],[3,1],[2,3]]},"transformed":{"points":[[5,1],[7,1],[6,3]]},"axis":{"type":"custom","points":[[4,0],[4,6]]}}}
+type可选translate/rotate/reflect/scale。original和transformed为变换前后图形顶点坐标。axis为对称轴（reflect时必须提供）。`,
+
+  probability: `"chartData": {"chartType":"probability","data":{"type":"spinner","items":[{"label":"红色","probability":0.5},{"label":"蓝色","probability":0.25},{"label":"黄色","probability":0.25}]}}
+type用"spinner"（转盘）。items的probability之和必须为1。`,
+
+  measure: `"chartData": {"chartType":"measure","data":{"type":"ruler","value":5.5,"unit":"cm","showMarkings":true}}
+type用"ruler"。value为测量数值，unit为单位。showMarkings为true显示刻度。`,
 };
 
 const buildUserPrompt = (params) => {
@@ -251,7 +279,8 @@ const VALID_BLOCK_TYPES = ['text', 'latex'];
 const VALID_CHART_TYPES = [
   'bar', 'line', 'pie', 'clock', 'table',
   'shape_2d', 'shape_3d',
-  'numberLine', 'fractionBar', 'countingBlocks'
+  'numberLine', 'fractionBar', 'countingBlocks',
+  'grid', 'direction', 'transform', 'probability', 'measure'
 ];
 
 const validateContentBlocks = (blocks) => {

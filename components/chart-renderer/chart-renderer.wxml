@@ -9,6 +9,11 @@
   <number-line wx:if="{{chartType === 'numberLine'}}" data="{{data}}" />
   <fraction-bar wx:if="{{chartType === 'fractionBar'}}" data="{{data}}" />
   <counting-blocks wx:if="{{chartType === 'countingBlocks'}}" data="{{data}}" />
+  <grid-view wx:if="{{chartType === 'grid'}}" data="{{data}}" />
+  <direction-view wx:if="{{chartType === 'direction'}}" data="{{data}}" />
+  <transform-view wx:if="{{chartType === 'transform'}}" data="{{data}}" />
+  <probability-view wx:if="{{chartType === 'probability'}}" data="{{data}}" />
+  <measure-view wx:if="{{chartType === 'measure'}}" data="{{data}}" />
   <view wx:if="{{unsupported}}" class="chart-unsupported">
     <text class="unsupported-text">图表暂不支持</text>
   </view>
