@@ -117,7 +117,19 @@ Component({
       let d = this.data.data;
       if (!d) return;
 
-      // High-level mode
+      const viewType = d.viewType || '3d';
+
+      // Net view and orthographic view use their own rendering
+      if (d.shape && (viewType === 'net' || viewType === 'orthographic')) {
+        if (viewType === 'net') {
+          this._renderNet(d);
+        } else {
+          this._renderOrthographic(d);
+        }
+        return;
+      }
+
+      // High-level mode → isometric 3D
       if (d.shape && !d.shapes) {
         d = shapeToShapes3d(d);
       }
@@ -136,6 +148,221 @@ Component({
           this._drawShapes(ctx, d.shapes);
           this._drawAnnotations(ctx, d.annotations || []);
           this._drawLabels(ctx, d.labels || []);
+          ctx.restore();
+        });
+      }, 20);
+    },
+
+    // ===== Net (展开图) =====
+    _renderNet(d) {
+      const dim = d.dimensions || {};
+      const shape = d.shape;
+      const containerWidth = getContainerWidth();
+      const pad = 15;
+      let W, H;
+
+      // Calculate net layout size based on shape
+      const faces = [];
+      if (shape === 'cuboid' || shape === 'cube') {
+        const l = dim.length || dim.side || 60;
+        const w = dim.width || (shape === 'cube' ? l : 50);
+        const h = dim.height || (shape === 'cube' ? l : 60);
+        const sc = Math.min((containerWidth - pad * 2) / (l + 2 * h + 2 * w), 160 / (w + 2 * h));
+        const sl = l * sc, sw = w * sc, sh = h * sc;
+        // Cross-shaped net: top row(top), middle row(left,front,right,back), bottom row(bottom)
+        W = sl + 2 * sh + pad * 2;
+        H = sw + 2 * sh + pad * 2;
+        const ox = pad + sh, oy = pad + sh; // origin of front face
+        // Front
+        faces.push({ x: ox, y: oy, w: sl, h: sw, label: '前', fill: 'rgba(91,155,213,0.15)' });
+        // Top (above front)
+        faces.push({ x: ox, y: oy - sh, w: sl, h: sh, label: '上', fill: 'rgba(112,173,71,0.15)' });
+        // Bottom (below front)
+        faces.push({ x: ox, y: oy + sw, w: sl, h: sh, label: '下', fill: 'rgba(112,173,71,0.1)' });
+        // Left (left of front)
+        faces.push({ x: ox - sh, y: oy, w: sh, h: sw, label: '左', fill: 'rgba(237,125,49,0.15)' });
+        // Right (right of front)
+        faces.push({ x: ox + sl, y: oy, w: sh, h: sw, label: '右', fill: 'rgba(237,125,49,0.1)' });
+        // Back (far right of right)
+        faces.push({ x: ox + sl + sh, y: oy, w: sl, h: sw, label: '后', fill: 'rgba(91,155,213,0.1)' });
+      } else if (shape === 'cylinder') {
+        const r = dim.radius || 40, h = dim.height || 80;
+        const circumference = 2 * Math.PI * r;
+        const sc = Math.min((containerWidth - pad * 2) / circumference, 120 / (2 * r + h));
+        const sr = r * sc, sh = h * sc;
+        const sCirc = circumference * sc;
+        W = sCirc + pad * 2;
+        H = 2 * sr + sh + sr + pad * 2; // two circles + rectangle + spacing
+        const ox = pad, oy = pad + sr;
+        // Top circle
+        faces.push({ type: 'circle', cx: ox + sCirc / 2, cy: oy, r: sr, label: '上底', fill: 'rgba(91,155,213,0.15)' });
+        // Rectangle (lateral surface)
+        faces.push({ x: ox, y: oy + sr + 4, w: sCirc, h: sh, label: '侧面', fill: 'rgba(237,125,49,0.1)' });
+        // Bottom circle
+        faces.push({ type: 'circle', cx: ox + sCirc / 2, cy: oy + sr + 4 + sh + 4 + sr, r: sr, label: '下底', fill: 'rgba(91,155,213,0.1)' });
+        H = oy + sr + 4 + sh + 4 + sr * 2 + pad;
+      } else {
+        // Fallback to 3D view for unsupported net shapes
+        const d2 = Object.assign({}, d, { viewType: '3d' });
+        this._render.call(Object.assign({}, this, { data: { data: d2 } }));
+        return;
+      }
+
+      const canvasWidth = Math.min(Math.floor(W), containerWidth);
+      const canvasHeight = Math.min(Math.floor(H), 300);
+      this.setData({ canvasWidth, canvasHeight });
+
+      setTimeout(() => {
+        initCanvas(this, 'shape3dCanvas', canvasWidth, canvasHeight, (ctx) => {
+          ctx.font = '11px sans-serif';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          for (const f of faces) {
+            if (f.type === 'circle') {
+              ctx.beginPath();
+              ctx.arc(f.cx, f.cy, f.r, 0, Math.PI * 2);
+              ctx.fillStyle = f.fill || 'transparent';
+              ctx.fill();
+              ctx.strokeStyle = '#333';
+              ctx.lineWidth = 1.5;
+              ctx.stroke();
+              ctx.fillStyle = '#666';
+              ctx.fillText(f.label, f.cx, f.cy);
+            } else {
+              ctx.fillStyle = f.fill || 'transparent';
+              ctx.fillRect(f.x, f.y, f.w, f.h);
+              ctx.strokeStyle = '#333';
+              ctx.lineWidth = 1.5;
+              ctx.strokeRect(f.x, f.y, f.w, f.h);
+              ctx.fillStyle = '#666';
+              ctx.fillText(f.label, f.x + f.w / 2, f.y + f.h / 2);
+            }
+          }
+          ctx.restore();
+        });
+      }, 20);
+    },
+
+    // ===== Orthographic (三视图) =====
+    _renderOrthographic(d) {
+      const dim = d.dimensions || {};
+      const shape = d.shape;
+      const containerWidth = getContainerWidth();
+      const gap = 20, pad = 15, labelH = 18;
+
+      // Calculate 2D projections
+      let frontW, frontH, sideW, sideH, topW, topH;
+      if (shape === 'cuboid' || shape === 'cube') {
+        const l = dim.length || dim.side || 60;
+        const w = dim.width || (shape === 'cube' ? l : 50);
+        const h = dim.height || (shape === 'cube' ? l : 60);
+        const sc = Math.min((containerWidth - pad * 2 - gap) / (l + w), 80 / h);
+        frontW = l * sc; frontH = h * sc;
+        sideW = w * sc; sideH = h * sc;
+        topW = l * sc; topH = w * sc;
+      } else if (shape === 'cylinder' || shape === 'cone') {
+        const r = dim.radius || 40, h = dim.height || 80;
+        const sc = Math.min((containerWidth - pad * 2 - gap) / (r * 4), 80 / h);
+        frontW = r * 2 * sc; frontH = h * sc;
+        sideW = r * 2 * sc; sideH = h * sc;
+        topW = r * 2 * sc; topH = r * 2 * sc;
+      } else if (shape === 'sphere') {
+        const r = dim.radius || 50;
+        const sc = Math.min((containerWidth - pad * 2 - gap) / (r * 4), 80 / (r * 2));
+        frontW = r * 2 * sc; frontH = r * 2 * sc;
+        sideW = frontW; sideH = frontH;
+        topW = frontW; topH = frontH;
+      } else {
+        return;
+      }
+
+      // Layout: front + side on top row, top view below front
+      const rowH = Math.max(frontH, sideH);
+      const W = pad + frontW + gap + sideW + pad;
+      const H = pad + labelH + rowH + gap + labelH + topH + pad;
+      const canvasWidth = Math.min(Math.floor(W), containerWidth);
+      const canvasHeight = Math.min(Math.floor(H), 320);
+      this.setData({ canvasWidth, canvasHeight });
+
+      setTimeout(() => {
+        initCanvas(this, 'shape3dCanvas', canvasWidth, canvasHeight, (ctx) => {
+          const fx = pad, fy = pad + labelH;
+          const sx = pad + frontW + gap, sy = fy;
+          const tx = pad, ty = fy + rowH + gap + labelH;
+
+          // Labels
+          ctx.font = 'bold 11px sans-serif';
+          ctx.fillStyle = '#666';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'bottom';
+          ctx.fillText('正面', fx + frontW / 2, fy - 3);
+          ctx.fillText('侧面', sx + sideW / 2, sy - 3);
+          ctx.fillText('上面', tx + topW / 2, ty - 3);
+
+          ctx.lineWidth = 1.5;
+          ctx.strokeStyle = '#333';
+
+          if (shape === 'cuboid' || shape === 'cube') {
+            // Front: rectangle
+            ctx.strokeRect(fx, fy, frontW, frontH);
+            ctx.fillStyle = 'rgba(91,155,213,0.12)';
+            ctx.fillRect(fx, fy, frontW, frontH);
+            // Side: rectangle
+            ctx.strokeRect(sx, sy, sideW, sideH);
+            ctx.fillStyle = 'rgba(237,125,49,0.12)';
+            ctx.fillRect(sx, sy, sideW, sideH);
+            // Top: rectangle
+            ctx.strokeRect(tx, ty, topW, topH);
+            ctx.fillStyle = 'rgba(112,173,71,0.12)';
+            ctx.fillRect(tx, ty, topW, topH);
+          } else if (shape === 'cylinder') {
+            // Front: rectangle
+            ctx.strokeRect(fx, fy, frontW, frontH);
+            ctx.fillStyle = 'rgba(91,155,213,0.12)';
+            ctx.fillRect(fx, fy, frontW, frontH);
+            // Side: rectangle (same as front)
+            ctx.strokeRect(sx, sy, sideW, sideH);
+            ctx.fillStyle = 'rgba(237,125,49,0.12)';
+            ctx.fillRect(sx, sy, sideW, sideH);
+            // Top: circle
+            ctx.beginPath();
+            ctx.arc(tx + topW / 2, ty + topH / 2, topW / 2, 0, Math.PI * 2);
+            ctx.fillStyle = 'rgba(112,173,71,0.12)';
+            ctx.fill();
+            ctx.stroke();
+          } else if (shape === 'cone') {
+            // Front: triangle
+            ctx.beginPath();
+            ctx.moveTo(fx + frontW / 2, fy);
+            ctx.lineTo(fx, fy + frontH);
+            ctx.lineTo(fx + frontW, fy + frontH);
+            ctx.closePath();
+            ctx.fillStyle = 'rgba(91,155,213,0.12)';
+            ctx.fill(); ctx.stroke();
+            // Side: triangle (same)
+            ctx.beginPath();
+            ctx.moveTo(sx + sideW / 2, sy);
+            ctx.lineTo(sx, sy + sideH);
+            ctx.lineTo(sx + sideW, sy + sideH);
+            ctx.closePath();
+            ctx.fillStyle = 'rgba(237,125,49,0.12)';
+            ctx.fill(); ctx.stroke();
+            // Top: circle
+            ctx.beginPath();
+            ctx.arc(tx + topW / 2, ty + topH / 2, topW / 2, 0, Math.PI * 2);
+            ctx.fillStyle = 'rgba(112,173,71,0.12)';
+            ctx.fill(); ctx.stroke();
+          } else if (shape === 'sphere') {
+            // All three views: circle
+            [{ x: fx, y: fy, w: frontW, h: frontH, c: 'rgba(91,155,213,0.12)' },
+             { x: sx, y: sy, w: sideW, h: sideH, c: 'rgba(237,125,49,0.12)' },
+             { x: tx, y: ty, w: topW, h: topH, c: 'rgba(112,173,71,0.12)' }].forEach(v => {
+              ctx.beginPath();
+              ctx.arc(v.x + v.w / 2, v.y + v.h / 2, v.w / 2, 0, Math.PI * 2);
+              ctx.fillStyle = v.c;
+              ctx.fill(); ctx.stroke();
+            });
+          }
           ctx.restore();
         });
       }, 20);
