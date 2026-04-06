@@ -212,6 +212,9 @@ shape可选：cuboid/cube/cylinder/cone/sphere。viewType用"3d"。dimensions按
   fractionBar: `"chartData": {"chartType":"fractionBar","data":{"numerator":3,"denominator":4}}
 用分数条展示分数，numerator < denominator。`,
 
+  countingBlocks: `"chartData": {"chartType":"countingBlocks","data":{"count":7,"rows":2,"cols":5}}
+用计数块展示数量，count为实心圆点个数，rows/cols定义网格行列。count不超过rows*cols。`,
+
   grid: `"chartData": {"chartType":"grid","data":{"gridSize":[7,7],"points":[{"coordinate":[3,5],"label":"小明"},{"coordinate":[5,6],"label":"新位置"}],"showAxes":true}}
 gridSize为[列数,行数]，coordinate为[列,行]从0开始。showAxes为true显示坐标轴和数字。`,
 
