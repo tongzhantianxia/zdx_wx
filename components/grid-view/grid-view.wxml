@@ -1,0 +1,3 @@
+<view class="grid-view-wrap">
+  <canvas type="2d" id="gridCanvas" class="grid-canvas" style="width:{{canvasWidth}}px;height:{{canvasHeight}}px;"></canvas>
+</view>
