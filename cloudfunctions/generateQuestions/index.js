@@ -19,6 +19,8 @@ const SYSTEM_PROMPT = `你是小学数学出题专家，专门为小学生生成
 4. 禁止出现该年级未学过的任何知识点！
 5. 生成后必须验算答案！严禁出现计算错误（如16+18=28这种低级错误）
 6. solutionBlocks中的每一步计算都必须正确，最终结果必须与answer一致
+7. 题目、选项、答案、解析全部使用中文，禁止出现任何英文字母或英文单词
+8. 每道题必须与其他题有明显区别，禁止仅换数字的重复题
 
 【年级知识范围 - 精确限制】
 
@@ -203,7 +205,8 @@ const CHART_PROMPT_TEMPLATES = {
 项目3-5个，value为正整数，总和不要求为100。label为类别名称。`,
 
   clock: `"chartData": {"chartType":"clock","data":{"hour":3,"minute":30}}
-hour为1-12整数，minute为0-59整数。题目围绕认识时间展开。`,
+hour为1-12整数，minute为0-59整数。题目围绕认识时间展开。
+【重要】每道题必须使用不同的时间，变化hour和minute，不要重复同一个时间。题型要多样：有认读时间的、有比较时间先后的、有计算经过时间的。`,
 
   table: `"chartData": {"chartType":"table","data":{"title":"统计表标题","headers":["项目","数量"],"rows":[["苹果",12],["香蕉",8]]}}
 表格2-4列，2-5行数据。`,
@@ -316,10 +319,10 @@ ${CHART_PROMPT_TEMPLATES[chartType]}`;
   // shape_2d: composite shapes or pattern sequences need low-level format
   if (chartType === 'shape_2d') {
     const kn = knowledgeName || '';
+    const un = (params.unitName || '') + kn;
     if (kn.includes('组合图形')) {
       text += '\n【组合图形要求】本题为组合图形，必须用低层shapes数组格式画多个拼接的子图形，不要用shape高层格式。确保子图形相邻共边。';
-    }
-    if (kn.includes('规律') || kn.includes('找规律')) {
+    } else if (kn.includes('规律') || kn.includes('找规律')) {
       text += `\n【找规律要求】本题为找规律题，必须用低层shapes数组格式画图形序列。
 图形规律示例（横向排列一组重复图案，最后一个用虚线表示待填）：
 "chartData":{"chartType":"shape_2d","data":{"width":280,"height":60,"shapes":[
@@ -332,6 +335,14 @@ ${CHART_PROMPT_TEMPLATES[chartType]}`;
 ],"labels":[{"text":"?","position":[170,25],"fontSize":14,"color":"#E74C3C"}]}}
 数字规律可以用数字标签配圆形背景横向排列，最后一个标"?"。
 必须用shapes数组格式，不要用shape高层格式。`;
+    } else if (un.includes('认识') && (un.includes('图形') || un.includes('平面') || un.includes('拼组'))) {
+      text += `\n【认识图形要求】本题为图形认识题，适合低年级。
+题目类型举例：辨认图形名称、数图形个数、找出不同类的图形。
+chartData用shape高层格式即可，展示一个简单图形供辨认：
+- shape用 rectangle/square/circle/triangle 之一
+- dimensions用简单数值如 {"side":4} 或 {"radius":3}
+如果不需要图形也可以设chartData为null，用纯文字出题。
+选项用中文图形名称如"三角形""正方形""圆形""长方形"。`;
     }
   }
 
