@@ -220,7 +220,7 @@ Page({
   },
 
   normContentKey: function (s) {
-    return String(s || '').replace(/\s/g, '');
+    return String(s || '').replace(/\s/g, '').replace(/\d+\.?\d*/g, 'N');
   },
 
   formatSingleQuestion: function (q) {

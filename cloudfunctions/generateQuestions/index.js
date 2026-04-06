@@ -397,7 +397,7 @@ const extractTextFromBlocks = (blocks) => {
   return blocks.map(b => b.value || '').join('');
 };
 
-const normContent = (s) => String(s || '').replace(/\s/g, '');
+const normContent = (s) => String(s || '').replace(/\s/g, '').replace(/\d+\.?\d*/g, 'N');
 
 const isDuplicate = (question, existingList) => {
   if (!question || !existingList || !existingList.length) return false;
