@@ -57,7 +57,7 @@
   </view>
 
   <!-- 答题区 -->
-  <view id="answerArea" class="answer-section" wx:if="{{currentQuestion && !waitingForNext}}">
+  <view id="answerArea" class="answer-section" wx:if="{{currentQuestion && !waitingForNext && !showFeedback}}">
     <!-- 选择题（text 类型且有 options） -->
     <block wx:if="{{currentQuestion.options && currentQuestion.options.length > 0}}">
       <text class="answer-label">选择正确答案</text>

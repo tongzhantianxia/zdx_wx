@@ -490,6 +490,7 @@ Page({
   handleSubmit: function () {
     if (this.data.waitingForNext) return;
     if (!this.data.currentQuestion) return;
+    if (this.data.showFeedback) return;
 
     const { currentQuestion, userAnswer, currentIndex } = this.data;
 
