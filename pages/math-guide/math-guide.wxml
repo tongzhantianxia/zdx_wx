@@ -1,0 +1,19 @@
+<view class="container guide-page">
+  <guide-card
+    type="math"
+    title="数学思考引导"
+    tips="{{tips}}"
+    loading="{{loading}}"
+    error="{{error}}"
+    bind:refresh="onRefresh"
+    bind:togglefav="onToggleFav"
+    bind:toast="onToast"
+  />
+
+  <view class="compliance-link" bindtap="onShowCompliance">
+    <text>查看引导说明</text>
+  </view>
+
+  <compliance-modal visible="{{showCompliance}}" bind:close="onCloseCompliance" />
+  <toast id="toast" />
+</view>

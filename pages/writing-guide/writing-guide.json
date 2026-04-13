@@ -1,0 +1,8 @@
+{
+  "usingComponents": {
+    "guide-card": "/components/guide-card/guide-card",
+    "compliance-modal": "/components/compliance-modal/compliance-modal",
+    "toast": "/components/toast/toast"
+  },
+  "navigationBarTitleText": "作文表达引导"
+}
