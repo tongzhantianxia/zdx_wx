@@ -27,6 +27,10 @@ exports.main = async (event, context) => {
     entries.slice(0, 5000).forEach(([k]) => rateLimitMap.delete(k))
   }
 
+  if (!config.API_KEY) {
+    return { success: false, error: '未配置 API Key，请在云函数 config.js 中填入' }
+  }
+
   const prompt = config.PROMPTS[type]
 
   try {
@@ -63,11 +67,24 @@ exports.main = async (event, context) => {
       data: { type, tips }
     }
   } catch (err) {
-    console.error('AI request failed:', err.message)
+    const status = err.response && err.response.status
+    const detail = err.response && err.response.data
+    console.error('AI request failed:', err.message, 'status:', status, 'detail:', JSON.stringify(detail))
+
     if (err.code === 'ECONNABORTED') {
       return { success: false, error: '请求超时，请稍后再试' }
     }
-    return { success: false, error: '服务暂时不可用，请稍后再试' }
+    if (status === 401) {
+      return { success: false, error: 'API Key 无效，请检查配置' }
+    }
+    if (status === 402) {
+      return { success: false, error: 'API 余额不足' }
+    }
+    if (status === 429) {
+      return { success: false, error: '请求过于频繁，请稍后再试' }
+    }
+    const errMsg = (detail && detail.error && detail.error.message) || '服务暂时不可用，请稍后再试'
+    return { success: false, error: errMsg }
   }
 }
 
