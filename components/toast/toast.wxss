@@ -1,0 +1,28 @@
+.toast-mask {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  pointer-events: none;
+}
+
+.toast-content {
+  background: rgba(74, 55, 40, 0.8);
+  color: #fff;
+  padding: 20rpx 48rpx;
+  border-radius: 16rpx;
+  font-size: 28rpx;
+  max-width: 60vw;
+  text-align: center;
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: scale(0.9); }
+  to { opacity: 1; transform: scale(1); }
+}

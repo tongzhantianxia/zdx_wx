@@ -1,0 +1,10 @@
+<view class="modal-overlay" wx:if="{{visible}}" catchtap="preventTap">
+  <view class="modal-card">
+    <view class="modal-icon">💡</view>
+    <view class="modal-title">温馨提示</view>
+    <view class="modal-body">
+      本工具仅为家长沟通话术参考，不提供答案、不教学、不讲解题目，旨在引导孩子自主思考，培养表达与逻辑习惯。
+    </view>
+    <button class="modal-btn" bindtap="onClose">我知道了</button>
+  </view>
+</view>
