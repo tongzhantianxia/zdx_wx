@@ -1,7 +1,7 @@
 module.exports = {
-  DASHSCOPE_API_KEY: '',
-  DASHSCOPE_URL: 'https://dashscope.aliyuncs.com/api/v1/services/aigc/text-generation/generation',
-  MODEL: 'qwen-turbo',
+  API_KEY: '',                // 填入 DeepSeek API Key
+  API_URL: 'https://api.deepseek.com/chat/completions',
+  MODEL: 'deepseek-chat',
   MAX_TOKENS: 200,
   TEMPERATURE: 0.9,
   TOP_P: 0.9,

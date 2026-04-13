@@ -31,32 +31,27 @@ exports.main = async (event, context) => {
 
   try {
     const response = await axios.post(
-      config.DASHSCOPE_URL,
+      config.API_URL,
       {
         model: config.MODEL,
-        input: {
-          messages: [
-            { role: 'system', content: prompt },
-            { role: 'user', content: type === 'math' ? '孩子数学题不会做，我该怎么引导？' : '孩子写作文不知道写什么，我该怎么引导？' }
-          ]
-        },
-        parameters: {
-          max_tokens: config.MAX_TOKENS,
-          temperature: config.TEMPERATURE,
-          top_p: config.TOP_P,
-          result_format: 'message'
-        }
+        messages: [
+          { role: 'system', content: prompt },
+          { role: 'user', content: type === 'math' ? '孩子数学题不会做，我该怎么引导？' : '孩子写作文不知道写什么，我该怎么引导？' }
+        ],
+        max_tokens: config.MAX_TOKENS,
+        temperature: config.TEMPERATURE,
+        top_p: config.TOP_P
       },
       {
         headers: {
-          'Authorization': `Bearer ${config.DASHSCOPE_API_KEY}`,
+          'Authorization': `Bearer ${config.API_KEY}`,
           'Content-Type': 'application/json'
         },
         timeout: 15000
       }
     )
 
-    const content = response.data.output.choices[0].message.content
+    const content = response.data.choices[0].message.content
     const tips = parseTips(content, now)
 
     if (tips.length === 0) {
