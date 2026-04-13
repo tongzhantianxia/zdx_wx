@@ -1,0 +1,77 @@
+<view class="container mine-page">
+  <!-- Segment Tabs -->
+  <view class="segment">
+    <view class="segment-item {{currentTab === 0 ? 'active' : ''}}" data-tab="{{0}}" bindtap="onTabSwitch">
+      我的收藏
+    </view>
+    <view class="segment-item {{currentTab === 1 ? 'active' : ''}}" data-tab="{{1}}" bindtap="onTabSwitch">
+      话术历史
+    </view>
+  </view>
+
+  <!-- Favorites Tab -->
+  <view class="tab-content" wx:if="{{currentTab === 0}}">
+    <view wx:if="{{favorites.length === 0}}" class="empty-state">
+      <view class="empty-icon">⭐</view>
+      <text class="empty-text">还没有收藏哦</text>
+      <text class="empty-hint">在引导页点击收藏按钮即可保存</text>
+    </view>
+
+    <view class="fav-list" wx:else>
+      <view class="fav-item card" wx:for="{{favorites}}" wx:key="id">
+        <view class="fav-top">
+          <view class="type-tag {{item.type}}">{{item.type === 'math' ? '数学' : '作文'}}</view>
+          <text class="fav-text">{{item.text}}</text>
+        </view>
+        <view class="fav-actions">
+          <view class="fav-btn" data-text="{{item.text}}" bindtap="onCopyFav">📋 复制</view>
+          <view class="fav-btn danger" data-id="{{item.id}}" data-text="{{item.text}}" data-type="{{item.type}}" bindtap="onRemoveFav">取消收藏</view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- History Tab -->
+  <view class="tab-content" wx:if="{{currentTab === 1}}">
+    <view wx:if="{{history.length === 0}}" class="empty-state">
+      <view class="empty-icon">📋</view>
+      <text class="empty-text">还没有生成过话术</text>
+      <text class="empty-hint">去引导页点击"换一组"试试吧</text>
+    </view>
+
+    <block wx:else>
+      <view class="clear-bar" bindtap="onClearHistory">
+        <text>清空历史</text>
+      </view>
+      <view class="history-list">
+        <view class="history-group card" wx:for="{{history}}" wx:key="timestamp" wx:for-index="groupIdx">
+          <view class="history-header">
+            <view class="type-tag {{item.type}}">{{item.type === 'math' ? '数学' : '作文'}}</view>
+            <text class="history-time">{{item.timestamp}}</text>
+          </view>
+          <view class="history-tips">
+            <view class="history-tip" wx:for="{{item.tips}}" wx:key="id" wx:for-item="tip" wx:for-index="tipIdx">
+              <text class="tip-num">{{tipIdx + 1}}.</text>
+              <text class="tip-content">{{tip.text}}</text>
+              <view class="tip-fav-btn" data-id="{{tip.id}}" data-text="{{tip.text}}" data-type="{{item.type}}" bindtap="onFavFromHistory">☆</view>
+            </view>
+          </view>
+          <view class="history-actions">
+            <view class="fav-btn" data-index="{{groupIdx}}" bindtap="onCopyHistory">📋 复制全部</view>
+          </view>
+        </view>
+      </view>
+    </block>
+  </view>
+
+  <!-- About Section -->
+  <view class="about-section">
+    <view class="about-line">桔光小语让陪伴更温和，让思考自然发生</view>
+    <view class="about-sub">一款面向家长的亲子沟通话术小工具</view>
+    <view class="about-link" bindtap="onShowCompliance">查看引导说明</view>
+    <view class="about-version">v{{version}}</view>
+  </view>
+
+  <compliance-modal visible="{{showCompliance}}" bind:close="onCloseCompliance" />
+  <toast id="toast" />
+</view>
