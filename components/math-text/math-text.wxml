@@ -1,5 +1,0 @@
-<view class="math-text-wrap">
-  <block wx:for="{{parsedBlocks}}" wx:key="index">
-    <text class="mt-text">{{item.value}}</text>
-  </block>
-</view>

@@ -1,12 +1,8 @@
 {
-  "description": "小学数学错题针对性练习工具",
-  "cloudfunctionRoot": "cloudfunctions/",
+  "description": "桔光小语 - 亲子沟通话术工具",
   "packOptions": {
     "ignore": [
-      {
-        "type": "file",
-        "value": ".eslintrc.js"
-      }
+      { "type": "file", "value": ".eslintrc.js" }
     ]
   },
   "setting": {
@@ -14,18 +10,11 @@
     "es6": true,
     "enhance": true,
     "postcss": true,
-    "preloadBackgroundData": false,
     "minified": true,
     "newFeature": true,
     "coverView": true,
-    "nodeModules": false,
     "autoAudits": false,
     "showShadowRootInWxmlPanel": true,
-    "scopeDataCheck": false,
-    "uglifyFileName": false,
-    "checkInvalidKey": true,
-    "checkSiteMap": true,
-    "uploadWithSourceMap": true,
     "compileHotReLoad": false,
     "useMultiFrameRuntime": true,
     "useApiHook": true,
@@ -37,44 +26,12 @@
     },
     "bundle": false,
     "useIsolateContext": true,
-    "useCompilerModule": true,
-    "userConfirmedUseCompilerModuleSwitch": false,
-    "userConfirmedBundleSwitch": false,
-    "packNpmManually": false,
-    "packNpmRelationList": []
+    "useCompilerModule": true
   },
   "compileType": "miniprogram",
   "libVersion": "2.25.0",
   "appid": "wxca282c2384d592fd",
-  "projectname": "zdx_wx",
-  "debugOptions": {
-    "hidedInDevtools": []
-  },
-  "scripts": {},
-  "staticServerOptions": {
-    "fileBasePath": "",
-    "servePath": "/static"
-  },
-  "isGameTourist": false,
-  "condition": {
-    "search": {
-      "list": []
-    },
-    "conversation": {
-      "list": []
-    },
-    "game": {
-      "list": []
-    },
-    "plugin": {
-      "list": []
-    },
-    "gamePlugin": {
-      "list": []
-    },
-    "miniprogram": {
-      "list": []
-    }
-  },
-  "cloudfunctionTemplateRoot": "cloudfunctionTemplate/"
+  "projectname": "jgxy_wx",
+  "cloudfunctionRoot": "cloudfunctions/",
+  "condition": {}
 }

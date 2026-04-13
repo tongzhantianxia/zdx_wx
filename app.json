@@ -1,49 +1,52 @@
 {
   "pages": [
-    "pages/practice-select/practice-select",
-    "pages/improve/improve",
-    "pages/mine/mine",
     "pages/index/index",
-    "pages/privacy/privacy",
-    "pages/practice/practice",
-    "pages/result/result"
+    "pages/math-guide/math-guide",
+    "pages/writing-guide/writing-guide",
+    "pages/mine/mine"
   ],
   "window": {
-    "backgroundTextStyle": "dark",
-    "navigationBarBackgroundColor": "#FFFEF5",
-    "navigationBarTitleText": "出题鸭",
-    "navigationBarTextStyle": "black",
-    "backgroundColor": "#FFFEF5"
+    "backgroundTextStyle": "light",
+    "navigationBarBackgroundColor": "#FF8C42",
+    "navigationBarTitleText": "桔光小语",
+    "navigationBarTextStyle": "white",
+    "backgroundColor": "#FFFAF5"
   },
   "tabBar": {
     "custom": true,
-    "color": "#999999",
-    "selectedColor": "#FFB300",
-    "backgroundColor": "#FFFEF5",
+    "color": "#9B8574",
+    "selectedColor": "#FF8C42",
+    "backgroundColor": "#FFFFFF",
     "borderStyle": "white",
     "list": [
       {
-        "pagePath": "pages/improve/improve",
-        "text": "错题"
+        "pagePath": "pages/index/index",
+        "text": "首页",
+        "iconPath": "images/tabbar/home.png",
+        "selectedIconPath": "images/tabbar/home-active.png"
       },
       {
-        "pagePath": "pages/practice-select/practice-select",
-        "text": "针对练习"
+        "pagePath": "pages/math-guide/math-guide",
+        "text": "数学引导",
+        "iconPath": "images/tabbar/math.png",
+        "selectedIconPath": "images/tabbar/math-active.png"
+      },
+      {
+        "pagePath": "pages/writing-guide/writing-guide",
+        "text": "作文引导",
+        "iconPath": "images/tabbar/writing.png",
+        "selectedIconPath": "images/tabbar/writing-active.png"
       },
       {
         "pagePath": "pages/mine/mine",
-        "text": "我的"
+        "text": "我的",
+        "iconPath": "images/tabbar/mine.png",
+        "selectedIconPath": "images/tabbar/mine-active.png"
       }
     ]
   },
   "cloud": true,
   "style": "v2",
   "sitemapLocation": "sitemap.json",
-  "lazyCodeLoading": "requiredComponents",
-  "requiredPrivateInfos": [],
-  "networkTimeout": {
-    "request": 30000,
-    "downloadFile": 30000
-  },
-  "debug": false
+  "lazyCodeLoading": "requiredComponents"
 }

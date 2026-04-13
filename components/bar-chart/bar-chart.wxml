@@ -1,3 +1,0 @@
-<view class="bar-chart-wrap">
-  <canvas type="2d" id="barCanvas" class="bar-canvas" style="width:{{canvasWidth}}px;height:{{canvasHeight}}px;"></canvas>
-</view>

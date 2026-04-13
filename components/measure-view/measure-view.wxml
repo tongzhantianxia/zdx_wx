@@ -1,3 +1,0 @@
-<view class="measure-view-wrap">
-  <canvas type="2d" id="measureCanvas" class="measure-canvas" style="width:{{canvasWidth}}px;height:{{canvasHeight}}px;"></canvas>
-</view>

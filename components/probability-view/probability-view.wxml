@@ -1,3 +1,0 @@
-<view class="probability-view-wrap">
-  <canvas type="2d" id="probabilityCanvas" class="probability-canvas" style="width:{{canvasWidth}}px;height:{{canvasHeight}}px;"></canvas>
-</view>

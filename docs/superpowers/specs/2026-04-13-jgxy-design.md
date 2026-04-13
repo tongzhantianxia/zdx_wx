@@ -46,13 +46,21 @@
 
 ### 2.1 目录结构
 
+项目文件直接位于工作区根目录 `/Users/jerry/Documents/zdx_wx/`，替换原有项目内容。
+
 ```
-jgxy/
+/（工作区根目录）
 ├── app.js
 ├── app.json
 ├── app.wxss
 ├── sitemap.json
 ├── project.config.json
+│
+├── custom-tab-bar/            # 自定义 TabBar（暖橘主题）
+│   ├── index.js
+│   ├── index.json
+│   ├── index.wxml
+│   └── index.wxss
 │
 ├── pages/
 │   ├── index/                 # 首页
@@ -98,7 +106,8 @@ jgxy/
 │   ├── clipboard.js           # 复制功能封装
 │   └── config.js              # 全局配置
 │
-├── images/                    # 图片资源（≤2MB）
+├── images/                    # 图片资源（单张 ≤2MB）
+│   └── tabbar/                # TabBar 图标 PNG（81×81px，8张）
 │
 └── cloudfunctions/
     └── generateGuide/         # 云函数：调用通义千问
@@ -118,7 +127,9 @@ jgxy/
 | 作文引导 | `pages/writing-guide/writing-guide` | 铅笔图标 |
 | 我的 | `pages/mine/mine` | 人像图标 |
 
-TabBar 样式：自定义 custom TabBar，选中色 `#FF8C42`，未选中 `#9B8574`，背景 `#FFFFFF`。
+TabBar 样式：自定义 custom TabBar（`custom-tab-bar/` 目录），选中色 `#FF8C42`，未选中 `#9B8574`，背景 `#FFFFFF`。
+
+图标格式：使用 PNG 格式，每个 Tab 提供普通态和选中态两张图片（`81×81px`），存放在 `images/tabbar/` 目录。共 8 张图标文件：`home.png`、`home-active.png`、`math.png`、`math-active.png`、`writing.png`、`writing-active.png`、`mine.png`、`mine-active.png`。图标使用简约线条风格，匹配暖橘主题。
 
 ### 2.3 路由逻辑
 

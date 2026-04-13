@@ -1,259 +1,70 @@
-/**
- * 全局样式 - 出题鸭小学数学练习小程序
- * 设计风格：鸭黄护眼浅色系 · 圆润童趣
- * 目标用户：6-12岁小学生
- */
-
-/* ==================== CSS变量定义 ==================== */
 page {
-  /* 主色 - 鸭黄 */
-  --yellow: #FFB800;
-  --yellow-light: #FFD84D;
-  --yellow-deep: #F0A500;
-  --yellow-bg: #FFF9E6;
-  --yellow-pale: #FFFBF0;
+  --color-primary: #FF8C42;
+  --color-primary-light: #FFF3E6;
+  --color-bg: #FFFAF5;
+  --color-text: #4A3728;
+  --color-text-secondary: #9B8574;
+  --color-white: #FFFFFF;
+  --color-success: #67C23A;
+  --radius-card: 20rpx;
+  --radius-btn: 40rpx;
+  --radius-modal: 24rpx;
+  --shadow-card: 0 4rpx 16rpx rgba(255, 140, 66, 0.1);
+  --padding-page: 32rpx;
 
-  /* 辅色 - 天蓝 */
-  --blue: #4BBFFF;
-  --blue-light: #7DD4FF;
-  --blue-deep: #2AA8F0;
-  --blue-bg: #EBF7FF;
-
-  /* 功能色 */
-  --success: #52C41A;
-  --success-bg: #F0FFF0;
-  --success-light: #E8F8E8;
-  --warning: #FA8C16;
-  --warning-bg: #FFF4E6;
-  --error: #FF4D4F;
-  --error-bg: #FFF1F0;
-
-  /* 背景 */
-  --bg-page: #FFFEF5;
-  --bg-card: #FFFFFF;
-  --bg-section: #F8F6EE;
-
-  /* 文字 */
-  --text-main: #2D2D2D;
-  --text-body: #555555;
-  --text-sub: #888888;
-  --text-hint: #BBBBBB;
-
-  /* 边框 */
-  --border: #EDEDEE;
-  --border-light: #F5F5F0;
-
-  /* 圆角 */
-  --radius-sm: 12rpx;
-  --radius-md: 16rpx;
-  --radius-lg: 24rpx;
-  --radius-xl: 32rpx;
-  --radius-round: 999rpx;
-
-  /* 间距 */
-  --spacing-xs: 8rpx;
-  --spacing-sm: 16rpx;
-  --spacing-md: 24rpx;
-  --spacing-lg: 32rpx;
-  --spacing-xl: 48rpx;
-
-  /* 字号 */
-  --font-xs: 22rpx;
-  --font-sm: 26rpx;
-  --font-md: 28rpx;
-  --font-lg: 32rpx;
-  --font-xl: 36rpx;
-  --font-xxl: 44rpx;
-
-  /* 阴影 */
-  --shadow-sm: 0 2rpx 12rpx rgba(0, 0, 0, 0.06);
-  --shadow-md: 0 4rpx 20rpx rgba(0, 0, 0, 0.08);
-  --shadow-lg: 0 8rpx 32rpx rgba(0, 0, 0, 0.10);
-  --shadow-yellow: 0 6rpx 20rpx rgba(255, 184, 0, 0.40);
-  --shadow-blue: 0 6rpx 20rpx rgba(75, 191, 255, 0.35);
-
-  /* 字体 */
-  --font-family: -apple-system, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
-
-  /* 动画 */
-  --ease: 0.2s ease;
-}
-
-/* ==================== 基础重置 ==================== */
-page {
-  font-family: var(--font-family);
-  font-size: var(--font-md);
-  line-height: 1.6;
-  color: var(--text-main);
-  background-color: var(--bg-page);
-  min-height: 100vh;
-  -webkit-font-smoothing: antialiased;
-}
-
-view, text {
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Helvetica, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  line-height: 1.8;
+  font-size: 28rpx;
   box-sizing: border-box;
 }
 
-/* ==================== 通用卡片 ==================== */
-.card {
-  background-color: var(--bg-card);
-  border-radius: var(--radius-lg);
-  padding: var(--spacing-lg);
-  margin-bottom: var(--spacing-md);
-  box-shadow: var(--shadow-sm);
+.container {
+  padding: var(--padding-page);
+  min-height: 100vh;
+  padding-bottom: 180rpx;
 }
 
-/* ==================== 按钮 ==================== */
 .btn-primary {
-  width: 100%;
-  height: 96rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: linear-gradient(135deg, var(--yellow-light) 0%, var(--yellow) 100%);
-  color: #FFFFFF;
-  font-size: var(--font-lg);
-  font-weight: 700;
-  border-radius: var(--radius-round);
+  background-color: var(--color-primary);
+  color: var(--color-white);
   border: none;
-  box-shadow: var(--shadow-yellow);
-  transition: transform var(--ease);
+  border-radius: var(--radius-btn);
+  padding: 20rpx 60rpx;
+  font-size: 30rpx;
+  font-weight: 500;
+  text-align: center;
+  box-shadow: 0 4rpx 12rpx rgba(255, 140, 66, 0.3);
 }
 
 .btn-primary:active {
-  transform: scale(0.97);
-}
-
-.btn-primary::after {
-  border: none;
-}
-
-.btn-primary[disabled] {
-  background: #E0E0E0;
-  color: #AAAAAA;
-  box-shadow: none;
+  opacity: 0.85;
 }
 
 .btn-secondary {
-  width: 100%;
-  height: 96rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background-color: var(--bg-card);
-  color: var(--blue);
-  font-size: var(--font-lg);
-  font-weight: 600;
-  border-radius: var(--radius-round);
-  border: 2rpx solid var(--blue);
-  transition: all var(--ease);
+  background-color: var(--color-primary-light);
+  color: var(--color-primary);
+  border: none;
+  border-radius: var(--radius-btn);
+  padding: 20rpx 60rpx;
+  font-size: 30rpx;
+  text-align: center;
 }
 
 .btn-secondary:active {
-  background-color: var(--blue-bg);
-  transform: scale(0.97);
+  opacity: 0.85;
 }
 
-.btn-secondary::after {
-  border: none;
+.text-link {
+  color: var(--color-text-secondary);
+  font-size: 24rpx;
+  text-align: center;
 }
 
-/* ==================== 标签 ==================== */
-.tag {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 4rpx 16rpx;
-  font-size: var(--font-xs);
-  border-radius: var(--radius-round);
-  font-weight: 500;
-}
-
-.tag-easy {
-  background-color: var(--success-light);
-  color: var(--success);
-}
-
-.tag-medium {
-  background-color: var(--yellow-bg);
-  color: var(--yellow-deep);
-}
-
-.tag-hard {
-  background-color: var(--warning-bg);
-  color: var(--warning);
-}
-
-/* ==================== Flex 工具类 ==================== */
-.flex { display: flex; }
-.flex-center { display: flex; align-items: center; justify-content: center; }
-.flex-between { display: flex; align-items: center; justify-content: space-between; }
-.flex-start { display: flex; align-items: center; }
-.flex-column { display: flex; flex-direction: column; }
-.flex-1 { flex: 1; }
-
-/* ==================== 间距工具类 ==================== */
-.mt-sm { margin-top: var(--spacing-sm); }
-.mt-md { margin-top: var(--spacing-md); }
-.mt-lg { margin-top: var(--spacing-lg); }
-.mb-sm { margin-bottom: var(--spacing-sm); }
-.mb-md { margin-bottom: var(--spacing-md); }
-.mb-lg { margin-bottom: var(--spacing-lg); }
-
-/* ==================== 加载状态 ==================== */
-.loading-spinner {
-  width: 48rpx;
-  height: 48rpx;
-  border: 4rpx solid var(--border);
-  border-top-color: var(--yellow);
-  border-radius: 50%;
-  animation: spin 0.8s linear infinite;
-}
-
-@keyframes spin {
-  to { transform: rotate(360deg); }
-}
-
-.loading-text {
-  margin-top: var(--spacing-md);
-  font-size: var(--font-sm);
-  color: var(--text-sub);
-}
-
-/* ==================== 安全区域 ==================== */
-.safe-area-bottom {
-  padding-bottom: constant(safe-area-inset-bottom);
-  padding-bottom: env(safe-area-inset-bottom);
-}
-
-/* ==================== 固定底部 ==================== */
-.fixed-bottom {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  background-color: var(--bg-card);
-  padding: var(--spacing-md);
-  padding-bottom: calc(var(--spacing-md) + env(safe-area-inset-bottom));
-  box-shadow: 0 -4rpx 20rpx rgba(0, 0, 0, 0.06);
-  z-index: 100;
-}
-
-/* ==================== 动画 ==================== */
-.fade-in {
-  animation: fadeIn 0.25s ease;
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
-.slide-up {
-  animation: slideUp 0.3s ease;
-}
-
-@keyframes slideUp {
-  from { opacity: 0; transform: translateY(40rpx); }
-  to { opacity: 1; transform: translateY(0); }
+.card {
+  background-color: var(--color-white);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+  padding: 32rpx;
 }

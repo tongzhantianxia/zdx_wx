@@ -1,9 +1,0 @@
-{
-  "name": "cleanExpiredLogs",
-  "version": "1.0.0",
-  "description": "定期清理过期的出题记录（30天）",
-  "main": "index.js",
-  "dependencies": {
-    "wx-server-sdk": "~2.6.3"
-  }
-}

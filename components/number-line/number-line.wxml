@@ -1,3 +1,0 @@
-<view class="number-line-container">
-  <canvas type="2d" id="numberLineCanvas" class="number-line-canvas" style="width:{{canvasWidth}}px;height:{{canvasHeight}}px;"></canvas>
-</view>

@@ -1,6 +1,6 @@
 {
-  "name": "zdx_wx",
+  "name": "jgxy_wx",
   "version": "1.0.0",
-  "private": true,
-  "description": "小学数学错题针对性练习工具（出题鸭）"
+  "description": "桔光小语 - 亲子沟通话术工具",
+  "private": true
 }

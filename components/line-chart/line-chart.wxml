@@ -1,3 +1,0 @@
-<view class="line-chart-wrap">
-  <canvas type="2d" id="lineCanvas" class="line-canvas" style="width:{{canvasWidth}}px;height:{{canvasHeight}}px;"></canvas>
-</view>
