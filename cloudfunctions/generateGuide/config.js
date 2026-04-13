@@ -1,5 +1,5 @@
 module.exports = {
-  API_KEY: '',                // 填入 DeepSeek API Key
+  API_KEY: process.env.API_KEY || '',
   API_URL: 'https://api.deepseek.com/chat/completions',
   MODEL: 'deepseek-chat',
   MAX_TOKENS: 200,

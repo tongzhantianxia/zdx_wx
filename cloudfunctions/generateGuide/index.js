@@ -28,7 +28,7 @@ exports.main = async (event, context) => {
   }
 
   if (!config.API_KEY) {
-    return { success: false, error: '未配置 API Key，请在云函数 config.js 中填入' }
+    return { success: false, error: '未配置 API Key，请在云开发控制台设置环境变量 API_KEY' }
   }
 
   const prompt = config.PROMPTS[type]
