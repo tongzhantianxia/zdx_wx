@@ -1,0 +1,42 @@
+<view class="guide-card-wrapper">
+  <!-- Loading skeleton -->
+  <view class="skeleton-list" wx:if="{{loading}}">
+    <view class="skeleton-item" wx:for="{{[1,2,3]}}" wx:key="*this">
+      <view class="skeleton-line long"></view>
+      <view class="skeleton-line short"></view>
+    </view>
+  </view>
+
+  <!-- Error state -->
+  <view class="error-card card" wx:elif="{{error}}">
+    <view class="error-icon">😅</view>
+    <text class="error-text">获取话术失败，请稍后再试</text>
+    <button class="btn-primary retry-btn" bindtap="onRefresh">重新获取</button>
+  </view>
+
+  <!-- Tips list -->
+  <view class="tips-list" wx:else>
+    <view class="tip-card card" wx:for="{{tips}}" wx:key="id">
+      <view class="tip-left">
+        <view class="tip-icon">💡</view>
+        <text class="tip-text">{{item.text}}</text>
+      </view>
+      <view class="tip-actions">
+        <view class="action-btn" data-text="{{item.text}}" bindtap="onCopy">
+          <text class="action-icon">📋</text>
+          <text class="action-label">复制</text>
+        </view>
+        <view class="action-btn {{item.favorited ? 'active' : ''}}" data-id="{{item.id}}" data-text="{{item.text}}" bindtap="onToggleFav">
+          <text class="action-icon">{{item.favorited ? '⭐' : '☆'}}</text>
+          <text class="action-label">收藏</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- Action buttons -->
+  <view class="action-bar" wx:if="{{!loading && !error && tips.length > 0}}">
+    <button class="btn-primary refresh-btn" bindtap="onRefresh">🔄 换一组</button>
+    <button class="btn-secondary copy-all-btn" bindtap="onCopyAll">复制全部话术</button>
+  </view>
+</view>
