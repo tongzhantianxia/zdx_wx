@@ -1,0 +1,6 @@
+{
+  "usingComponents": {
+    "compliance-modal": "/components/compliance-modal/compliance-modal"
+  },
+  "navigationBarTitleText": "桔光小语"
+}

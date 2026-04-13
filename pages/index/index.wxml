@@ -1,0 +1,28 @@
+<view class="container home">
+  <!-- Header -->
+  <view class="home-header">
+    <view class="home-title">陪伴孩子，从好好提问开始</view>
+    <view class="home-subtitle">不吼不骂，引导孩子自己思考</view>
+  </view>
+
+  <!-- Feature Grid -->
+  <view class="feature-grid">
+    <view
+      class="feature-card card"
+      wx:for="{{features}}"
+      wx:key="key"
+      data-key="{{item.key}}"
+      bindtap="onFeatureTap"
+    >
+      <view class="feature-icon">{{item.icon}}</view>
+      <view class="feature-title">{{item.title}}</view>
+      <view class="feature-desc">{{item.desc}}</view>
+    </view>
+  </view>
+
+  <!-- Slogan -->
+  <view class="home-slogan">桔光相伴，好好说话</view>
+
+  <!-- Compliance Modal -->
+  <compliance-modal visible="{{showCompliance}}" bind:close="onCloseCompliance" />
+</view>
