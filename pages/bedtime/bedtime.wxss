@@ -282,11 +282,9 @@
 }
 
 .memory-input-wrap {
-  position: relative;
   border: 2rpx solid var(--color-border);
-  border-radius: var(--radius-md);
-  background-color: var(--color-bg);
-  overflow: hidden;
+  border-radius: 24rpx;
+  background-color: #fdfbf6;
   transition: border-color 0.2s, background-color 0.2s;
 }
 
@@ -297,9 +295,8 @@
 
 .memory-textarea {
   width: 100%;
-  height: 224rpx;
+  height: 180rpx;
   padding: 24rpx;
-  padding-bottom: 112rpx;
   font-size: 28rpx;
   color: var(--color-text);
   line-height: 1.6;
@@ -308,23 +305,33 @@
 }
 
 .memory-placeholder {
-  color: var(--color-text-muted);
+  color: #c4bfb2;
   font-size: 26rpx;
 }
 
+.mic-row {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 20rpx;
+  margin-top: 20rpx;
+}
+
+.mic-tip {
+  font-size: 24rpx;
+  color: #a39c8f;
+}
+
 .mic-btn {
-  position: absolute;
-  bottom: 24rpx;
-  right: 24rpx;
-  width: 72rpx;
-  height: 72rpx;
+  width: 80rpx;
+  height: 80rpx;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   background-color: #eef1eb;
   border: 2rpx solid #d2decb;
-  z-index: 2;
+  flex-shrink: 0;
 }
 
 .mic-btn:active {
@@ -339,19 +346,16 @@
 }
 
 .mic-icon {
-  font-size: 32rpx;
+  font-size: 36rpx;
   color: #6b8e5c;
 }
 
 .mic-stop-icon {
-  font-size: 24rpx;
+  font-size: 28rpx;
   color: #ffffff;
 }
 
 .recording-indicator {
-  position: absolute;
-  bottom: 40rpx;
-  right: 112rpx;
   display: flex;
   align-items: center;
   gap: 10rpx;
@@ -366,7 +370,7 @@
 }
 
 .recording-label {
-  font-size: 24rpx;
+  font-size: 26rpx;
   color: #d48c6a;
   font-weight: 500;
 }

@@ -1,4 +1,4 @@
-/* Empty State */
+/* ── Empty State ── */
 .empty-state {
   display: flex;
   flex-direction: column;
@@ -20,18 +20,17 @@
   font-weight: 700;
 }
 
+/* ── Page ── */
 .page {
   min-height: 100vh;
+  display: flex;
+  flex-direction: column;
   background-color: #f4f0e6;
 }
 
-/* ── Floating header ── */
-.float-header {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  z-index: 200;
+/* ── Header (non-fixed, shrink-0) ── */
+.header {
+  flex-shrink: 0;
 }
 
 .header-inner {
@@ -43,15 +42,16 @@
 }
 
 .back-btn {
-  padding: 16rpx;
-  color: #362f2d;
-  background: rgba(244, 240, 230, 0.8);
-  backdrop-filter: blur(12px);
-  border-radius: 50%;
-  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.06);
+  width: 72rpx;
+  height: 72rpx;
   display: flex;
   align-items: center;
   justify-content: center;
+  color: #362f2d;
+  background: #fdfbf6;
+  border-radius: 50%;
+  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.06);
+  border: 2rpx solid #e8e1cf;
 }
 
 .back-btn:active {
@@ -68,16 +68,16 @@
 }
 
 .action-btn {
-  padding: 16rpx;
-  color: #362f2d;
-  background: rgba(253, 251, 246, 0.8);
-  backdrop-filter: blur(12px);
-  border-radius: 50%;
-  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.06);
-  border: 2rpx solid #e8e1cf;
+  width: 72rpx;
+  height: 72rpx;
   display: flex;
   align-items: center;
   justify-content: center;
+  color: #362f2d;
+  background: #fdfbf6;
+  border-radius: 50%;
+  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.06);
+  border: 2rpx solid #e8e1cf;
 }
 
 .action-btn.saved,
@@ -93,256 +93,396 @@
   font-size: 36rpx;
 }
 
-/* ── Container ── */
-.container {
-  padding: 24rpx 32rpx 60rpx;
+/* ── Content area ── */
+.content-area {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0 20rpx 80rpx;
 }
 
-/* ── Result card ── */
-.result-card {
-  background: #fdfbf6;
-  border-radius: 64rpx;
-  box-shadow: 0 8rpx 40rpx rgba(0, 0, 0, 0.06);
-  border: 2rpx solid #e8e1cf;
-  overflow: hidden;
+/* ══════════════════════════════════
+   1. Polaroid Photo
+   ══════════════════════════════════ */
+.polaroid-wrap {
   position: relative;
+  margin: 16rpx 16rpx 40rpx;
+  transform: rotate(-2deg);
 }
 
-.notebook-binding {
+.polaroid-tape {
   position: absolute;
-  left: 32rpx;
+  top: -12rpx;
+  left: 50%;
+  transform: translateX(-50%) rotate(2deg);
+  width: 160rpx;
+  height: 48rpx;
+  background: rgba(255, 255, 255, 0.5);
+  z-index: 2;
+}
+
+.polaroid-card {
+  background: #fdfbf6;
+  padding: 24rpx 24rpx 64rpx;
+  border-radius: 8rpx;
+  box-shadow: 0 8rpx 32rpx rgba(0, 0, 0, 0.1);
+}
+
+.polaroid-img-wrap {
+  position: relative;
+  width: 100%;
+  padding-bottom: 75%; /* 4:3 aspect */
+  border-radius: 8rpx;
+  overflow: hidden;
+}
+
+.polaroid-img {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.polaroid-zoom {
+  position: absolute;
+  right: 16rpx;
+  bottom: 16rpx;
+  width: 56rpx;
+  height: 56rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.4);
+  border-radius: 50%;
+  font-size: 28rpx;
+}
+
+.polaroid-caption {
+  margin-top: 20rpx;
+  text-align: center;
+  font-family: 'Kaiti', 'STKaiti', '楷体', serif;
+  font-size: 28rpx;
+  color: #5c534a;
+}
+
+/* ══════════════════════════════════
+   2. Notebook Story
+   ══════════════════════════════════ */
+.notebook-card {
+  position: relative;
+  background: #fdfbf6;
+  border-radius: 24rpx;
+  box-shadow: inset 0 4rpx 12rpx rgba(0, 0, 0, 0.04);
+  border: 2rpx solid #e8e1cf;
+  margin-bottom: 40rpx;
+  overflow: hidden;
+}
+
+.notebook-redline {
+  position: absolute;
   top: 0;
   bottom: 0;
   width: 2rpx;
-  border-left: 4rpx dashed rgba(232, 225, 207, 0.5);
+  background: rgba(230, 142, 115, 0.4);
 }
 
-/* ── Card header ── */
-.card-header {
-  background: #b85b3d;
-  padding: 48rpx 40rpx;
-  color: #fff;
-  text-align: center;
-  position: relative;
-  overflow: hidden;
+.notebook-redline-1 {
+  left: 64rpx;
 }
 
-.scene-badge {
+.notebook-redline-2 {
+  left: 72rpx;
+}
+
+.notebook-content {
+  padding: 64rpx 48rpx 48rpx 112rpx;
+  background-image: repeating-linear-gradient(
+    transparent,
+    transparent 62rpx,
+    rgba(200, 190, 170, 0.25) 62rpx,
+    rgba(200, 190, 170, 0.25) 64rpx
+  );
+}
+
+.notebook-title-wrap {
   display: inline-block;
-  padding: 8rpx 24rpx;
-  background: rgba(255, 255, 255, 0.2);
-  border-radius: 999rpx;
-  font-size: 24rpx;
-  font-weight: 500;
-  margin-bottom: 24rpx;
-  backdrop-filter: blur(8px);
-}
-
-.card-title {
-  font-size: 42rpx;
-  font-weight: 700;
-  line-height: 1.4;
-}
-
-/* ── Card body ── */
-.card-body {
-  padding: 48rpx 48rpx 48rpx 64rpx;
-}
-
-.section {
-  margin-bottom: 48rpx;
-}
-
-.section:last-child {
-  margin-bottom: 0;
-}
-
-/* Section labels */
-.section-label {
-  font-size: 28rpx;
-  font-weight: 700;
-  margin-bottom: 16rpx;
-}
-
-.label-primary {
-  color: #b85b3d;
-}
-
-.label-dark {
-  color: #362f2d;
-}
-
-/* Opening block */
-.opening-block {
-  background: #f4f0e6;
-  padding: 32rpx;
-  border-radius: 32rpx;
-  font-size: 30rpx;
-  line-height: 1.8;
-  color: #362f2d;
-  border: 2rpx solid #e8e1cf;
-}
-
-/* Story text */
-.story-text {
-  font-size: 30rpx;
-  line-height: 1.8;
-  color: #362f2d;
-}
-
-/* Divider */
-.divider {
-  height: 2rpx;
-  background: #e8e1cf;
-}
-
-/* Questions */
-.question-list {
-  display: flex;
-  flex-direction: column;
-  gap: 20rpx;
-}
-
-.question-item {
-  display: flex;
-  gap: 16rpx;
-  font-size: 30rpx;
-}
-
-.question-num {
-  color: #b85b3d;
-  font-weight: 700;
-  flex-shrink: 0;
-}
-
-.question-text {
-  color: #362f2d;
-  line-height: 1.7;
-  flex: 1;
-}
-
-/* Response block */
-.response-block {
-  background: #fcf0e8;
-  padding: 32rpx;
-  border-radius: 32rpx;
-  border: 2rpx solid #eebd9c;
-}
-
-.response-text {
-  font-size: 28rpx;
-  line-height: 1.8;
-  color: #362f2d;
-}
-
-/* Tips section */
-.tips-section {
-  display: flex;
-  flex-direction: column;
-  gap: 20rpx;
-}
-
-.tip-card {
-  display: flex;
-  align-items: flex-start;
-  gap: 24rpx;
-  padding: 32rpx;
-  border-radius: 32rpx;
-}
-
-.remind-card {
   background: #fdfbf6;
-  border: 2rpx solid #e8e1cf;
+  padding: 0 8rpx;
+  margin-bottom: 32rpx;
 }
 
-.action-card {
-  background: #eef1eb;
-  border: 2rpx solid #d2decb;
-}
-
-.tip-emoji {
-  font-size: 36rpx;
-  flex-shrink: 0;
+.notebook-title {
+  font-size: 48rpx;
+  font-weight: 700;
+  color: #b85b3d;
   line-height: 1.4;
 }
 
-.tip-content {
-  display: flex;
-  flex-direction: column;
-  gap: 8rpx;
-  flex: 1;
+.notebook-section {
+  margin-bottom: 32rpx;
 }
 
-.tip-title {
-  font-size: 28rpx;
-  font-weight: 700;
+.badge {
+  display: inline-block;
+  font-size: 24rpx;
+  padding: 4rpx 12rpx;
+  border-radius: 8rpx;
+  margin-bottom: 12rpx;
+  background: #fdfbf6;
 }
 
-.tip-title-dark {
-  color: #362f2d;
+.badge-primary {
+  color: #b85b3d;
+  border: 2rpx solid #b85b3d;
 }
 
-.tip-title-green {
+.badge-green {
   color: #6b8e5c;
+  border: 2rpx solid #6b8e5c;
 }
 
-.tip-desc {
-  line-height: 1.6;
-}
-
-.tip-desc-muted {
-  color: #7a7267;
-  font-size: 24rpx;
-}
-
-.tip-desc-green {
-  color: #4b6640;
-  font-size: 28rpx;
-}
-
-/* ── Bottom actions ── */
-.bottom-actions {
-  margin-top: 40rpx;
-  display: flex;
-  flex-direction: row;
-  gap: 24rpx;
-  padding-bottom: 60rpx;
-}
-
-.btn-regen {
-  flex: 1;
-  background: #fdfbf6;
-  border: 2rpx solid #e8e1cf;
+.notebook-text {
+  font-family: 'Kaiti', 'STKaiti', '楷体', serif;
+  font-size: 34rpx;
+  line-height: 64rpx;
   color: #362f2d;
-  padding: 28rpx 0;
-  border-radius: 24rpx;
+}
+
+/* ══════════════════════════════════
+   3. Interactive Question Cards
+   ══════════════════════════════════ */
+.question-section {
+  margin-bottom: 40rpx;
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  margin-bottom: 24rpx;
+  padding: 0 8rpx;
+}
+
+.section-header-icon {
+  font-size: 36rpx;
+}
+
+.section-header-text {
+  font-size: 30rpx;
   font-weight: 700;
-  font-size: 28rpx;
-  text-align: center;
+  color: #362f2d;
 }
 
-.btn-regen:active {
-  background: #f4f0e6;
-  transform: scale(0.98);
+.question-stack {
+  position: relative;
+  height: 384rpx;
+  margin: 0 8rpx;
 }
 
-.btn-collect {
-  flex: 1;
-  background: #362f2d;
-  color: #fdfbf6;
-  padding: 28rpx 0;
-  border-radius: 24rpx;
-  font-weight: 700;
-  font-size: 28rpx;
-  text-align: center;
-  box-shadow: 0 8rpx 24rpx rgba(54, 47, 45, 0.2);
+.question-card {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border-radius: 32rpx;
+  padding: 40rpx;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  border: 2rpx solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 16rpx 48rpx rgba(0, 0, 0, 0.15);
+  transition: all 0.4s ease;
 }
 
-.btn-collect.collected {
+.question-card-0 {
+  background: linear-gradient(135deg, #b85b3d, #8a422a);
+}
+
+.question-card-1 {
+  background: linear-gradient(135deg, #6b8e5c, #456338);
+}
+
+.question-card-2 {
+  background: linear-gradient(135deg, #d48c6a, #a66444);
+}
+
+.qcard-active {
+  z-index: 20;
+  transform: translateX(0) rotate(0deg) scale(1);
+  opacity: 1;
+}
+
+.qcard-prev {
+  z-index: 10;
+  transform: translateX(-64rpx) rotate(-6deg) scale(0.95);
+  opacity: 0;
+}
+
+.qcard-behind {
+  z-index: 10;
+  transform: translateX(24rpx) translateY(16rpx) rotate(2deg) scale(0.95);
   opacity: 0.8;
 }
 
-.btn-collect:active {
-  opacity: 0.9;
-  transform: scale(0.98);
+.qcard-number {
+  font-size: 48rpx;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.3);
+}
+
+.qcard-text {
+  font-family: 'Kaiti', 'STKaiti', '楷体', serif;
+  font-size: 38rpx;
+  line-height: 1.6;
+  color: #fff;
+  flex: 1;
+  display: flex;
+  align-items: center;
+}
+
+.qcard-hint {
+  font-size: 22rpx;
+  color: rgba(255, 255, 255, 0.6);
+  text-align: right;
+}
+
+/* ══════════════════════════════════
+   4. Parent Cheat Sheet (Sticky Notes)
+   ══════════════════════════════════ */
+.cheat-section {
+  margin-bottom: 40rpx;
+}
+
+/* Yellow sticky */
+.sticky-yellow {
+  position: relative;
+  background: #fff9c4;
+  padding: 40rpx;
+  border-radius: 12rpx;
+  border: 2rpx solid #e8dcb8;
+  transform: rotate(1.5deg);
+  margin-bottom: 32rpx;
+  margin-top: 20rpx;
+}
+
+.sticky-tape {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 120rpx;
+  height: 36rpx;
+  border-radius: 4rpx;
+}
+
+.sticky-tape-yellow {
+  top: -20rpx;
+  background: rgba(230, 142, 115, 0.3);
+  transform: translateX(-50%) rotate(-3deg);
+}
+
+.sticky-tape-green {
+  top: -20rpx;
+  background: rgba(107, 142, 92, 0.2);
+  transform: translateX(-50%) rotate(2deg);
+}
+
+.sticky-title {
+  font-size: 30rpx;
+  font-weight: 700;
+  margin-bottom: 16rpx;
+  display: block;
+}
+
+.sticky-title-yellow {
+  color: #8c6b45;
+}
+
+.sticky-title-green {
+  color: #4b6640;
+}
+
+.sticky-title-dark {
+  color: #362f2d;
+}
+
+.sticky-body {
+  font-family: 'Kaiti', 'STKaiti', '楷体', serif;
+  font-size: 30rpx;
+  line-height: 1.8;
+  color: #362f2d;
+}
+
+.sticky-divider {
+  height: 2rpx;
+  border-top: 2rpx dashed rgba(0, 0, 0, 0.15);
+  margin: 24rpx 0;
+}
+
+/* Green sticky */
+.sticky-green {
+  position: relative;
+  background: #f0f4eb;
+  padding: 40rpx;
+  border-radius: 12rpx;
+  border: 2rpx solid #d2decb;
+  transform: rotate(-1deg);
+}
+
+/* ══════════════════════════════════
+   5. Fullscreen Image Overlay
+   ══════════════════════════════════ */
+.fullscreen-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 999;
+  background: rgba(0, 0, 0, 0.95);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.fullscreen-close {
+  position: absolute;
+  top: 100rpx;
+  right: 40rpx;
+  width: 64rpx;
+  height: 64rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 40rpx;
+  z-index: 1000;
+}
+
+.fullscreen-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0 40rpx;
+}
+
+.fullscreen-img {
+  width: 100%;
+  border-radius: 16rpx;
+}
+
+.fullscreen-caption {
+  font-family: 'Kaiti', 'STKaiti', '楷体', serif;
+  font-size: 32rpx;
+  color: rgba(255, 255, 255, 0.8);
+  margin-top: 32rpx;
+  text-align: center;
+}
+
+.fullscreen-hint {
+  position: absolute;
+  bottom: 80rpx;
+  font-size: 24rpx;
+  color: rgba(255, 255, 255, 0.4);
 }

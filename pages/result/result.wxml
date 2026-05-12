@@ -4,8 +4,8 @@
 </view>
 
 <view class="page" wx:if="{{card}}">
-  <!-- Floating header -->
-  <view class="float-header" style="padding-top: {{statusBarHeight}}px;">
+  <!-- Header (non-fixed) -->
+  <view class="header" style="padding-top: {{statusBarHeight}}px;">
     <view class="header-inner">
       <view class="back-btn" bindtap="handleBack">
         <text class="back-icon">←</text>
@@ -21,89 +21,105 @@
     </view>
   </view>
 
-  <!-- Main card -->
-  <view class="container" style="padding-top: {{statusBarHeight + 56}}px;">
-    <view class="result-card">
-      <!-- Notebook binding line -->
-      <view class="notebook-binding"></view>
+  <!-- Scrollable content -->
+  <view class="content-area">
 
-      <!-- Card header -->
-      <view class="card-header">
-        <view class="scene-badge">{{card.scene}}</view>
-        <view class="card-title">{{card.title}}</view>
+    <!-- 1. Polaroid photo -->
+    <view class="polaroid-wrap" bindtap="openFullscreen">
+      <view class="polaroid-tape"></view>
+      <view class="polaroid-card">
+        <view class="polaroid-img-wrap">
+          <image class="polaroid-img" src="{{card.imageUrl || 'https://images.unsplash.com/photo-1560874561-1ae8d0d9789d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHx2aW50YWdlJTIwY2Fzc2V0dGUlMjB0YXBlfGVufDF8fHx8MTc3ODU5NjcyMXww&ixlib=rb-4.1.0&q=80&w=1080'}}" mode="aspectFill" />
+          <view class="polaroid-zoom">🔍</view>
+        </view>
+        <view class="polaroid-caption">{{card.imageCaption || '老物件：卡带与随身听'}}</view>
       </view>
+    </view>
 
-      <!-- Card body -->
-      <view class="card-body">
-        <!-- 开场白 -->
-        <view class="section">
-          <view class="section-label label-primary">❤️ 30秒开场白</view>
-          <view class="opening-block">
+    <!-- 2. Notebook story -->
+    <view class="notebook-card">
+      <view class="notebook-redline notebook-redline-1"></view>
+      <view class="notebook-redline notebook-redline-2"></view>
+      <view class="notebook-content">
+        <view class="notebook-title-wrap">
+          <text class="notebook-title">{{card.title}}</text>
+        </view>
+
+        <view class="notebook-section">
+          <text class="badge badge-primary">开场白</text>
+          <view class="notebook-text">
             <text>{{card.opening}}</text>
           </view>
         </view>
 
-        <!-- 1分钟讲述 -->
-        <view class="section">
-          <view class="section-label label-primary">📖 1 分钟讲述版</view>
-          <view class="story-text">
+        <view class="notebook-section">
+          <text class="badge badge-green">故事正文</text>
+          <view class="notebook-text">
             <text>{{card.story1Min}}</text>
           </view>
         </view>
+      </view>
+    </view>
 
-        <!-- Divider -->
-        <view class="divider"></view>
-
-        <!-- 问孩子 -->
-        <view class="section">
-          <view class="section-label label-dark">❓ 问孩子的 3 个轻问题</view>
-          <view class="question-list">
-            <view class="question-item" wx:for="{{card.questions}}" wx:key="index">
-              <text class="question-num">{{index + 1}}.</text>
-              <text class="question-text">{{item}}</text>
-            </view>
-          </view>
-        </view>
-
-        <!-- 接话建议 -->
-        <view class="section">
-          <view class="response-block">
-            <view class="section-label label-primary">💬 孩子可能这样回...</view>
-            <text class="response-text">{{card.responseAdvice}}</text>
-          </view>
-        </view>
-
-        <!-- Tips section -->
-        <view class="section tips-section">
-          <!-- 不说教提醒 -->
-          <view class="tip-card remind-card">
-            <text class="tip-emoji">⚠️</text>
-            <view class="tip-content">
-              <text class="tip-title tip-title-dark">不说教提醒</text>
-              <text class="tip-desc tip-desc-muted">{{card.noPreachReminder}}</text>
-            </view>
-          </view>
-
-          <!-- 今日小行动 -->
-          <view class="tip-card action-card">
-            <text class="tip-emoji">✨</text>
-            <view class="tip-content">
-              <text class="tip-title tip-title-green">今日小行动</text>
-              <text class="tip-desc tip-desc-green">{{card.smallAction}}</text>
-            </view>
-          </view>
+    <!-- 3. Interactive question cards -->
+    <view class="question-section">
+      <view class="section-header">
+        <text class="section-header-icon">💬</text>
+        <text class="section-header-text">互动提问卡（点击翻页）</text>
+      </view>
+      <view class="question-stack" bindtap="nextQuestion">
+        <view
+          wx:for="{{card.questions}}"
+          wx:key="index"
+          class="question-card question-card-{{index % 3}} {{activeQuestion === index ? 'qcard-active' : (activeQuestion === (index + 1) % card.questions.length ? 'qcard-prev' : 'qcard-behind')}}"
+        >
+          <text class="qcard-number">Q{{index + 1}}</text>
+          <text class="qcard-text">{{item}}</text>
+          <text class="qcard-hint">{{index + 1}}/{{card.questions.length}} · 点击切换下一张</text>
         </view>
       </view>
     </view>
 
-    <!-- Bottom actions - side by side -->
-    <view class="bottom-actions">
-      <view class="btn-regen" bindtap="handleRegenerate">
-        <text>🔄 换种语气生成</text>
+    <!-- 4. Parent cheat sheet -->
+    <view class="cheat-section">
+      <view class="section-header">
+        <text class="section-header-icon">ℹ️</text>
+        <text class="section-header-text">给家长的"作弊纸条"</text>
       </view>
-      <view class="btn-collect {{collected ? 'collected' : ''}}" bindtap="handleCollect">
-        <text>{{collected ? '已收藏到盒子' : '🔖 收藏到故事盒子'}}</text>
+
+      <!-- Yellow sticky note -->
+      <view class="sticky-yellow">
+        <view class="sticky-tape sticky-tape-yellow"></view>
+        <text class="sticky-title sticky-title-yellow">💬 孩子如果这么说...</text>
+        <view class="sticky-body">
+          <text>{{card.responseAdvice}}</text>
+        </view>
+      </view>
+
+      <!-- Green sticky note -->
+      <view class="sticky-green">
+        <view class="sticky-tape sticky-tape-green"></view>
+        <text class="sticky-title sticky-title-green">⚠️ 不说教提醒</text>
+        <view class="sticky-body">
+          <text>{{card.noPreachReminder}}</text>
+        </view>
+        <view class="sticky-divider"></view>
+        <text class="sticky-title sticky-title-dark">✨ 今日小行动</text>
+        <view class="sticky-body">
+          <text>{{card.smallAction}}</text>
+        </view>
       </view>
     </view>
+
   </view>
+</view>
+
+<!-- Fullscreen image overlay -->
+<view class="fullscreen-overlay" wx:if="{{isFullscreen}}" bindtap="closeFullscreen">
+  <view class="fullscreen-close" catchtap="closeFullscreen">✕</view>
+  <view class="fullscreen-content" catchtap="preventBubble">
+    <image class="fullscreen-img" src="{{card.imageUrl || 'https://images.unsplash.com/photo-1560874561-1ae8d0d9789d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHx2aW50YWdlJTIwY2Fzc2V0dGUlMjB0YXBlfGVufDF8fHx8MTc3ODU5NjcyMXww&ixlib=rb-4.1.0&q=80&w=1080'}}" mode="widthFix" />
+    <text class="fullscreen-caption">{{card.imageGuide || '宝贝，你看！这就是以前听歌用的磁带。'}}</text>
+  </view>
+  <text class="fullscreen-hint">点击任意处退出全屏</text>
 </view>

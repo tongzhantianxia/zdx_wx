@@ -36,7 +36,7 @@
     <view class="options-card">
       <!-- Age Selection -->
       <view class="option-group">
-        <text class="section-title">🎂 孩子年龄</text>
+        <text class="section-title">孩子年龄</text>
         <view class="age-row">
           <view
             wx:for="{{ages}}"
@@ -53,7 +53,7 @@
 
       <!-- Narrator Selection -->
       <view class="option-group">
-        <text class="section-title">🎙️ 谁来讲</text>
+        <text class="section-title">讲述者</text>
         <view class="narrator-grid">
           <view
             wx:for="{{narrators}}"
@@ -86,10 +86,13 @@
           maxlength="200"
           disabled="{{isRecording}}"
         />
+      </view>
+      <view class="mic-row">
         <view wx:if="{{isRecording}}" class="recording-indicator">
           <view class="recording-dot"></view>
           <text class="recording-label">正在听你说...</text>
         </view>
+        <view wx:else class="mic-tip">点击麦克风，语音输入</view>
         <view
           class="mic-btn {{isRecording ? 'mic-recording' : ''}}"
           bindtap="handleToggleRecording"

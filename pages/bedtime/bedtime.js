@@ -47,11 +47,9 @@ Page({
 
   onUnload() {
     if (this.data.isRecording) {
-      wx.stopSpeechRecognition()
+      this.stopRecording()
     }
-    wx.offSpeechRecognitionResult()
-    wx.offSpeechRecognitionEnd()
-    wx.offSpeechRecognitionError()
+    this.cleanupSpeechListeners()
   },
 
   handleBack() {
@@ -84,62 +82,69 @@ Page({
 
   handleToggleRecording() {
     if (this.data.isRecording) {
-      wx.stopSpeechRecognition({
-        success: () => {
-          this.setData({ isRecording: false })
-        }
-      })
+      this.stopRecording()
       return
     }
 
-    wx.authorize({
-      scope: 'scope.record',
-      success: () => {
-        this.startRecognition()
-      },
-      fail: () => {
-        wx.showModal({
-          title: '需要录音权限',
-          content: '请在设置中允许录音权限，才能使用语音输入',
-          confirmText: '去设置',
-          success: (res) => {
-            if (res.confirm) wx.openSetting()
+    wx.getSetting({
+      success: (res) => {
+        if (res.authSetting['scope.record'] === false) {
+          wx.showModal({
+            title: '需要录音权限',
+            content: '请在设置中允许录音权限，才能使用语音输入',
+            confirmText: '去设置',
+            success: (r) => { if (r.confirm) wx.openSetting() }
+          })
+          return
+        }
+        wx.authorize({
+          scope: 'scope.record',
+          success: () => this.startRecording(),
+          fail: () => {
+            wx.showModal({
+              title: '需要录音权限',
+              content: '请在设置中允许录音权限，才能使用语音输入',
+              confirmText: '去设置',
+              success: (r) => { if (r.confirm) wx.openSetting() }
+            })
           }
         })
       }
     })
   },
 
-  startRecognition() {
-    let finalText = this.data.memory || ''
+  startRecording() {
+    if (typeof wx.startSpeechRecognition === 'function') {
+      this.useSpeechAPI()
+    } else {
+      this.useRecorderFallback()
+    }
+  },
+
+  useSpeechAPI() {
+    const baseText = this.data.memory || ''
+
+    wx.offSpeechRecognitionResult()
+    wx.offSpeechRecognitionEnd()
+    wx.offSpeechRecognitionError()
 
     wx.onSpeechRecognitionResult((res) => {
       if (res.result) {
-        this.setData({ memory: finalText + res.result })
-      }
-      if (res.isFinal) {
-        finalText = this.data.memory
+        const append = baseText ? baseText + res.result : res.result
+        this.setData({ memory: append })
       }
     })
 
     wx.onSpeechRecognitionEnd(() => {
       this.setData({ isRecording: false })
-      wx.offSpeechRecognitionResult()
-      wx.offSpeechRecognitionEnd()
-      wx.offSpeechRecognitionError()
+      this.cleanupSpeechListeners()
     })
 
     wx.onSpeechRecognitionError((err) => {
       console.error('语音识别错误:', err)
       this.setData({ isRecording: false })
-      wx.offSpeechRecognitionResult()
-      wx.offSpeechRecognitionEnd()
-      wx.offSpeechRecognitionError()
-      if (err.errCode === 10002) {
-        wx.showToast({ title: '未检测到语音', icon: 'none' })
-      } else {
-        wx.showToast({ title: '语音识别出错', icon: 'none' })
-      }
+      this.cleanupSpeechListeners()
+      wx.showToast({ title: '识别失败，请重试', icon: 'none' })
     })
 
     wx.startSpeechRecognition({
@@ -149,10 +154,80 @@ Page({
         this.setData({ isRecording: true })
       },
       fail: (err) => {
-        console.error('启动语音识别失败:', err)
-        wx.showToast({ title: '语音识别不可用', icon: 'none' })
+        console.error('startSpeechRecognition fail:', err)
+        this.cleanupSpeechListeners()
+        this.useRecorderFallback()
       }
     })
+  },
+
+  useRecorderFallback() {
+    if (!this.recorderManager) {
+      this.recorderManager = wx.getRecorderManager()
+      this.recorderManager.onStop((res) => {
+        this.setData({ isRecording: false })
+        if (res.tempFilePath) {
+          this.transcribeAudio(res.tempFilePath)
+        }
+      })
+      this.recorderManager.onError((err) => {
+        console.error('录音错误:', err)
+        this.setData({ isRecording: false })
+        wx.showToast({ title: '录音失败', icon: 'none' })
+      })
+    }
+
+    this.recorderManager.start({
+      duration: 30000,
+      sampleRate: 16000,
+      numberOfChannels: 1,
+      encodeBitRate: 48000,
+      format: 'mp3'
+    })
+    this.setData({ isRecording: true })
+    wx.showToast({ title: '开始录音，再按一次停止', icon: 'none' })
+  },
+
+  transcribeAudio(tempFilePath) {
+    wx.showLoading({ title: '识别中...' })
+    wx.cloud.callFunction({
+      name: 'generateCard',
+      data: {
+        type: 'transcribe',
+        fileID: tempFilePath
+      }
+    }).then(res => {
+      wx.hideLoading()
+      if (res.result && res.result.text) {
+        const base = this.data.memory || ''
+        this.setData({ memory: base + res.result.text })
+      } else {
+        wx.showToast({ title: '未能识别语音', icon: 'none' })
+      }
+    }).catch(() => {
+      wx.hideLoading()
+      wx.showToast({ title: '识别失败', icon: 'none' })
+    })
+  },
+
+  stopRecording() {
+    if (typeof wx.stopSpeechRecognition === 'function') {
+      wx.stopSpeechRecognition({
+        complete: () => this.setData({ isRecording: false })
+      })
+    }
+    if (this.recorderManager) {
+      this.recorderManager.stop()
+    }
+    this.setData({ isRecording: false })
+  },
+
+  cleanupSpeechListeners() {
+    try {
+      wx.offSpeechRecognitionResult()
+      wx.offSpeechRecognitionEnd()
+      wx.offSpeechRecognitionError()
+    } catch (e) {}
   },
 
   handleGenerate() {

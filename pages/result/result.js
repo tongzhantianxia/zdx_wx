@@ -7,21 +7,16 @@ Page({
     statusBarHeight: 0,
     copied: false,
     saved: false,
-    collected: false
+    activeQuestion: 0,
+    isFullscreen: false
   },
 
   onLoad() {
     const result = app.getCurrentResult()
-    if (!result) {
-      return
-    }
-    const collected = storage.isCardSaved
-      ? storage.isCardSaved(result)
-      : false
+    if (!result) return
     this.setData({
       card: result,
-      statusBarHeight: wx.getSystemInfoSync().statusBarHeight,
-      collected
+      statusBarHeight: wx.getSystemInfoSync().statusBarHeight
     })
   },
 
@@ -41,7 +36,7 @@ Page({
       '【开场白】',
       c.opening,
       '',
-      '【1分钟讲述】',
+      '【故事正文】',
       c.story1Min,
       '',
       '【问孩子】',
@@ -49,6 +44,9 @@ Page({
       '',
       '【如果孩子说...】',
       c.responseAdvice,
+      '',
+      '【不说教提醒】',
+      c.noPreachReminder,
       '',
       '【今日小行动】',
       c.smallAction
@@ -68,14 +66,21 @@ Page({
     setTimeout(() => this.setData({ saved: false }), 2000)
   },
 
-  handleRegenerate() {
-    wx.navigateBack()
+  nextQuestion() {
+    const len = this.data.card.questions.length
+    if (len <= 0) return
+    this.setData({
+      activeQuestion: (this.data.activeQuestion + 1) % len
+    })
   },
 
-  handleCollect() {
-    if (this.data.collected) return
-    storage.saveCard(this.data.card)
-    this.setData({ collected: true })
-    wx.showToast({ title: '已收藏', icon: 'success' })
-  }
+  openFullscreen() {
+    this.setData({ isFullscreen: true })
+  },
+
+  closeFullscreen() {
+    this.setData({ isFullscreen: false })
+  },
+
+  preventBubble() {}
 })
