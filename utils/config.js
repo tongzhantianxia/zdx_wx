@@ -1,21 +1,14 @@
 module.exports = {
-  VERSION: '1.0.0',
-
-  COLORS: {
-    primary: '#FF8C42',
-    primaryLight: '#FFF3E6',
-    background: '#FFFAF5',
-    textPrimary: '#4A3728',
-    textSecondary: '#9B8574',
-    white: '#FFFFFF',
-    success: '#67C23A'
-  },
+  VERSION: '2.0.0',
+  APP_NAME: '把我讲给孩子听',
 
   STORAGE_KEYS: {
-    favorites: 'jgxy_favorites',
-    history: 'jgxy_history',
-    complianceShown: 'jgxy_compliance_shown'
+    savedCards: 'bmjgethh_saved_cards',
+    generateCount: 'bmjgethh_generate_count',
+    onboardingShown: 'bmjgethh_onboarding_shown',
+    lastSelectedAge: 'bmjgethh_last_age',
+    lastSelectedNarrator: 'bmjgethh_last_narrator'
   },
 
-  HISTORY_MAX: 100
+  SAVED_CARDS_MAX: 200
 }

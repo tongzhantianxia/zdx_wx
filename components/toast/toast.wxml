@@ -1,5 +1,0 @@
-<view class="toast-mask" wx:if="{{visible}}">
-  <view class="toast-content">
-    <text>{{message}}</text>
-  </view>
-</view>

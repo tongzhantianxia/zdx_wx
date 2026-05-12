@@ -1,9 +1,13 @@
 {
-  "description": "桔光小语 - 亲子沟通话术工具",
+  "description": "把我讲给孩子听 - 亲子陪伴脚本工具",
   "packOptions": {
     "ignore": [
-      { "type": "file", "value": ".eslintrc.js" }
-    ]
+      {
+        "value": ".eslintrc.js",
+        "type": "file"
+      }
+    ],
+    "include": []
   },
   "setting": {
     "urlCheck": true,
@@ -26,12 +30,27 @@
     },
     "bundle": false,
     "useIsolateContext": true,
-    "useCompilerModule": true
+    "useCompilerModule": true,
+    "compileWorklet": false,
+    "uglifyFileName": false,
+    "uploadWithSourceMap": true,
+    "packNpmManually": false,
+    "packNpmRelationList": [],
+    "minifyWXSS": true,
+    "minifyWXML": true,
+    "localPlugins": false,
+    "disableUseStrict": false,
+    "useCompilerPlugins": false,
+    "condition": false,
+    "swc": false,
+    "disableSWC": true
   },
   "compileType": "miniprogram",
   "libVersion": "2.25.0",
   "appid": "wxca282c2384d592fd",
-  "projectname": "jgxy_wx",
+  "projectname": "bmjgethh_wx",
   "cloudfunctionRoot": "cloudfunctions/",
-  "condition": {}
+  "condition": {},
+  "simulatorPluginLibVersion": {},
+  "editorSetting": {}
 }

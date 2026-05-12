@@ -1,0 +1,50 @@
+<view class="page">
+  <!-- Custom Header -->
+  <view class="header" style="padding-top: {{statusBarHeight}}px;">
+    <view class="header-inner">
+      <view class="back-btn" bindtap="handleBack">
+        <text class="back-arrow">←</text>
+      </view>
+      <view class="header-title-wrap">
+        <text class="header-icon">📖</text>
+        <text class="header-title">亲子作业帮忙</text>
+      </view>
+      <view class="header-placeholder"></view>
+    </view>
+  </view>
+
+  <view class="container" style="padding-top: {{statusBarHeight + 44}}px;">
+    <!-- Info Banner -->
+    <view class="info-banner">
+      <text class="banner-text">老师布置了关于家庭记忆的作业？选一个场景，一键生成采访问题和作文素材。</text>
+    </view>
+
+    <!-- Task Selection -->
+    <view class="task-section">
+      <text class="section-title">选择作业类型</text>
+      <view class="task-list">
+        <view
+          wx:for="{{tasks}}"
+          wx:key="*this"
+          class="task-item {{selectedTask === item ? 'selected' : ''}}"
+          data-value="{{item}}"
+          bindtap="handleSelectTask"
+        >
+          <text class="task-text">{{item}}</text>
+          <text class="task-arrow" wx:if="{{selectedTask === item}}">→</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- Generate Button -->
+    <view class="btn-area">
+      <view
+        class="btn-generate {{isGenerating ? 'disabled' : ''}}"
+        bindtap="handleGenerate"
+      >
+        <text wx:if="{{isGenerating}}">生成作业包...</text>
+        <text wx:else>🪄 生成作业包</text>
+      </view>
+    </view>
+  </view>
+</view>

@@ -5,34 +5,24 @@ Component({
       {
         pagePath: '/pages/index/index',
         text: '首页',
-        iconPath: '/images/tabbar/home.png',
-        selectedIconPath: '/images/tabbar/home-active.png'
+        iconType: 'home'
       },
       {
-        pagePath: '/pages/math-guide/math-guide',
-        text: '数学引导',
-        iconPath: '/images/tabbar/math.png',
-        selectedIconPath: '/images/tabbar/math-active.png'
+        pagePath: '/pages/story-box/story-box',
+        text: '故事盒子',
+        iconType: 'book'
       },
       {
-        pagePath: '/pages/writing-guide/writing-guide',
-        text: '作文引导',
-        iconPath: '/images/tabbar/writing.png',
-        selectedIconPath: '/images/tabbar/writing-active.png'
-      },
-      {
-        pagePath: '/pages/mine/mine',
+        pagePath: '/pages/profile/profile',
         text: '我的',
-        iconPath: '/images/tabbar/mine.png',
-        selectedIconPath: '/images/tabbar/mine-active.png'
+        iconType: 'user'
       }
     ]
   },
 
   methods: {
     switchTab(e) {
-      const data = e.currentTarget.dataset
-      const url = data.path
+      const url = e.currentTarget.dataset.path
       wx.switchTab({ url })
     }
   }

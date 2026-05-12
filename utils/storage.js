@@ -1,60 +1,87 @@
 const config = require('./config')
 
-const KEYS = config.STORAGE_KEYS
-
-function getFavorites() {
-  return wx.getStorageSync(KEYS.favorites) || []
+function getSavedCards() {
+  try {
+    return wx.getStorageSync(config.STORAGE_KEYS.savedCards) || []
+  } catch (e) {
+    return []
+  }
 }
 
-function toggleFavorite(item) {
-  const favs = getFavorites()
-  const idx = favs.findIndex(f => f.id === item.id)
-  if (idx > -1) {
-    favs.splice(idx, 1)
-    wx.setStorageSync(KEYS.favorites, favs)
-    return false
+function saveCard(card) {
+  const cards = getSavedCards()
+  if (cards.find(c => c.id === card.id)) return false
+  cards.unshift(card)
+  if (cards.length > config.SAVED_CARDS_MAX) {
+    cards.length = config.SAVED_CARDS_MAX
   }
-  favs.unshift({
-    id: item.id,
-    text: item.text,
-    type: item.type,
-    timestamp: Date.now()
-  })
-  wx.setStorageSync(KEYS.favorites, favs)
+  wx.setStorageSync(config.STORAGE_KEYS.savedCards, cards)
   return true
 }
 
-function isFavorited(id) {
-  const favs = getFavorites()
-  return favs.some(f => f.id === id)
+function removeCard(id) {
+  const cards = getSavedCards().filter(c => c.id !== id)
+  wx.setStorageSync(config.STORAGE_KEYS.savedCards, cards)
 }
 
-function getHistory() {
-  return wx.getStorageSync(KEYS.history) || []
-}
-
-function addHistory(record) {
-  const list = getHistory()
-  list.unshift({
-    type: record.type,
-    tips: record.tips,
-    timestamp: Date.now()
-  })
-  if (list.length > config.HISTORY_MAX) {
-    list.length = config.HISTORY_MAX
+function getGenerateCount() {
+  try {
+    return wx.getStorageSync(config.STORAGE_KEYS.generateCount) || 0
+  } catch (e) {
+    return 0
   }
-  wx.setStorageSync(KEYS.history, list)
 }
 
-function clearHistory() {
-  wx.removeStorageSync(KEYS.history)
+function setGenerateCount(count) {
+  wx.setStorageSync(config.STORAGE_KEYS.generateCount, count)
+}
+
+function isOnboardingShown() {
+  try {
+    return !!wx.getStorageSync(config.STORAGE_KEYS.onboardingShown)
+  } catch (e) {
+    return false
+  }
+}
+
+function setOnboardingShown() {
+  wx.setStorageSync(config.STORAGE_KEYS.onboardingShown, true)
+}
+
+function getLastAge() {
+  try {
+    return wx.getStorageSync(config.STORAGE_KEYS.lastSelectedAge) || '3-5岁'
+  } catch (e) {
+    return '3-5岁'
+  }
+}
+
+function setLastAge(age) {
+  wx.setStorageSync(config.STORAGE_KEYS.lastSelectedAge, age)
+}
+
+function getLastNarrator() {
+  try {
+    return wx.getStorageSync(config.STORAGE_KEYS.lastSelectedNarrator) || '妈妈'
+  } catch (e) {
+    return '妈妈'
+  }
+}
+
+function setLastNarrator(narrator) {
+  wx.setStorageSync(config.STORAGE_KEYS.lastSelectedNarrator, narrator)
 }
 
 module.exports = {
-  getFavorites,
-  toggleFavorite,
-  isFavorited,
-  getHistory,
-  addHistory,
-  clearHistory
+  getSavedCards,
+  saveCard,
+  removeCard,
+  getGenerateCount,
+  setGenerateCount,
+  isOnboardingShown,
+  setOnboardingShown,
+  getLastAge,
+  setLastAge,
+  getLastNarrator,
+  setLastNarrator
 }

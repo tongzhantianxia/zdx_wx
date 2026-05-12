@@ -1,0 +1,56 @@
+<view class="page">
+  <!-- Custom Header -->
+  <view class="header" style="padding-top: {{statusBarHeight}}px;">
+    <view class="header-inner">
+      <view class="back-btn" bindtap="handleBack">
+        <text class="back-arrow">←</text>
+      </view>
+      <view class="header-title-wrap">
+        <text class="header-icon">❓</text>
+        <text class="header-title">孩子遇到问题</text>
+      </view>
+      <view class="header-placeholder"></view>
+    </view>
+  </view>
+
+  <view class="container" style="padding-top: {{statusBarHeight + 44}}px;">
+    <!-- Problem Selection -->
+    <view class="section">
+      <text class="section-label">孩子今天遇到什么情况？</text>
+      <view class="problem-list">
+        <view
+          wx:for="{{problems}}"
+          wx:key="*this"
+          class="problem-item {{selectedProblem === item ? 'selected' : ''}}"
+          data-value="{{item}}"
+          bindtap="handleSelectProblem"
+        >
+          <text>{{item}}</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- Tone Selection -->
+    <view class="section">
+      <text class="tone-label">你想用什么语气沟通？</text>
+      <view class="tone-row">
+        <view
+          wx:for="{{tones}}"
+          wx:key="*this"
+          class="tone-chip {{selectedTone === item ? 'selected' : ''}}"
+          data-value="{{item}}"
+          bindtap="handleSelectTone"
+        >{{item}}</view>
+      </view>
+    </view>
+
+    <!-- Generate Button -->
+    <view
+      class="btn-generate {{isGenerating ? 'disabled' : ''}}"
+      bindtap="handleGenerate"
+    >
+      <text wx:if="{{isGenerating}}">生成不说教的剧本...</text>
+      <text wx:else>🪄 生成陪伴沟通脚本</text>
+    </view>
+  </view>
+</view>

@@ -1,28 +1,159 @@
-<view class="container home">
+<view class="page" style="padding-top: {{statusBarHeight + 10}}px;">
   <!-- Header -->
-  <view class="home-header">
-    <view class="home-title">陪伴孩子，从好好提问开始</view>
-    <view class="home-subtitle">不吼不骂，引导孩子自己思考</view>
-  </view>
-
-  <!-- Feature Grid -->
-  <view class="feature-grid">
-    <view
-      class="feature-card card"
-      wx:for="{{features}}"
-      wx:key="key"
-      data-key="{{item.key}}"
-      bindtap="onFeatureTap"
-    >
-      <view class="feature-icon">{{item.icon}}</view>
-      <view class="feature-title">{{item.title}}</view>
-      <view class="feature-desc">{{item.desc}}</view>
+  <view class="header">
+    <view class="header-title">今晚和孩子聊点什么？</view>
+    <view class="header-subtitle">
+      <text class="header-clock">⏰</text>
+      <text>花 1 分钟，准备 3–5 分钟亲子陪伴</text>
     </view>
   </view>
 
-  <!-- Slogan -->
-  <view class="home-slogan">桔光相伴，好好说话</view>
+  <!-- Entry Cards Grid -->
+  <view class="card-grid">
+    <!-- 随时聊 3 分钟 - full width row -->
+    <view class="entry-card card-full" bindtap="navigateTo" data-url="/pages/bedtime/bedtime">
+      <view class="card-icon-area icon-green">
+        <text class="card-emoji">☕</text>
+      </view>
+      <view class="card-content">
+        <view class="card-title-lg">随时聊 3 分钟</view>
+        <view class="card-desc">睡前、散步、车上随时随地聊</view>
+      </view>
+    </view>
 
-  <!-- Compliance Modal -->
-  <compliance-modal visible="{{showCompliance}}" bind:close="onCloseCompliance" />
+    <!-- Two half-width cards row -->
+    <view class="card-row-half">
+      <!-- 孩子遇到问题 -->
+      <view class="entry-card card-half" bindtap="navigateTo" data-url="/pages/problem/problem">
+        <view class="card-icon-area icon-orange">
+          <text class="card-emoji">❓</text>
+        </view>
+        <view class="card-half-text">
+          <view class="card-title-sm">孩子遇到问题</view>
+          <view class="card-desc-xs">不想写作业？</view>
+        </view>
+      </view>
+
+      <!-- 讲家人的小时候 -->
+      <view class="entry-card card-half" bindtap="navigateTo" data-url="/pages/family/family">
+        <view class="card-icon-area icon-brown">
+          <text class="card-emoji">👨‍👩‍👧</text>
+        </view>
+        <view class="card-half-text">
+          <view class="card-title-sm">讲家人的小时候</view>
+          <view class="card-desc-xs">爸爸小时候的一天</view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 亲子作业帮忙 - full width row -->
+    <view class="entry-card card-full card-homework" bindtap="navigateTo" data-url="/pages/homework/homework">
+      <view class="card-homework-left">
+        <view class="card-icon-area icon-blue">
+          <text class="card-emoji">📖</text>
+        </view>
+        <view class="card-content">
+          <view class="card-title-homework">亲子作业帮忙</view>
+          <view class="card-desc-homework">采访稿 / 作文素材</view>
+        </view>
+      </view>
+      <view class="badge">一键生成</view>
+    </view>
+  </view>
+
+  <!-- 记忆提示小工具 -->
+  <view class="memory-section">
+    <view class="section-title">
+      <text class="sparkle-icon">✨</text>
+      <text>记忆提示小工具</text>
+    </view>
+    <view class="memory-btns">
+      <view class="memory-btn" bindtap="showOldObjects">
+        <text class="memory-btn-icon">☕</text>
+        <text class="memory-btn-text">老物件提示</text>
+      </view>
+      <view class="memory-btn" bindtap="showOldScenes">
+        <text class="memory-btn-icon">📍</text>
+        <text class="memory-btn-text">老场景提示</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- Bottom Sheet -->
+  <view class="sheet-mask {{showSheet ? 'sheet-mask-show' : ''}}" wx:if="{{showSheet}}" bindtap="hideSheet">
+    <view class="sheet {{showSheet ? 'sheet-show' : ''}}" catchtap="preventBubble">
+      <view class="sheet-header">
+        <view class="sheet-title">{{sheetTitle}}</view>
+        <view class="sheet-close" bindtap="hideSheet">✕</view>
+      </view>
+      <view class="sheet-intro">看这些提示，有没有想起什么有趣的回忆？可以把它们加进今天的故事里。</view>
+      <scroll-view scroll-y class="sheet-scroll">
+        <view class="sheet-item" wx:for="{{sheetItems}}" wx:key="name">
+          <image
+            class="sheet-item-img"
+            src="{{item.img}}"
+            mode="aspectFill"
+            bindtap="previewImg"
+            data-src="{{item.img}}"
+            catchtap="previewImg"
+          />
+          <view class="sheet-item-text">
+            <view class="sheet-item-name">{{item.name}}</view>
+            <view class="sheet-item-desc">{{item.desc}}</view>
+          </view>
+        </view>
+      </scroll-view>
+    </view>
+  </view>
+
+  <!-- Image Preview Overlay -->
+  <view class="preview-mask" wx:if="{{previewImage}}" bindtap="closePreview">
+    <image class="preview-image" src="{{previewImage}}" mode="aspectFit" catchtap="preventBubble" />
+  </view>
+
+  <!-- Onboarding Full-page Overlay -->
+  <view class="onboarding-mask" wx:if="{{showOnboarding}}">
+    <view class="onboarding-page">
+      <view class="onboarding-title-group">
+        <view class="onboarding-title-line1">把我讲给</view>
+        <view class="onboarding-title-line2">孩子听</view>
+      </view>
+      <view class="onboarding-subtitle">不用整理照片，不用写长文。花1分钟，准备今晚3-5分钟亲子陪伴。</view>
+
+      <!-- Illustration card -->
+      <view class="onboarding-illustration">
+        <view class="illust-parent">
+          <view class="illust-body"></view>
+          <view class="illust-head"></view>
+        </view>
+        <view class="illust-child">
+          <view class="illust-body-sm"></view>
+          <view class="illust-head-sm"></view>
+        </view>
+        <view class="illust-book"></view>
+        <view class="illust-stars">
+          <text class="illust-star">✦</text>
+          <text class="illust-star s2">✦</text>
+          <text class="illust-star s3">✦</text>
+        </view>
+      </view>
+
+      <view class="onboarding-checks">
+        <view class="onboarding-check-item">
+          <view class="check-icon">✓</view>
+          <text class="check-text">今晚不知道聊什么时打开</text>
+        </view>
+        <view class="onboarding-check-item">
+          <view class="check-icon">✓</view>
+          <text class="check-text">故事之外，还有提问和接话建议</text>
+        </view>
+        <view class="onboarding-check-item">
+          <view class="check-icon">✓</view>
+          <text class="check-text">真实经历可选，补一句就够</text>
+        </view>
+      </view>
+
+      <view class="onboarding-btn" bindtap="dismissOnboarding">开始今晚的陪伴</view>
+    </view>
+  </view>
 </view>

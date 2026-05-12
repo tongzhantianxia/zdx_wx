@@ -1,47 +1,40 @@
 {
   "pages": [
     "pages/index/index",
-    "pages/math-guide/math-guide",
-    "pages/writing-guide/writing-guide",
-    "pages/mine/mine"
+    "pages/bedtime/bedtime",
+    "pages/problem/problem",
+    "pages/family/family",
+    "pages/homework/homework",
+    "pages/result/result",
+    "pages/story-box/story-box",
+    "pages/profile/profile"
   ],
   "window": {
     "backgroundTextStyle": "light",
-    "navigationBarBackgroundColor": "#FF8C42",
-    "navigationBarTitleText": "桔光小语",
-    "navigationBarTextStyle": "white",
-    "backgroundColor": "#FFFAF5"
+    "navigationBarBackgroundColor": "#f4f0e6",
+    "navigationBarTitleText": "把我讲给孩子听",
+    "navigationBarTextStyle": "black",
+    "backgroundColor": "#f4f0e6",
+    "navigationStyle": "custom"
   },
   "tabBar": {
     "custom": true,
-    "color": "#9B8574",
-    "selectedColor": "#FF8C42",
-    "backgroundColor": "#FFFFFF",
+    "color": "#a39c8f",
+    "selectedColor": "#b85b3d",
+    "backgroundColor": "#fdfbf6",
     "borderStyle": "white",
     "list": [
       {
         "pagePath": "pages/index/index",
-        "text": "首页",
-        "iconPath": "images/tabbar/home.png",
-        "selectedIconPath": "images/tabbar/home-active.png"
+        "text": "首页"
       },
       {
-        "pagePath": "pages/math-guide/math-guide",
-        "text": "数学引导",
-        "iconPath": "images/tabbar/math.png",
-        "selectedIconPath": "images/tabbar/math-active.png"
+        "pagePath": "pages/story-box/story-box",
+        "text": "故事盒子"
       },
       {
-        "pagePath": "pages/writing-guide/writing-guide",
-        "text": "作文引导",
-        "iconPath": "images/tabbar/writing.png",
-        "selectedIconPath": "images/tabbar/writing-active.png"
-      },
-      {
-        "pagePath": "pages/mine/mine",
-        "text": "我的",
-        "iconPath": "images/tabbar/mine.png",
-        "selectedIconPath": "images/tabbar/mine-active.png"
+        "pagePath": "pages/profile/profile",
+        "text": "我的"
       }
     ]
   },

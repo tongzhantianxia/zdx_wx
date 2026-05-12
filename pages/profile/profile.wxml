@@ -1,0 +1,67 @@
+<view class="page">
+  <!-- Header -->
+  <view class="header" style="padding-top: {{statusBarHeight}}px;">
+    <view class="header-inner">
+      <text class="page-title">我的</text>
+    </view>
+  </view>
+
+  <view class="body" style="padding-top: {{statusBarHeight + 44}}px;">
+    <!-- User Info Card -->
+    <view class="user-card">
+      <view class="user-card-blur"></view>
+      <view class="user-info">
+        <view class="avatar-wrap">
+          <image class="avatar-img" src="https://images.unsplash.com/photo-1754416189615-ed3f0c4fb1e8?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&w=400" mode="aspectFill" />
+        </view>
+        <view class="user-text">
+          <text class="user-name">故事家长</text>
+          <view class="user-subtitle-row">
+            <text class="star-icon">⭐</text>
+            <text class="user-subtitle">陪伴孩子的第 12 天</text>
+          </view>
+        </view>
+        <text class="chevron">›</text>
+      </view>
+    </view>
+
+    <!-- Stats Row -->
+    <view class="stats-row">
+      <view class="stat-card">
+        <text class="stat-icon stat-icon-green">✏️</text>
+        <text class="stat-count">{{generateCount}}</text>
+        <text class="stat-label">累计生成(次)</text>
+      </view>
+      <view class="stat-card" bindtap="goToStoryBox">
+        <text class="stat-icon stat-icon-primary">📖</text>
+        <text class="stat-count">{{savedCount}}</text>
+        <text class="stat-label">我的故事盒</text>
+      </view>
+    </view>
+
+    <!-- Menu List -->
+    <view class="menu-card">
+      <view class="menu-item">
+        <view class="menu-icon icon-green">🔔</view>
+        <text class="menu-text">提醒设置</text>
+        <text class="menu-chevron">›</text>
+      </view>
+      <view class="menu-item">
+        <view class="menu-icon icon-grey">🛡️</view>
+        <text class="menu-text">隐私与安全</text>
+        <text class="menu-chevron">›</text>
+      </view>
+      <view class="menu-item">
+        <view class="menu-icon icon-orange">💬</view>
+        <text class="menu-text">意见反馈</text>
+        <text class="menu-chevron">›</text>
+      </view>
+      <view class="menu-item last">
+        <view class="menu-icon icon-grey">ℹ️</view>
+        <text class="menu-text">关于"把我讲给孩子听"</text>
+        <text class="menu-version">v{{version}}</text>
+        <text class="menu-chevron">›</text>
+      </view>
+    </view>
+  </view>
+</view>

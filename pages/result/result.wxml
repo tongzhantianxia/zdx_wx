@@ -1,0 +1,104 @@
+<view class="page" wx:if="{{card}}">
+  <!-- Floating header -->
+  <view class="float-header" style="padding-top: {{statusBarHeight}}px;">
+    <view class="header-inner">
+      <view class="back-btn" bindtap="handleBack">
+        <text class="back-icon">←</text>
+      </view>
+      <view class="header-right">
+        <view class="action-btn {{saved ? 'saved' : ''}}" bindtap="handleSave">
+          <text class="action-icon">{{saved ? '✅' : '🔖'}}</text>
+        </view>
+        <view class="action-btn {{copied ? 'copied' : ''}}" bindtap="handleCopy">
+          <text class="action-icon">{{copied ? '✅' : '📋'}}</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- Main card -->
+  <view class="container" style="padding-top: {{statusBarHeight + 56}}px;">
+    <view class="result-card">
+      <!-- Notebook binding line -->
+      <view class="notebook-binding"></view>
+
+      <!-- Card header -->
+      <view class="card-header">
+        <view class="scene-badge">{{card.scene}}</view>
+        <view class="card-title">{{card.title}}</view>
+      </view>
+
+      <!-- Card body -->
+      <view class="card-body">
+        <!-- 开场白 -->
+        <view class="section">
+          <view class="section-label label-primary">❤️ 30秒开场白</view>
+          <view class="opening-block">
+            <text>{{card.opening}}</text>
+          </view>
+        </view>
+
+        <!-- 1分钟讲述 -->
+        <view class="section">
+          <view class="section-label label-primary">📖 1 分钟讲述版</view>
+          <view class="story-text">
+            <text>{{card.story1Min}}</text>
+          </view>
+        </view>
+
+        <!-- Divider -->
+        <view class="divider"></view>
+
+        <!-- 问孩子 -->
+        <view class="section">
+          <view class="section-label label-dark">❓ 问孩子的 3 个轻问题</view>
+          <view class="question-list">
+            <view class="question-item" wx:for="{{card.questions}}" wx:key="index">
+              <text class="question-num">{{index + 1}}.</text>
+              <text class="question-text">{{item}}</text>
+            </view>
+          </view>
+        </view>
+
+        <!-- 接话建议 -->
+        <view class="section">
+          <view class="response-block">
+            <view class="section-label label-primary">💬 孩子可能这样回...</view>
+            <text class="response-text">{{card.responseAdvice}}</text>
+          </view>
+        </view>
+
+        <!-- Tips section -->
+        <view class="section tips-section">
+          <!-- 不说教提醒 -->
+          <view class="tip-card remind-card">
+            <text class="tip-emoji">⚠️</text>
+            <view class="tip-content">
+              <text class="tip-title tip-title-dark">不说教提醒</text>
+              <text class="tip-desc tip-desc-muted">{{card.noPreachReminder}}</text>
+            </view>
+          </view>
+
+          <!-- 今日小行动 -->
+          <view class="tip-card action-card">
+            <text class="tip-emoji">✨</text>
+            <view class="tip-content">
+              <text class="tip-title tip-title-green">今日小行动</text>
+              <text class="tip-desc tip-desc-green">{{card.smallAction}}</text>
+            </view>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- Bottom actions - side by side -->
+    <view class="bottom-actions">
+      <view class="btn-regen" bindtap="handleRegenerate">
+        <text>🔄 换种语气生成</text>
+      </view>
+      <view class="btn-collect {{collected ? 'collected' : ''}}" bindtap="handleCollect">
+        <text>{{collected ? '已收藏到盒子' : '🔖 收藏到故事盒子'}}</text>
+      </view>
+    </view>
+  </view>
+</view>

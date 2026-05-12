@@ -1,0 +1,110 @@
+<view class="page">
+  <!-- Custom Header -->
+  <view class="header" style="padding-top: {{statusBarHeight}}px;">
+    <view class="header-inner">
+      <view class="back-btn" bindtap="handleBack">
+        <text class="back-icon">‹</text>
+      </view>
+      <view class="header-title">
+        <text class="coffee-icon">☕</text>
+        <text>随时聊 3 分钟</text>
+      </view>
+      <view class="header-spacer"></view>
+    </view>
+  </view>
+
+  <scroll-view scroll-y class="container" style="padding-top: {{statusBarHeight + 44}}px;">
+    <!-- Topic Section -->
+    <view class="topic-section">
+      <view class="topic-header">
+        <text class="topic-label">今日话题推荐</text>
+        <view class="change-btn" bindtap="handleNextTopic">
+          <text class="change-icon">🔄</text>
+          <text class="change-text">换一个</text>
+        </view>
+      </view>
+
+      <view class="topic-card">
+        <view class="topic-blur-circle"></view>
+        <text class="quote-mark quote-open">\u201C</text>
+        <text class="topic-text">{{selectedTopic}}</text>
+        <text class="quote-mark quote-close">\u201D</text>
+      </view>
+    </view>
+
+    <!-- Options Card -->
+    <view class="options-card">
+      <!-- Age Selection -->
+      <view class="option-group">
+        <text class="section-title">🎂 孩子年龄</text>
+        <view class="age-row">
+          <view
+            wx:for="{{ages}}"
+            wx:key="*this"
+            class="chip {{selectedAge === item ? 'chip-active-green' : ''}}"
+            data-value="{{item}}"
+            bindtap="handleSelectAge"
+          >
+            <view wx:if="{{selectedAge === item}}" class="chip-overlay"></view>
+            <text class="chip-label">{{item}}</text>
+          </view>
+        </view>
+      </view>
+
+      <!-- Narrator Selection -->
+      <view class="option-group">
+        <text class="section-title">🎙️ 谁来讲</text>
+        <view class="narrator-grid">
+          <view
+            wx:for="{{narrators}}"
+            wx:key="*this"
+            class="chip {{selectedNarrator === item ? 'chip-active-primary' : ''}}"
+            data-value="{{item}}"
+            bindtap="handleSelectNarrator"
+          >
+            <view wx:if="{{selectedNarrator === item}}" class="chip-overlay"></view>
+            <text class="chip-label">{{item}}</text>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- Memory Input -->
+    <view class="memory-section">
+      <view class="memory-label-row">
+        <text class="sparkle-icon">✨</text>
+        <text class="memory-label">加一句真实回忆（选填）</text>
+      </view>
+      <text class="memory-hint">比如："我小时候经常在院子里跳皮筋"</text>
+      <view class="memory-input-wrap {{isRecording ? 'recording' : ''}}">
+        <textarea
+          class="memory-textarea"
+          placeholder='写下你想融入故事的回忆片段...'
+          placeholder-class="memory-placeholder"
+          value="{{memory}}"
+          bindinput="handleMemoryInput"
+          maxlength="100"
+        />
+        <view wx:if="{{isRecording}}" class="recording-label">录音中...</view>
+        <view
+          class="mic-btn {{isRecording ? 'mic-recording' : ''}}"
+          bindtap="handleToggleRecording"
+        >
+          <text wx:if="{{isRecording}}" class="mic-stop-icon">⬛</text>
+          <text wx:else class="mic-icon">🎙</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- Generate Button -->
+    <view
+      class="generate-btn {{isGenerating ? 'generating' : ''}}"
+      bindtap="handleGenerate"
+    >
+      <text wx:if="{{isGenerating}}" class="gen-text pulse">正在生成陪伴卡...</text>
+      <text wx:else class="gen-text">🪄 一键生成亲子陪伴卡</text>
+    </view>
+
+    <view class="bottom-spacer"></view>
+  </scroll-view>
+</view>

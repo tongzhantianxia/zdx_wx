@@ -1,0 +1,77 @@
+<view class="page">
+  <!-- Custom Header -->
+  <view class="header" style="padding-top: {{statusBarHeight}}px;">
+    <view class="header-inner">
+      <view class="back-btn" bindtap="handleBack">
+        <text class="back-arrow">←</text>
+      </view>
+      <view class="header-title-wrap">
+        <text class="header-icon">👨‍👩‍👧</text>
+        <text class="header-title">讲家人的小时候</text>
+      </view>
+      <view class="header-placeholder"></view>
+    </view>
+  </view>
+
+  <view class="container" style="padding-top: {{statusBarHeight + 44}}px;">
+    <!-- White Card with two sections -->
+    <view class="selection-card">
+      <!-- Members grid -->
+      <view class="card-section">
+        <text class="section-title">讲谁的故事？</text>
+        <view class="member-grid">
+          <view
+            wx:for="{{members}}"
+            wx:key="*this"
+            class="member-item {{selectedMember === item ? 'selected' : ''}}"
+            data-value="{{item}}"
+            bindtap="handleSelectMember"
+          >{{item}}</view>
+        </view>
+      </view>
+
+      <!-- Divider -->
+      <view class="divider"></view>
+
+      <!-- Experiences wrap -->
+      <view class="card-section">
+        <text class="section-title">哪类经历？</text>
+        <view class="exp-wrap">
+          <view
+            wx:for="{{experiences}}"
+            wx:key="*this"
+            class="exp-tag {{selectedExp === item ? 'selected' : ''}}"
+            data-value="{{item}}"
+            bindtap="handleSelectExp"
+          >{{item}}</view>
+        </view>
+      </view>
+    </view>
+
+    <!-- Memory Input -->
+    <view class="memory-section">
+      <view class="memory-label-row">
+        <text class="memory-sparkle">✨</text>
+        <text class="memory-label">补充一个细节（选填）</text>
+      </view>
+      <text class="memory-hint">例如："我偷偷把零花钱买了干脆面"</text>
+      <textarea
+        class="memory-textarea"
+        placeholder="加一点细节，故事会更真实哦..."
+        placeholder-class="memory-placeholder"
+        maxlength="200"
+        value="{{memory}}"
+        bindinput="onMemoryInput"
+      />
+    </view>
+
+    <!-- Generate Button -->
+    <view
+      class="btn-generate {{isGenerating ? 'disabled' : ''}}"
+      bindtap="handleGenerate"
+    >
+      <text wx:if="{{isGenerating}}">正在编织回忆...</text>
+      <text wx:else>🪄 生成家庭故事卡</text>
+    </view>
+  </view>
+</view>
