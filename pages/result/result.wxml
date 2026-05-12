@@ -1,3 +1,8 @@
+<view class="empty-state" wx:if="{{!card}}">
+  <text class="empty-text">暂无生成的陪伴卡</text>
+  <view class="empty-btn" bindtap="goHome">返回首页</view>
+</view>
+
 <view class="page" wx:if="{{card}}">
   <!-- Floating header -->
   <view class="float-header" style="padding-top: {{statusBarHeight}}px;">

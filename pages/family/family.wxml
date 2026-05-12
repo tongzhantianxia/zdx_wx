@@ -30,9 +30,6 @@
         </view>
       </view>
 
-      <!-- Divider -->
-      <view class="divider"></view>
-
       <!-- Experiences wrap -->
       <view class="card-section">
         <text class="section-title">哪类经历？</text>

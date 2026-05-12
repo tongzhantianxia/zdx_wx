@@ -125,20 +125,26 @@
   border-radius: 32rpx;
   box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.02);
   border: 2rpx solid #e8e1cf;
-  padding: 36rpx 20rpx;
+  padding: 32rpx 20rpx;
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
   gap: 8rpx;
 }
 
 .stat-card:active {
-  opacity: 0.85;
+  transform: scale(0.95);
+}
+
+.stat-top {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
 }
 
 .stat-icon {
-  font-size: 40rpx;
-  margin-bottom: 4rpx;
+  font-size: 32rpx;
 }
 
 .stat-icon-green {
@@ -151,7 +157,7 @@
 
 .stat-count {
   font-weight: 700;
-  font-size: 42rpx;
+  font-size: 40rpx;
   color: #362f2d;
 }
 

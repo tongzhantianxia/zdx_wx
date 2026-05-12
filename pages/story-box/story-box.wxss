@@ -35,7 +35,7 @@
 .header-title {
   font-size: 36rpx;
   font-weight: 700;
-  color: #b85b3d;
+  color: #362f2d;
 }
 
 /* Content */
@@ -103,7 +103,7 @@
 .card-list {
   display: flex;
   flex-direction: column;
-  gap: 20rpx;
+  gap: 32rpx;
 }
 
 .card-item {
@@ -112,13 +112,20 @@
   border: 2rpx solid #e8e1cf;
   padding: 32rpx;
   display: flex;
-  align-items: flex-start;
+  flex-direction: column;
   gap: 24rpx;
   box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.02);
+  transition: transform 0.15s;
 }
 
 .card-item:active {
-  background-color: #f9f6ee;
+  transform: scale(0.98);
+}
+
+.card-top-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
 }
 
 .card-body {

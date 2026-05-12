@@ -41,5 +41,6 @@
   "cloud": true,
   "style": "v2",
   "sitemapLocation": "sitemap.json",
-  "lazyCodeLoading": "requiredComponents"
+  "lazyCodeLoading": "requiredComponents",
+  "requirePrivateInfos": []
 }

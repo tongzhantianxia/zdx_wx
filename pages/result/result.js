@@ -13,7 +13,6 @@ Page({
   onLoad() {
     const result = app.getCurrentResult()
     if (!result) {
-      wx.navigateBack()
       return
     }
     const collected = storage.isCardSaved
@@ -28,6 +27,10 @@ Page({
 
   handleBack() {
     wx.navigateBack()
+  },
+
+  goHome() {
+    wx.switchTab({ url: '/pages/index/index' })
   },
 
   handleCopy() {

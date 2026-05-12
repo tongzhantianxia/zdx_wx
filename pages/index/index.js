@@ -57,6 +57,7 @@ Page({
     this.setData({
       showSheet: true,
       sheetTitle: '小时候的老物件',
+      sheetType: 'objects',
       sheetItems: oldObjects
     })
   },
@@ -65,6 +66,7 @@ Page({
     this.setData({
       showSheet: true,
       sheetTitle: '小时候的老场景',
+      sheetType: 'scenes',
       sheetItems: oldScenes
     })
   },

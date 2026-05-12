@@ -83,7 +83,7 @@
   <view class="sheet-mask {{showSheet ? 'sheet-mask-show' : ''}}" wx:if="{{showSheet}}" bindtap="hideSheet">
     <view class="sheet {{showSheet ? 'sheet-show' : ''}}" catchtap="preventBubble">
       <view class="sheet-header">
-        <view class="sheet-title">{{sheetTitle}}</view>
+        <view class="sheet-title"><text class="sheet-title-icon">{{sheetType === 'objects' ? '☕' : '📍'}}</text>{{sheetTitle}}</view>
         <view class="sheet-close" bindtap="hideSheet">✕</view>
       </view>
       <view class="sheet-intro">看这些提示，有没有想起什么有趣的回忆？可以把它们加进今天的故事里。</view>
@@ -108,47 +108,45 @@
 
   <!-- Image Preview Overlay -->
   <view class="preview-mask" wx:if="{{previewImage}}" bindtap="closePreview">
+    <view class="preview-close" catchtap="closePreview">✕</view>
     <image class="preview-image" src="{{previewImage}}" mode="aspectFit" catchtap="preventBubble" />
   </view>
 
   <!-- Onboarding Full-page Overlay -->
   <view class="onboarding-mask" wx:if="{{showOnboarding}}">
     <view class="onboarding-page">
-      <view class="onboarding-title-group">
+      <view class="onboarding-top">
         <view class="onboarding-title-line1">把我讲给</view>
         <view class="onboarding-title-line2">孩子听</view>
+        <view class="onboarding-subtitle">不用整理照片，不用写长文。花1分钟，准备今晚3-5分钟亲子陪伴。</view>
       </view>
-      <view class="onboarding-subtitle">不用整理照片，不用写长文。花1分钟，准备今晚3-5分钟亲子陪伴。</view>
 
       <!-- Illustration card -->
-      <view class="onboarding-illustration">
-        <view class="illust-parent">
-          <view class="illust-body"></view>
-          <view class="illust-head"></view>
-        </view>
-        <view class="illust-child">
-          <view class="illust-body-sm"></view>
-          <view class="illust-head-sm"></view>
-        </view>
-        <view class="illust-book"></view>
-        <view class="illust-stars">
-          <text class="illust-star">✦</text>
-          <text class="illust-star s2">✦</text>
-          <text class="illust-star s3">✦</text>
+      <view class="onboarding-illust-card">
+        <view class="illust-scene">
+          <view class="illust-person-lg">
+            <view class="illust-head-lg"></view>
+            <view class="illust-body-lg"></view>
+          </view>
+          <view class="illust-person-sm">
+            <view class="illust-head-sm"></view>
+            <view class="illust-body-sm"></view>
+          </view>
+          <view class="illust-book-line"></view>
         </view>
       </view>
 
       <view class="onboarding-checks">
         <view class="onboarding-check-item">
-          <view class="check-icon">✓</view>
+          <text class="check-icon">✓</text>
           <text class="check-text">今晚不知道聊什么时打开</text>
         </view>
         <view class="onboarding-check-item">
-          <view class="check-icon">✓</view>
+          <text class="check-icon">✓</text>
           <text class="check-text">故事之外，还有提问和接话建议</text>
         </view>
         <view class="onboarding-check-item">
-          <view class="check-icon">✓</view>
+          <text class="check-icon">✓</text>
           <text class="check-text">真实经历可选，补一句就够</text>
         </view>
       </view>

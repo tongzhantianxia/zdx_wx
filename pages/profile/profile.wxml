@@ -28,13 +28,17 @@
     <!-- Stats Row -->
     <view class="stats-row">
       <view class="stat-card">
-        <text class="stat-icon stat-icon-green">✏️</text>
-        <text class="stat-count">{{generateCount}}</text>
+        <view class="stat-top">
+          <text class="stat-icon stat-icon-green">✏️</text>
+          <text class="stat-count">{{generateCount}}</text>
+        </view>
         <text class="stat-label">累计生成(次)</text>
       </view>
       <view class="stat-card" bindtap="goToStoryBox">
-        <text class="stat-icon stat-icon-primary">📖</text>
-        <text class="stat-count">{{savedCount}}</text>
+        <view class="stat-top">
+          <text class="stat-icon stat-icon-primary">📖</text>
+          <text class="stat-count">{{savedCount}}</text>
+        </view>
         <text class="stat-label">我的故事盒</text>
       </view>
     </view>

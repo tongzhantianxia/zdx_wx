@@ -79,18 +79,22 @@
       <view class="memory-input-wrap {{isRecording ? 'recording' : ''}}">
         <textarea
           class="memory-textarea"
-          placeholder='写下你想融入故事的回忆片段...'
+          placeholder='写下或语音输入回忆片段...'
           placeholder-class="memory-placeholder"
           value="{{memory}}"
           bindinput="handleMemoryInput"
-          maxlength="100"
+          maxlength="200"
+          disabled="{{isRecording}}"
         />
-        <view wx:if="{{isRecording}}" class="recording-label">录音中...</view>
+        <view wx:if="{{isRecording}}" class="recording-indicator">
+          <view class="recording-dot"></view>
+          <text class="recording-label">正在听你说...</text>
+        </view>
         <view
           class="mic-btn {{isRecording ? 'mic-recording' : ''}}"
           bindtap="handleToggleRecording"
         >
-          <text wx:if="{{isRecording}}" class="mic-stop-icon">⬛</text>
+          <text wx:if="{{isRecording}}" class="mic-stop-icon">⏹</text>
           <text wx:else class="mic-icon">🎙</text>
         </view>
       </view>

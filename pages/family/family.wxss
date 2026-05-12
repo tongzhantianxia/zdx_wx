@@ -46,9 +46,9 @@
 }
 
 .header-title {
-  font-size: 34rpx;
+  font-size: 36rpx;
   font-weight: 700;
-  color: #8d7c62;
+  color: #362f2d;
 }
 
 .header-placeholder {
@@ -90,8 +90,8 @@
 }
 
 .member-item {
-  padding: 24rpx 0;
-  border-radius: 16rpx;
+  padding: 20rpx 0;
+  border-radius: 24rpx;
   text-align: center;
   font-size: 28rpx;
   font-weight: 500;
@@ -108,10 +108,8 @@
   font-weight: 700;
 }
 
-.divider {
-  height: 2rpx;
-  background-color: #e8e1cf;
-  margin: 32rpx 0;
+.card-section + .card-section {
+  margin-top: 48rpx;
 }
 
 /* Experience Tags */
@@ -122,14 +120,14 @@
 }
 
 .exp-tag {
-  padding: 16rpx 28rpx;
-  border-radius: 999rpx;
-  font-size: 26rpx;
+  padding: 16rpx 24rpx;
+  border-radius: 16rpx;
+  font-size: 28rpx;
   font-weight: 500;
   color: #7a7267;
   background-color: #f4f0e6;
   border: 2rpx solid #e8e1cf;
-  transition: all 0.2s;
+  transition: all 0.15s;
 }
 
 .exp-tag.selected {

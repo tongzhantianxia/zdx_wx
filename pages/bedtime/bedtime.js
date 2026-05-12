@@ -42,6 +42,16 @@ Page({
       topicIndex: randomIndex,
       selectedTopic: TOPICS[randomIndex]
     })
+
+  },
+
+  onUnload() {
+    if (this.data.isRecording) {
+      wx.stopSpeechRecognition()
+    }
+    wx.offSpeechRecognitionResult()
+    wx.offSpeechRecognitionEnd()
+    wx.offSpeechRecognitionError()
   },
 
   handleBack() {
@@ -74,17 +84,75 @@ Page({
 
   handleToggleRecording() {
     if (this.data.isRecording) {
-      this.setData({ isRecording: false })
-      wx.showToast({ title: '录音已停止', icon: 'none' })
-    } else {
-      this.setData({ isRecording: true })
-      wx.showToast({ title: '录音功能仅供展示', icon: 'none' })
-      setTimeout(() => {
-        if (this.data.isRecording) {
+      wx.stopSpeechRecognition({
+        success: () => {
           this.setData({ isRecording: false })
         }
-      }, 5000)
+      })
+      return
     }
+
+    wx.authorize({
+      scope: 'scope.record',
+      success: () => {
+        this.startRecognition()
+      },
+      fail: () => {
+        wx.showModal({
+          title: '需要录音权限',
+          content: '请在设置中允许录音权限，才能使用语音输入',
+          confirmText: '去设置',
+          success: (res) => {
+            if (res.confirm) wx.openSetting()
+          }
+        })
+      }
+    })
+  },
+
+  startRecognition() {
+    let finalText = this.data.memory || ''
+
+    wx.onSpeechRecognitionResult((res) => {
+      if (res.result) {
+        this.setData({ memory: finalText + res.result })
+      }
+      if (res.isFinal) {
+        finalText = this.data.memory
+      }
+    })
+
+    wx.onSpeechRecognitionEnd(() => {
+      this.setData({ isRecording: false })
+      wx.offSpeechRecognitionResult()
+      wx.offSpeechRecognitionEnd()
+      wx.offSpeechRecognitionError()
+    })
+
+    wx.onSpeechRecognitionError((err) => {
+      console.error('语音识别错误:', err)
+      this.setData({ isRecording: false })
+      wx.offSpeechRecognitionResult()
+      wx.offSpeechRecognitionEnd()
+      wx.offSpeechRecognitionError()
+      if (err.errCode === 10002) {
+        wx.showToast({ title: '未检测到语音', icon: 'none' })
+      } else {
+        wx.showToast({ title: '语音识别出错', icon: 'none' })
+      }
+    })
+
+    wx.startSpeechRecognition({
+      lang: 'zh_CN',
+      duration: 30,
+      success: () => {
+        this.setData({ isRecording: true })
+      },
+      fail: (err) => {
+        console.error('启动语音识别失败:', err)
+        wx.showToast({ title: '语音识别不可用', icon: 'none' })
+      }
+    })
   },
 
   handleGenerate() {
